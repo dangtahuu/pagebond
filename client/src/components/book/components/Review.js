@@ -33,8 +33,6 @@ const Review = ({
 
     // get posts
     useEffect(() => {
-        console.log('here are reviews')
-        console.log(posts.length)
         if (token) {
             getAllPosts();
         }

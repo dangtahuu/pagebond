@@ -287,9 +287,9 @@ const Post = ({
             )}
           </div>
 
-          <div className="text-[10px] dark:text-[#B0B3B8] flex items-center gap-x-1 ">
+          {/* <div className="text-[10px] dark:text-[#B0B3B8] flex items-center gap-x-1 ">
             {moment(post.createdAt).fromNow()}
-          </div>
+          </div> */}
         </div>
         {/* Edit or delete posts */}
         {(userId === post.postedBy._id || userRole === "Admin") && (

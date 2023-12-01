@@ -10,11 +10,12 @@ dotenv.config();
 // Middle
 import errorHandlerMiddleware from "./middleware/error-handler.js";
 import notFound from "./middleware/not-found.js";
-
+// import {Configuration, OpenAIApi} from'openai';
 import auth from "./routes/auth.js";
 import post from "./routes/post.js";
 import message from "./routes/message.js";
 import shelf from "./routes/shelf.js";
+import book from "./routes/book.js";
 
 import requireSignIn from "./middleware/authentication.js";
 import * as http from "http";
@@ -30,9 +31,6 @@ const io = new Server(server, {
         origin: [
             process.env.CLIENT_HOST,
             "http://localhost:3000",
-            // "https://frost-social.vercel.app",
-            // "https://frost-social-4f5kdlt7u-noothelee.vercel.app",
-            // "https://frost-social-git-main-noothelee.vercel.app/",
         ],
         methods: ["GET", "POST", "PUT", "PATCH"],
         allowedHeaders: ["Content-type"],
@@ -55,6 +53,12 @@ app.use(
     })
 );
 
+// const config = new Configuration({
+//     apiKey: process.env.API_TOKEN
+// });
+
+// const openai = new OpenAIApi(config);
+
 // @ts-ignore
 app.use("/api/auth", auth);
 // @ts-ignore
@@ -63,6 +67,9 @@ app.use("/api/post", requireSignIn, post);
 app.use("/api/message", requireSignIn, message);
 
 app.use("/api/shelf", requireSignIn, shelf);
+
+app.use("/api/book", book);
+
 
 
 // @ts-ignore
@@ -77,14 +84,14 @@ app.use("/", (req, res) => {
 // });
 
 io.on("connect", (socket) => {
-    socket.on("new-post", (newPost) => {
-        console.log("new-post", newPost);
-        socket.broadcast.emit("new-post", newPost);
-    });
-    socket.on("new-comment", (newComment) => {
-        //console.log("new-post", newPost);
-        socket.broadcast.emit("new-comment", newComment);
-    });
+    // socket.on("new-post", (newPost) => {
+    //     console.log("new-post", newPost);
+    //     socket.broadcast.emit("new-post", newPost);
+    // });
+    // socket.on("new-comment", (newComment) => {
+    //     //console.log("new-post", newPost);
+    //     socket.broadcast.emit("new-comment", newComment);
+    // });
     socket.on("new-message", (newMessage) => {
         socket.broadcast.emit("new-message", newMessage);
     });

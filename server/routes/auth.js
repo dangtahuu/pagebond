@@ -45,7 +45,9 @@ router.route("/user-follower/:id").get(requireSignIn, listUserFollower);
 
 router.route("/find-people").get(requireSignIn, findPeople);
 
-router.route("/search-user/:query").get(requireSignIn, searchUser);
+router.route("/search-user").get(
+    // requireSignIn, 
+    searchUser);
 
 router.route("/user-follow").put(requireSignIn, addFollower, userFollower);
 

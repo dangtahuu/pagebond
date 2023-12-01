@@ -70,7 +70,7 @@ function BookDetail() {
         bookInfo.volumeInfo.description || "No description available",
       pageCount: bookInfo.volumeInfo.pageCount || "N/a",
       thumbnail:
-        bookInfo.volumeInfo.imageLinks.medium ||
+        bookInfo.volumeInfo.imageLinks.thumbnail ||
         "https://d827xgdhgqbnd.cloudfront.net/wp-content/uploads/2016/04/09121712/book-cover-placeholder.png",
       preview: bookInfo.previewLink || "",
     });
@@ -83,7 +83,7 @@ function BookDetail() {
   const getNewReviews = async () => {
     setReviewLoading(true);
     try {
-      const { data } = await autoFetch.get(`/api/post/book-reviews/${id}?page=${reviewPage + 1}&perPage=5`);
+      const { data } = await autoFetch.get(`/api/post/book-reviews/${id}?page=${reviewPage + 1}`);
       setReviewPage(reviewPage + 1);
       setReviews([...reviews, ...data.posts]);
     } catch (error) {
@@ -97,7 +97,7 @@ function BookDetail() {
   const getFirstReviews = async () => {
     setReviewLoading(true);
     try {
-      const { data } = await autoFetch.get(`/api/post/book-reviews/${id}?page=1&perPage=5`);
+      const { data } = await autoFetch.get(`/api/post/book-reviews/${id}?page=1`);
       if (data.posts) setReviews(data.posts);
       setRating(data.result)
       setNumberofRating(data.postsCount)

@@ -374,18 +374,31 @@ const listUserFollower = async (req, res) => {
 };
 
 const searchUser = async (req, res) => {
-    const { query } = req.params;
-    if (!query) return;
+    const term = req.query.term;
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 20;
+
+    if (!term.length) {
+        return res.status(400).json({ msg: "Search term is required!" });
+      }
+
     try {
-        const search = await User.find({
-            $or: [{ name: { $regex: query, $options: "i" } }],
+        const users = await User.find({
+            $or: [{ name: { $regex: term, $options: "i" } }],
         }).select(
             "-password -secret -email -following -follower -createdAt -updatedAt"
-        );
-        return res.status(200).json({ msg: "ok", search });
+        )
+        .limit(perPage)
+        .skip((page - 1) * perPage)
+
+        if (!users) {
+            return res.status(400).json({ msg: "No result found!" });
+          }
+  
+        return res.status(200).json({ users, perPage });
     } catch (error) {
         console.log(error);
-        return res.status(400).json({ msg: "Something went wrong. Try again!" });
+        return res.status(400).json({ msg: error });
     }
 };
 

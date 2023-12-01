@@ -35,6 +35,7 @@ import BookDetail from "./book/BookDetail";
 import ModalShelves from "./common/ModalShelves";
 import ModalShelf from "./common/ModalShelf";
 // function
+import Search from "./search/Search";
 
 export {
   Nav,
@@ -64,5 +65,6 @@ export {
   Browse,
   Admin,
   PostDetail,
-  BookDetail
+  BookDetail,
+  Search
 };

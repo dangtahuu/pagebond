@@ -8,6 +8,7 @@ import {AiOutlineCloseCircle} from "react-icons/ai";
 import {TiTick} from "react-icons/ti";
 import {AiOutlineHeart} from "react-icons/ai";
 import {BsFillReplyFill} from "react-icons/bs";
+import ReactMarkdown from 'react-markdown';
 
 const MainChat = ({
     state,
@@ -66,7 +67,9 @@ const MainChat = ({
                                             ? "dark:bg-[#006064] bg-[#1d4ed8] "
                                             : "dark:bg-[#3E4042] bg-white box-shadow text-black "
                                     }  px-3 py-2 ml-1 dark:text-white`}>
-                                    {c.text}
+                                    {/* <div>{c.text}</div> */}
+                                    {/* <div dangerouslySetInnerHTML={{ __html: c.text }} /> */}
+                                    <ReactMarkdown>{c.text.replace(/\[\^\d+\^\]/g, '')}</ReactMarkdown>
                                     {c.image?.url && (
                                         <img
                                             src={c.image?.url}

@@ -138,7 +138,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                         Chats
                     </h2>
                     {/* btn add new message */}
-                    {state.isNewMessage ? (
+                    {/* {state.isNewMessage ? (
                         <Tooltip title='Close' placement='top'>
                             <div>
                                 <AiOutlineCloseSquare
@@ -184,7 +184,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                 />
                             </div>
                         </Tooltip>
-                    )}
+                    )} */}
                 </div>
 
                 <div className='flex items-center transition-50 my-1 pr-2 '>

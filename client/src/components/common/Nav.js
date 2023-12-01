@@ -4,17 +4,18 @@ import { NavLink } from "react-router-dom";
 // icon
 import { BsCollectionFill } from "react-icons/bs";
 import { AiFillHome } from "react-icons/ai";
-import { SiMessenger } from "react-icons/si";
-import { MdAdminPanelSettings } from "react-icons/md";
+import { SiMessenger , } from "react-icons/si";
+import { MdAdminPanelSettings} from "react-icons/md";
 import { BsPersonCircle, BsPersonPlusFill } from "react-icons/bs";
+import { IoIosSearch } from "react-icons/io";
+import { FaSearch } from "react-icons/fa";
+import { RiSearchFill } from "react-icons/ri";
+import { RiFileSearchFill } from "react-icons/ri";
 
 // components
 import { useAppContext } from "../../context/useContext.js";
 import { Dropdown} from "../";
 
-// hocks
-
-// import SearchBook from "./SearchBook.js";
 
 const Nav = () => {
   const { user } = useAppContext();
@@ -22,40 +23,34 @@ const Nav = () => {
   const menuListLogged = useMemo(() => {
     const list = [
       {
-        text: "#c96c88",
-        hover: "#c24269",
-        bgAfter: "#c24269",
         link: "/",
         icon: <AiFillHome />,
         className: "dashboard",
       },
       {
-        text: "#26A69A",
-        hover: "#00897B",
-        bgAfter: "#26A69A",
+        link: "/search",
+        icon: <RiFileSearchFill className="text-[22px] " />,
+        className: "search",
+      },
+      {
         link: "/messenger",
         icon: <SiMessenger className="text-[22px] " />,
         className: "messenger",
       },
+     
       {
-        text: "#26A69A",
-        hover: "#00897B",
-        bgAfter: "#26A69A",
         link: "/browse",
         icon: <BsCollectionFill className="text-[22px] " />,
         className: "browse",
       },
     ];
-    if (user.role === "Admin") {
-      list.push({
-        text: "#607D8B",
-        hover: "#455A64",
-        bgAfter: "#FFDD83",
-        link: "/admin",
-        icon: <MdAdminPanelSettings className="text-[28px] " />,
-        className: "admin",
-      });
-    }
+    // if (user.role === "Admin") {
+    //   list.push({
+    //     link: "/admin",
+    //     icon: <MdAdminPanelSettings className="text-[28px] " />,
+    //     className: "admin",
+    //   });
+    // }
     return list;
   }, [user.role]);
 
@@ -64,7 +59,7 @@ const Nav = () => {
       <div className={`w-full "px-[10%]"  `} key={"navlink" + v.link}>
         <NavLink
           to={v.link}
-          className={`relative rounded-lg ${v.className} bg-inherit py-2 md:py-2.5 my-1 mx-1 shrink-1 w-full flex 
+          className={`relative rounded-lg dashboard bg-inherit py-2 md:py-2.5 my-1 mx-1 shrink-1 w-full flex 
                     justify-center hover:bg-[#EBEDF0] text-[25px] transition-20 
                     before:rounded-lg dark:bg-inherit before:opacity-0 dark:text-[#B8BBBF] dark:hover:bg-[#3A3B3C] dark:hover:text-[#d2d5d7] `}
           role="button"
@@ -93,7 +88,7 @@ const Nav = () => {
                 className="hidden min-[1326px]:block text-lg crimson-600"
                 style={{ lineHeight: "1.25rem" }}
               >
-                Bookworms
+                Pagebond
               </div>
             </div>
           </NavLink>
@@ -140,9 +135,9 @@ const Nav = () => {
       >
         <div className="flex items-center">
           {user && (
-            <div className="text-xs md:text-sm border pl-3 md:pr-5 py-[5px] rounded-l-full translate-x-[16px] bg-[#2C74B3] text-white dark:bg-[#3A3A3A] dark:border-white/30 hidden md:flex ">
-              {user.name}
-            </div>
+            // <div className="text-xs md:text-sm border pl-3 md:pr-5 py-[5px] rounded-l-full translate-x-[16px] bg-[#2C74B3] text-white dark:bg-[#3A3A3A] dark:border-white/30 hidden md:flex ">
+             <div className="md:pr-5">{user.name}</div> 
+            // </div>
           )}
           <Dropdown />
         </div>

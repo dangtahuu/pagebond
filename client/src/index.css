@@ -36,10 +36,13 @@
         border-radius: 0px !important;
     }
     .dashboard {
-        @apply text-[#2C74B3] hover:text-[#144272];
+        @apply text-[#B0926A] hover:text-[#706233];
     }
     .messenger {
         @apply text-[#FF5F9E] hover:text-[#E90064];
+    }
+    .search {
+        @apply text-[#79AC78] hover:text-[#618264];
     }
     .admin {
         @apply text-[#82CD47] hover:text-[#54B435];
@@ -49,7 +52,12 @@
     }
     .dashboard.active::after {
         @apply content-[''] 
-        absolute h-[3px] w-[70%] left-[15%] bg-[#0A2647] opacity-100
+        absolute h-[3px] w-[70%] left-[15%] bg-[#B0926A] opacity-100
+        bottom-0  
+    }
+    .search.active::after {
+        @apply content-[''] 
+        absolute h-[3px] w-[70%] left-[15%] bg-[#B3005E] opacity-100
         bottom-0  
     }
     .messenger.active::after {
@@ -114,13 +122,13 @@
         @apply overflow-hidden;
     }
     .li-profile {
-        @apply py-4 dark:hover:bg-[#3A3B3C] rounded-lg cursor-pointer w-full text-center transition-20 relative font-semibold text-[15px] dark:text-[#b0b3b8] hover:bg-[#F2F2F2];
+        @apply py-4 rounded-lg cursor-pointer w-full text-center transition-20 relative font-semibold text-[15px] hover:bg-[#F2F2F2];
     }
     .li-profile.active::after {
-        @apply content-[''] absolute w-[80%] bottom-[-3px] left-[10%] h-[3px] bg-[#2e89ff];
+        @apply content-[''] absolute w-[80%] bottom-[-3px] left-[10%] h-[3px] bg-[#B0926A];
     }
     .li-profile.active {
-        @apply text-[#2e89ff] hover:bg-inherit;
+        @apply text-[#B0926A] hover:bg-inherit;
     }
 
     .btn-home {

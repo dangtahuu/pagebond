@@ -318,6 +318,7 @@ const initState = {
 
     const handleSendMess = async (receivedId) => {
         setLoading(true);
+        console.log('aaaaaaaaaaaaaaaaaa')
         try {
             let dt;
             const {text} = state;
@@ -330,23 +331,27 @@ const initState = {
                     return;
                 }
             }
-            if ((!receivedId && state.isNewMessage) || state.isGroup) {
-                let listId = [];
-                state.listResultByPeopleSearch.forEach((v) => {
-                    listId.push(v._id);
-                });
+            console.log('aaaaaaaaa')
+
+            // if ((!receivedId && state.isNewMessage) || state.isGroup) {
+            //     let listId = [];
+            //     state.listResultByPeopleSearch.forEach((v) => {
+            //         listId.push(v._id);
+            //     });
+            //     dt = await autoFetch.put("/api/message/send-message", {
+            //         text,
+            //         receivedId: receivedId,
+            //         image: imageUrl,
+            //     });
+            // } else {
                 dt = await autoFetch.put("/api/message/send-message", {
                     text,
-                    receivedId: listId,
+                    receivedId: receivedId,
                     image: imageUrl,
                 });
-            } else {
-                dt = await autoFetch.put("/api/message/send-message", {
-                    text,
-                    receivedId: [receivedId],
-                    image: imageUrl,
-                });
-            }
+            // }
+            console.log('111111111')
+
             let id = "";
             let newSourceData = state.sourceMessage.filter((d) => {
                 if (d._id === dt.data.message._id) {
@@ -360,13 +365,14 @@ const initState = {
                 ? newSourceData
                 : [dt.data.message, ...state.sourceMessage];
 
-            if (!state.isGroup && !state.isNewMessage) {
-                setOneState("listPeopleToNewMessage", []);
-                setOneState("listResultByPeopleSearch", []);
-            }
-            if (!id) {
-                id = dt.data.message._id;
-            }
+            // if(dt.data.ai_res) mainData = []
+            // if (!state.isGroup && !state.isNewMessage) {
+            //     setOneState("listPeopleToNewMessage", []);
+            //     setOneState("listResultByPeopleSearch", []);
+            // }
+            // if (!id) {
+            //     id = dt.data.message._id;
+            // }
 
             // @ts-ignore
             dispatch({
@@ -378,7 +384,11 @@ const initState = {
                 },
             });
             setImage(initImage);
-            socket.emit("new-message", dt.data.message);
+            console.log('bbbbbbbbbb')
+            if(!dt.data.ai_res) socket.emit("new-message", dt.data.message);
+            // console.log(dt.data.ai_res)
+            // if(dt.data.ai_res) socket.emit("new-message", dt.data.ai_res);
+
         } catch (error) {
             console.log(error);
             if (error.response && error.response.data.msg) {

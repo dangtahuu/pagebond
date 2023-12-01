@@ -207,13 +207,13 @@ const Suggestion = ({
             // @ts-ignore
             ref={searchRef}
           >
-            <input
+            {/* <input
               type="text"
               className="text-sm border-none bg-inherit w-full focus:ring-0 focus:border-0 pl-0 font-medium dark:placeholder:text-[#b1b2b5] dark:text-[#cecfd2] "
               placeholder="Search user"
               value={text}
               onChange={(e) => setText(e.target.value)}
-            />
+            /> */}
 
             <div className="scroll-bar absolute max-h-[300px] rounded-[7px] w-[250px] overflow-y-auto overflow-x-hidden top-[60px] translate-x-[-10px] ">
               {(isEmpty || listSearchResult.length > 0) && (

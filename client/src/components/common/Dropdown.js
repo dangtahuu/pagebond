@@ -113,7 +113,7 @@ export default function Dropdown() {
                     <img
                         src={user?.image?.url}
                         alt='avatar'
-                        className='rounded-full w-full h-full object-cover bg-[#3F51B5] pl-[3px] pt- p-[2px] dark:bg-slate-300 shrink-0 '
+                        className='rounded-full w-full h-full object-cover bg-[#B0926A] pl-[3px] pt- p-[2px] dark:bg-slate-300 shrink-0 '
                     />
                 ) : (
                     <AiOutlineMenu className='text-20px ' />
