@@ -6,7 +6,7 @@ import Review from "./components/Review";
 import MyPost from "./components/MyPost";
 import { FiEdit2 } from "react-icons/fi";
 import ModalShelves from "../common/ModalShelves";
-
+import { Tooltip } from "@mui/material";
 function BookDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -246,9 +246,9 @@ function BookDetail() {
   };
   return (
     <div
-      className={`md:flex fixed w-screen h-screen bg-[#F0F2F5] dark:bg-black dark:text-white pt-[65px] px-[3%] sm:px-[5%] md:px-[10%]`}
+      className={`md:flex w-screen min-h-screen bg-white pt-[65px] px-[3%] sm:px-[5%]`}
     >
-      <div className="w-full h-[90%] mt-[3%] pt-3 bg-white  rounded-lg md:grid grid-cols-7 items-start justify-center space-x-8 py-16 px-4 overflow-y-auto">
+      <div className="w-full mt-[3%] pt-3 bg-white md:grid grid-cols-10 items-start justify-center space-x-8 py-16 px-4">
         <div className="col-span-2 md:pr-8">
           <img
             className="w-full object-contain mb-6 md:mb-0"
@@ -276,7 +276,10 @@ function BookDetail() {
         </div>
 
         <div className="col-span-5">
-          <h1 className="text-3xl font-bold">{book.title}</h1>
+        <Tooltip title="Delete">
+        <h1 className="text-3xl font-bold">{book.title}</h1>
+
+</Tooltip>
           <h2 className="text-xl font-semibold">{book.author}</h2>
 
           <div className="flex items-center">

@@ -8,6 +8,7 @@ import FormCreatePost from "./common/FormCreatePost";
 import ItemsList from "./common/ItemsList";
 import GroupAvatars from "./common/GroupAvatars";
 import Table from "./common/table/Table";
+import ReviewForm from "./common/ReviewForm";
 
 // loading component
 import LoadingPost from "./loading/Loading.Post";
@@ -66,5 +67,6 @@ export {
   Admin,
   PostDetail,
   BookDetail,
-  Search
+  Search,
+  ReviewForm
 };

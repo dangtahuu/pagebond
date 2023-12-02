@@ -24,4 +24,25 @@ const searchBook = async (req, res) => {
     }
   };
 
-  export {searchBook}
+
+  const getBook = async (req, res) => {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ msg: "Book Id is required!" });
+    }
+    
+    try {
+        const result = await Book.findById(id)
+
+        if (!result) {
+          return res.status(400).json({ msg: "No book found!" });
+        }
+
+      return res.status(200).json({ book: result });
+    } catch (err) {
+      console.log(err);
+      return res.status(400).json({ msg: err });
+    }
+  };
+
+  export {searchBook, getBook}

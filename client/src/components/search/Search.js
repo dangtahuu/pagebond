@@ -25,7 +25,7 @@ function Search() {
   const [hasSearched, setHasSearched] = useState(false);
   const list = ["Books", "Users"];
   const [menu, setMenu] = useState("Books");
-  const [googleBooksResults, setGoogleBooksResults] = useState([]);
+  const [term, setTerm] = useState("")
 
   const handleSearch = async () => {
     setBookPage(0);
@@ -33,7 +33,7 @@ function Search() {
     setGoogleMode(false);
     setBookLoading(true);
     setUserLoading(true);
-
+    setTerm(text)
     try {
       const [{ data: booksData }, { data: usersData }] = await Promise.all([
         autoFetch.get(`/api/book/search-book/?term=${text}`),
@@ -57,6 +57,7 @@ function Search() {
       setBookLoading(false);
       setUserLoading(false);
       setHasSearched(true);
+      setText("")
     }
   };
 
@@ -64,7 +65,7 @@ function Search() {
     setBookLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/book/search-book/?term=${text}&page=${bookPage + 1}`
+        `/api/book/search-book/?term=${term}&page=${bookPage + 1}`
       );
       if (data.books.length < data.perPage) {
         setHasMoreBooksData(false);
@@ -85,7 +86,7 @@ function Search() {
     setUserLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/auth/search-user/?term=${text}&page=${userPage + 1}`
+        `/api/auth/search-user/?term=${term}&page=${userPage + 1}`
       );
       if (data.users.length < data.perPage) {
         setHasMoreUsersData(false);
@@ -111,21 +112,12 @@ function Search() {
       // );
       // const results = response.data.items || [];
       const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${text}`
+        `https://www.googleapis.com/books/v1/volumes?q=${term}`
       );
       const res = await response.json()
-      console.log(res.items.length)
-      const results = res.items || [];
-      const itemsToMove = results.slice(0, 20);
-      results.splice(0, 20);
-      setGoogleBooksResults(results);
       // Add the items to array_2
-      setBookResults(itemsToMove);
-      if (results.length === 0) {
-        setHasMoreBooksData(false);
-      } else {
-        setHasMoreBooksData(true);
-      }
+      setBookResults(res.items);
+    
     } catch (e) {
       console.log(e);
     } finally {
@@ -133,17 +125,6 @@ function Search() {
     }
   };
 
-  const loadMoreGoogleBooks = async () => {
-    // const results = response.data;
-    const itemsToMove = googleBooksResults.slice(0, 20);
-    setGoogleBooksResults((prev) => prev.splice(0, 20));
-    setBookResults((prev) => [...prev, ...itemsToMove]);
-    if (googleBooksResults.length === 0) {
-      setHasMoreBooksData(false);
-    } else {
-      setHasMoreBooksData(true);
-    }
-  };
 
   const blankBookScreen = () => {
     return (
@@ -156,9 +137,10 @@ function Search() {
         {hasSearched && (
           <div class="w-[35%] m-auto block mt-10 text-center">
             Sorry we didn't find anything
-            <div class="mt-3" onClick={handleGoogleSearch}>
+            {!googleMode &&  <div class="mt-3 font-bold cursor-pointer" onClick={handleGoogleSearch}>
               Try searching with Google Books?
-            </div>
+            </div>}
+           
           </div>
         )}
       </>
@@ -174,8 +156,8 @@ function Search() {
           alt=""
         />
         {hasSearched && (
-          <div class="w-[35%] m-auto block mt-10 text-center">
-            Sorry we didn't find anything
+          <div class="w-full m-auto block mt-10 text-center">
+            Sorry we didn't find anything with the keyword "{term}"
           </div>
         )}
       </>
@@ -188,6 +170,7 @@ function Search() {
         return (
           <>
             <div>
+              <div className="font-bold text-xl mb-3">Showing book results for "{term}"</div>
               {bookResults.map((a) => {
                 return (
                   // @ts-ignore
@@ -243,6 +226,8 @@ function Search() {
       return (
         <>
           <div>
+          <div className="font-bold text-xl mb-3">Showing Google Books results for "{term}"</div>
+
             {bookResults.map((a) => {
               return (
                 // @ts-ignore
@@ -278,16 +263,7 @@ function Search() {
               );
             })}
 
-            {hasMoreBooksData &&
-              (
-                <button
-                  // type="submit"
-                  class="text-white block m-auto w-[140px] bg-[#B0926A] hover:bg-[#706233] focus:outline-none font-medium rounded-full text-sm px-4 py-2"
-                  onClick={loadMoreGoogleBooks}
-                >
-                  Load more
-                </button>
-              )}
+           
           </div>
         </>
       );
@@ -297,6 +273,8 @@ function Search() {
       if (userResults.length !== 0)
         return (
           <div>
+              <div className="font-bold text-xl mb-3">Showing user results for "{term}"</div>
+
             {userResults.map((a) => {
               return (
                 // @ts-ignore
@@ -349,7 +327,7 @@ function Search() {
   };
   return (
     <div
-      className={`md:flex w-screen bg-[#f9f7f4] dark:bg-black dark:text-white pt-[65px] px-[3%] sm:px-[5%] md:px-[10%]`}
+      className={`md:flex w-screen bg-white min-h-screen dark:bg-black dark:text-white pt-[65px] px-[3%] sm:px-[5%] md:px-[10%]`}
     >
       {/* <div className="w-full h-[90%] mt-[3%] pt-3 bg-white  rounded-lg items-start justify-center py-16 px-4 overflow-y-auto"> */}
       <div className="w-full mt-[3%] pt-3 items-start justify-center py-16 px-4">
@@ -372,15 +350,15 @@ function Search() {
             </svg>
           </div>
           <input
-            type="text"
+            // type="text"
             id="default-search"
-            class="block w-full p-4 pl-12 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-[#706233] focus:border-[#B0926A] dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            class="block w-full p-4 pl-12 ps-10 text-sm text-gray-900  focus:ring-black rounded-full bg-gray-50 "
             placeholder="Search something"
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
           <button
-            class="text-white absolute right-4 end-2.5 bottom-2.5 bg-[#B0926A] hover:bg-[#706233] focus:outline-none font-medium rounded-full text-sm px-4 py-2"
+            class="text-white absolute right-4 end-2.5 bottom-2.5 bg-black hover:bg-gray-700 focus:outline-none font-medium rounded-full text-sm px-4 py-2"
             onClick={handleSearch}
           >
             Search

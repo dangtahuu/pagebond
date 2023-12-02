@@ -437,7 +437,7 @@ const initState = {
     }
 
     return (
-        <div className='w-screen h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden '>
+        <div className='w-screen bg-white h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden '>
             <div className='w-full h-full grid grid-cols-4 '>
                 <div className='col-span-1 '>
                     <BoxChat

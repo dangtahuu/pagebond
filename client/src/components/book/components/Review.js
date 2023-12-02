@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {toast} from "react-toastify";
-import {Modal, Post, LoadingPost, LoadingForm, FormCreatePost} from "../..";
+import {Modal, Post, LoadingPost, LoadingForm, FormCreatePost, ReviewForm} from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 const Review = ({
@@ -141,7 +141,7 @@ const Review = ({
             {form()}
 
             {openModal && (
-                <Modal
+                <ReviewForm
                     setOpenModal={setOpenModal}
                     text={text}
                     rating={rating}
