@@ -6,6 +6,9 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    title: {
+      type: String,
+    },
 
     postedBy: {
       type: mongoose.Types.ObjectId,

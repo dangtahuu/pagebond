@@ -18,6 +18,9 @@ import Comment from "./Comment";
 import { useAppContext } from "../../context/useContext";
 import Modal from "./Modal";
 import PostLoading from "../loading/Loading.Post";
+import ReviewForm from "./ReviewForm";
+// const typeOfPost = ['post','review','trade','specialPost']
+import PostForm from "./PostForm";
 
 const Post = ({
   currentPost,
@@ -39,37 +42,58 @@ const Post = ({
   const [isDelete, setIsDelete] = useState(false);
   const [imageComment, setImageComment] = useState(null);
   const [formData, setFormData] = useState(null);
-  const baseUrl = process.env.PUBLIC_URL;
 
   // open model for edit post
   const [openModal, setOpenModal] = useState(false);
 
-  //edit post
-  const [textEdit, setTextEdit] = useState(currentPost.content);
-  const type = currentPost.type;
+  // //edit post
+  // const [textEdit, setTextEdit] = useState(currentPost.content);
+  // const type = currentPost.type;
 
-  const [titleEdit, setTitleEdit] = useState(currentPost.title);
-  const [ratingEdit, setRatingEdit] = useState(currentPost.rating);
-  const [locationEdit, setLocationEdit] = useState(currentPost.location);
-  const [addressEdit, setAddressEdit] = useState(currentPost.address);
+  // const [titleEdit, setTitleEdit] = useState(currentPost.title);
+  // const [ratingEdit, setRatingEdit] = useState(currentPost.rating);
+  // const [locationEdit, setLocationEdit] = useState(currentPost.location);
+  // const [addressEdit, setAddressEdit] = useState(currentPost.address);
 
-
+  const [input, setInput] = useState({
+    title: currentPost.title || "",
+    text: currentPost.text || "",
+    rating: currentPost.rating || "",
+    content: currentPost.content || "",
+    development: currentPost.development || "",
+    pacing: currentPost.pacing || "",
+    writing: currentPost.writing || "",
+    insights: currentPost.insights || "",
+    dateRead: currentPost.dateRead || "",
+    image: currentPost.image || "",
+  });
 
   const [attachment, setAttachment] = useState(
     currentPost.image ? "photo" : ""
   );
-  const [imageEdit, setImageEdit] = useState(currentPost.image);
+  // const [imageEdit, setImageEdit] = useState(currentPost.image);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const navigate = useNavigate();
+  const [type, setType] = useState("");
 
   // open modal
   useEffect(() => {
     setOneState("openModal", openModal);
   }, [openModal]);
 
-  console.log(post)
+  useEffect(() => {
+    getType();
+  }, []);
+
   let likeCount = post.likes.length;
   let commentCount = post.comments.length;
+
+  const getType = () => {
+    if (post.rating) setType("review");
+    else if (post.address) setType("trade");
+    else if (post.type) setType("specialPost");
+    else setType("post");
+  };
 
   // set image to show in form
   const handleImage = (e) => {
@@ -115,14 +139,14 @@ const Post = ({
           setImageComment(null);
           return;
         }
+      } else {
+        const { data } = await autoFetch.put(`/api/${type}/add-comment`, {
+          postId,
+          comment: textComment,
+          image,
+        });
+        setPost({ ...post, comments: data.post.comments });
       }
-      console.log(image)
-      const { data } = await autoFetch.put("/api/post/add-comment", {
-        postId,
-        comment: textComment,
-        image,
-      });
-      setPost({ ...post, comments: data.post.comments });
       setShowComment(true);
       setTextComment("");
       setImageComment(null);
@@ -135,7 +159,7 @@ const Post = ({
   const unlike = async (postId) => {
     setLikeLoading(true);
     try {
-      const { data } = await autoFetch.put("/api/post/unlike-post", {
+      const { data } = await autoFetch.put(`/api/${type}/unlike`, {
         postId,
       });
       setPost({ ...post, likes: data.post.likes });
@@ -148,7 +172,7 @@ const Post = ({
   const like = async (postId) => {
     setLikeLoading(true);
     try {
-      const { data } = await autoFetch.put("/api/post/like-post", { postId });
+      const { data } = await autoFetch.put(`/api/${type}/like`, { postId });
       setPost({ ...post, likes: data.post.likes });
     } catch (error) {
       console.log(error);
@@ -158,7 +182,7 @@ const Post = ({
 
   const deleteComment = async (commentId) => {
     try {
-      const { data } = await autoFetch.put("/api/post/remove-comment", {
+      const { data } = await autoFetch.put(`/api/${type}/remove-comment`, {
         postId: post._id,
         commentId,
       });
@@ -171,7 +195,7 @@ const Post = ({
 
   const deletePost = async (postId) => {
     try {
-      const { data } = await autoFetch.delete(`api/post/${postId}`);
+      const { data } = await autoFetch.delete(`api/${type}/${postId}`);
       setIsDelete(true);
       toast(data.msg);
       getDeletePostId(postId);
@@ -184,7 +208,7 @@ const Post = ({
   const updatePost = async () => {
     setLoadingEdit(true);
     try {
-      let image = imageEdit;
+      let image = input.image;
       if (formData) {
         image = await handleUpImageComment();
         if (!image) {
@@ -193,23 +217,61 @@ const Post = ({
           return;
         }
       }
-      const { data } = await autoFetch.patch(`api/post/${currentPost._id}`, {
-        content: textEdit,
-        rating: ratingEdit,
-        location: locationEdit,
-        address: addressEdit,
-        title:titleEdit,
-        image,
-      });
-      // setPost(data.post);
-      setPost({ ...post, content: data.post.content, image: data.post.image, rating:data.post.rating, title:data.post.title });
-      console.log(data.post)
-      setTextEdit(data.post.content);
-      setRatingEdit(data.post.rating);
-      setTitleEdit(data.post.title);
+      let postData;
+      if (type === "post") {
+        const { data } = await autoFetch.patch(`api/post/${currentPost._id}`, {
+          text: input.text,
+          image: image,
+          title: input.title,
+        });
+        postData = data.post;
+      } else if (type === "review") {
+        const { data } = await autoFetch.patch(`api/review/${currentPost._id}`, {
+          text: input.text,
+          rating: input.rating,
+          title: input.title,
+          content: input.content,
+          development: input.development,
+          pacing: input.pacing,
+          writing: input.writing,
+          insights: input.insights,
+          dateRead: input.dateRead,
+          image: image,
+        });
+        postData = data.post;
+      }
 
-      setImageEdit(data.post.image);
-      if (data.post.image) {
+      // setPost(data.post);
+      setPost({
+        ...post,
+        text: postData.text,
+        title: postData.title || "",
+        rating: postData.rating || "",
+        content: postData.content || "",
+        development: postData.development || "",
+        pacing: postData.pacing || "",
+        writing: postData.writing || "",
+        insights: postData.insights || "",
+        dateRead: postData.dateRead || "",
+        image: postData.image || "",
+      });
+
+      setInput({
+        // ...post,
+        text: postData.text,
+        title: postData.title || "",
+        rating: postData.rating || "",
+        content: postData.content || "",
+        development: postData.development || "",
+        pacing: postData.pacing || "",
+        writing: postData.writing || "",
+        insights: postData.insights || "",
+        dateRead: postData.dateRead || "",
+        image: postData.image || "",
+      });
+
+
+      if (postData.image) {
         setAttachment("photo");
       }
       toast("Update post success!");
@@ -239,7 +301,7 @@ const Post = ({
       className={`dark:bg-[#242526] bg-white mb-5 pt-3 pb-2.5 md:pb-3 rounded-lg ${className} `}
     >
       {/* Model when in mode edit post */}
-      {openModal && (
+      {/* {openModal && (
         <Modal
           setOpenModal={setOpenModal}
           text={textEdit}
@@ -261,7 +323,40 @@ const Post = ({
           setImageEdit={setImageEdit}
           type={type}
         />
+      )} */}
+
+      {openModal && type === "post" && (
+        <PostForm
+          setOpenModal={setOpenModal}
+          input={input}
+          setInput={setInput}
+          attachment={attachment}
+          setAttachment={setAttachment}
+          isEditPost={true}
+          // imageEdit={imageEdit}
+          setFormDataEdit={setFormData}
+          handleEditPost={updatePost}
+          // setImageEdit={setImageEdit}
+          // type={type}
+        />
       )}
+
+{openModal && type === "review" && (
+        <ReviewForm
+          setOpenModal={setOpenModal}
+          input={input}
+          setInput={setInput}
+          attachment={attachment}
+          setAttachment={setAttachment}
+          isEditPost={true}
+          // imageEdit={imageEdit}
+          setFormDataEdit={setFormData}
+          handleEditPost={updatePost}
+          // setImageEdit={setImageEdit}
+          // type={type}
+        />
+      )}
+
       {/* header post */}
       <div className="flex items-center px-4">
         {/* avatar */}
@@ -270,7 +365,7 @@ const Post = ({
           alt="avatar"
           className="w-8 h-8 rounded-full object-cover cursor-pointer "
           onClick={() => {
-              navigate(`${baseUrl}/profile/${post.postedBy._id}`);
+            navigate(`/profile/${post.postedBy._id}`);
           }}
         />
         {/* name and time post */}
@@ -278,7 +373,7 @@ const Post = ({
           <div
             className="flex items-center text-sm font-bold gap-x-1 cursor-pointer "
             onClick={() => {
-                navigate(`${baseUrl}/profile/${post.postedBy._id}`);
+              navigate(`/profile/${post.postedBy._id}`);
             }}
           >
             {post.postedBy.name}
@@ -330,20 +425,23 @@ const Post = ({
           </div>
         )}
       </div>
-      {post.address && <div
-        className="content mt-3 px-4 font-bold text-gray-500 text-xs"
-       
-      >{post.address}  </div>} 
-              
-      {(post.book && !book) ? (
+      {post.address && (
+        <div className="content mt-3 px-4 font-bold text-gray-500 text-xs">
+          {post.address}{" "}
+        </div>
+      )}
+
+      {post.book && !book ? (
         <div className="flex items-center mt-2 pr-3 ml-2 md:px-3">
           {/* avatar */}
           <img
-            src={post.book.thumbnail || "https://sciendo.com/product-not-found.png"}
+            src={
+              post.book.thumbnail || "https://sciendo.com/product-not-found.png"
+            }
             alt="avatar"
             className="max-h-20 rounded-md cursor-pointer "
             onClick={() => {
-                navigate(`${baseUrl}/book/${post.book.code}`);
+              navigate(`/book/${post.book.code}`);
             }}
           />
           {/* name and time post */}
@@ -351,7 +449,7 @@ const Post = ({
             <div
               className="flex items-center font-bold text-sm gap-x-1 cursor-pointer "
               onClick={() => {
-                  navigate(`${baseUrl}/book/${post.book.code}`);
+                navigate(`/book/${post.book.code}`);
               }}
             >
               {post.book.title}
@@ -369,29 +467,25 @@ const Post = ({
             )}
           </div>
         </div>
-      ):post.rating? (
-            <div className="content mt-[11px] px-4">
-              {Array.from({ length: post.rating }, (_, index) => (
-                <span key={index}>⭐</span>
-              ))}
-            </div>
-          ):<></>
-      }
-      {post.title && <div
-        className="content mt-3 px-4 font-bold text-xl"
-       
-      >{post.title}</div>} 
- 
-     
-      
+      ) : post.rating ? (
+        <div className="content mt-[11px] px-4">
+          {Array.from({ length: post.rating }, (_, index) => (
+            <span key={index}>⭐</span>
+          ))}
+        </div>
+      ) : (
+        <></>
+      )}
+      {post.title && (
+        <div className="content mt-3 px-4 font-bold text-xl">{post.title}</div>
+      )}
+
       {/* post's text */}
       <div
         className={`content mt-[11px] px-4  ${
-          post.image || post.content.length > 60
-            ? "text-sm"
-            : "text-base "
+          post.image || post.text.length > 60 ? "text-sm" : "text-base "
         } `}
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        dangerouslySetInnerHTML={{ __html: post.text }}
       ></div>
 
       {/* when has image */}
@@ -480,7 +574,7 @@ const Post = ({
               />
             ) : (
               <>
-                 <AiOutlineHeart className="text-xl  " />
+                <AiOutlineHeart className="text-xl  " />
                 <div className="text-sm">Like</div>
               </>
             )}

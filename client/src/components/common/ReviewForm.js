@@ -11,17 +11,15 @@ import {
 import ReactLoading from "react-loading";
 import { IoClose } from "react-icons/io5";
 import Rating from "@mui/material/Rating";
-import { IoIosHelpCircle} from "react-icons/io";
-import Tooltip from '@mui/material/Tooltip';
+import { IoIosHelpCircle } from "react-icons/io";
+import Tooltip from "@mui/material/Tooltip";
 import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 
+const toolTipText = {};
+
 const ReviewForm = ({
-  text = "",
-  setText = (event) => {},
-  rating = "",
-  setRating = (event) => {},
-  title = "",
-  setTitle = (event) => {},
+  input = "",
+  setInput = (event) => {},
   setOpenModal = (event) => {},
   attachment = "",
   setAttachment = (event) => {},
@@ -36,7 +34,6 @@ const ReviewForm = ({
   const [image, setImage] = useState(imageEdit);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleImage = async (e) => {
     setLoading(true);
@@ -70,8 +67,17 @@ const ReviewForm = ({
       // @ts-ignore
       createNewPost(formData);
     }
-    setText("");
-    setTitle("");
+    setInput({
+      title: "",
+      text: "",
+      rating: "",
+      content: "",
+      development: "",
+      pacing: "",
+      writing: "",
+      insights: "",
+      dateRead: "",
+    });
     setOpenModal(false);
     setAttachment("");
     setFormData(null);
@@ -140,33 +146,28 @@ const ReviewForm = ({
     );
   };
 
-  const RatingBox = () => {
+  const RatingBox = ({ criteria }) => {
     return (
       <div className="mb-2 relative">
         <Tooltip title="aaaa" placement="top-start">
-        <div className="flex items-center text-xs text-gray-700"
-        //  onMouseLeave={() => setIsHovered(false)}
-         >
-        <label className=" mr-1">
-          Rating
-        </label>
-        <IoIosHelpCircle className="text-sm cursor-pointer" 
-         />
-
-
-  
-      
-        </div>
+          <div
+            className="flex items-center"
+            //  onMouseLeave={() => setIsHovered(false)}
+          >
+            <label className=" text-xs font-bold">
+              {criteria.charAt(0).toUpperCase() + criteria.slice(1)}
+            </label>
+            <IoIosHelpCircle className="text-lg ml-2 cursor-pointer" />
+          </div>
         </Tooltip>
-       
-       
+
         <div className="mt-1">
           <div className="flex items-center">
             <Rating
               name="simple-controlled"
-              value={rating}
+              value={input[criteria]}
               onChange={(event, newValue) => {
-                setRating(newValue);
+                setInput((prev) => ({ ...prev, [criteria]: newValue }));
               }}
             />
           </div>
@@ -197,38 +198,57 @@ const ReviewForm = ({
           </div>
 
           <div className="mt-3 grid grid-cols-3 ">
-           <RatingBox/>
-           <RatingBox/>
-           <RatingBox/>
-           
-
+            <RatingBox criteria={"content"} />
+            <RatingBox criteria={"development"} />
+            <RatingBox criteria={"pacing"} />
+            <RatingBox criteria={"writing"} />
+            <RatingBox criteria={"insights"} />
+            <RatingBox criteria={"rating"} />
           </div>
-          
-          <label className="text-xs font-bold" for="title">Give it a title</label>
+
+          <label className="text-xs font-bold" for="title">
+            Give it a title
+          </label>
           <textarea
-          id="title"
-            value={title}
+            id="title"
+            value={input.title}
             className={`font-bold h-10 mt-1 bg-inherit focus:ring-0 rounded-lg border-gray-300 focus:border-gray-600 w-full placeholder:text-[#a0a0a1] text-xs relative`}
             placeholder={`Title`}
             onChange={(e) => {
-              setTitle(e.target.value);
+              setInput((prev) => ({ ...prev, title: e.target.value }));
             }}
           />
 
-<label className="text-xs font-bold" for="text">Write your thoughts</label>
+          <label className="text-xs font-bold" for="text">
+            Write your thoughts
+          </label>
 
           <textarea
-          id="text"
-            value={text}
+            id="text"
+            value={input.text}
             className={`font-bold h-10 mt-1 bg-inherit focus:ring-0 rounded-lg border-gray-300 focus:border-gray-600 w-full placeholder:text-[#a0a0a1] h-[100px] text-xs relative`}
             placeholder={`Review`}
             onChange={(e) => {
-              setText(e.target.value);
+              setInput((prev) => ({ ...prev, text: e.target.value }));
             }}
           />
 
+<label className="text-xs font-bold" for="dateRead">
+            You read this on
+          </label>
+
+          {/* <input type="date" id="dateRead" name="datepicker"></input> */}
+          <input
+            type="date" id="dateRead" name="datepicker"
+            value={input.dateRead}
+            className={`font-bold mt-1 bg-inherit focus:ring-0 rounded-lg border-gray-300 focus:border-gray-600 w-full placeholder:text-[#a0a0a1] text-xs relative`}
+            placeholder={`Review`}
+            onChange={(e) => {
+              setInput((prev) => ({ ...prev, dateRead: e.target.value }));
+            }}
+          />
           {attachment && (
-            <div className="relative flex w-full h-[200px] p-2 rounded-md border dark:border-white/20 group ">
+            <div className="relative  flex w-full h-[200px] p-2 rounded-md border dark:border-white/20 group ">
               {uploadImage()}
             </div>
           )}
@@ -246,20 +266,23 @@ const ReviewForm = ({
             //     </div>
             //   </div>
             // </div>
-            <div className="flex items-center cursor-pointer">
-              <label className="text-xs font-bold cursor-pointer" for="">Attachment</label>
+            <div className="flex mt-2 items-center cursor-pointer">
+              <label className="text-xs font-bold cursor-pointer" for="">
+                Add attachment
+              </label>
 
- <MdOutlineAddPhotoAlternate className="text-xl ml-2" onClick={() => {
-                      setAttachment("photo");
-                    }}/>
+              <MdOutlineAddPhotoAlternate
+                className="text-xl ml-2"
+                onClick={() => {
+                  setAttachment("photo");
+                }}
+              />
             </div>
-           
-
           )}
 
           <button
             className={`bg-black w-[100px] text-white text-sm block ml-auto mr-0 py-1.5 text-center rounded-full font-bold my-3`}
-            disabled={!text || loading}
+            disabled={!input.text || loading}
             onClick={handleButton}
           >
             {isEditPost ? "Save" : "Post"}

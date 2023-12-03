@@ -16,22 +16,24 @@ import Tooltip from '@mui/material/Tooltip';
 import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 
 const PostForm = ({
-  text = "",
-  setText = (event) => {},
-  title = "",
-  setTitle = (event) => {},
+  // text = "",
+  // setText = (event) => {},
+  // title = "",
+  // setTitle = (event) => {},
+  input="",
+  setInput=(even)=>{},
   setOpenModal = (event) => {},
   attachment = "",
   setAttachment = (event) => {},
   createNewPost = () => {},
   handleEditPost = () => {},
   isEditPost = false,
-  imageEdit = null,
+  // imageEdit = null,
   setFormDataEdit = (event) => {},
-  setImageEdit = (event) => {},
+  // setImageEdit = (event) => {},
 }) => {
   const { user } = useAppContext();
-  const [image, setImage] = useState(imageEdit);
+  const [image, setImage] = useState(input.image);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
 
@@ -67,8 +69,9 @@ const PostForm = ({
       // @ts-ignore
       createNewPost(formData);
     }
-    setText("");
-    setTitle("");
+    // setText("");
+    // setTitle("");
+    setInput("")
     setOpenModal(false);
     setAttachment("");
     setFormData(null);
@@ -88,7 +91,8 @@ const PostForm = ({
             className="absolute top-1.5 right-1.5 text-[26px] text-[#8e8f91] hover:text-[#525151] dark:hover:text-[#c0bebe] transition-20 hidden group-hover:flex mb-1 z-[203] cursor-pointer "
             onClick={() => {
               setImage(null);
-              setImageEdit(null);
+              // setImageEdit(null);
+              setInput((prev)=>({...prev,image:null}))
               setFormData(null);
               setFormDataEdit(null);
             }}
@@ -164,11 +168,12 @@ const PostForm = ({
           <label className="text-xs font-bold" for="title">Give it a title</label>
           <textarea
           id="title"
-            value={title}
+            value={input.title}
             className={`font-bold h-10 mt-1 bg-inherit focus:ring-0 rounded-lg border-gray-300 focus:border-gray-600 w-full placeholder:text-[#a0a0a1] text-xs relative`}
             placeholder={`Title`}
             onChange={(e) => {
-              setTitle(e.target.value);
+              setInput((prev)=>({...prev,title:e.target.value}))
+
             }}
           />
 
@@ -176,11 +181,12 @@ const PostForm = ({
 
           <textarea
           id="text"
-            value={text}
+            value={input.text}
             className={`font-bold h-10 mt-1 bg-inherit focus:ring-0 rounded-lg border-gray-300 focus:border-gray-600 w-full placeholder:text-[#a0a0a1] h-[100px] text-xs relative`}
             placeholder={`Review`}
             onChange={(e) => {
-              setText(e.target.value);
+              setInput((prev)=>({...prev,text:e.target.value}))
+
             }}
           />
 
@@ -216,7 +222,7 @@ const PostForm = ({
 
           <button
             className={`bg-black w-[100px] text-white text-sm block ml-auto mr-0 py-1.5 text-center rounded-full font-bold my-3`}
-            disabled={!text || loading}
+            disabled={!input.text || loading}
             onClick={handleButton}
           >
             {isEditPost ? "Save" : "Post"}

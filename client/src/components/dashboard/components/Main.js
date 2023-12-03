@@ -18,6 +18,8 @@ const Main = ({
 }) => {
     const [attachment, setAttachment] = useState("");
     const [text, setText] = useState("");
+    const [title, setTitle] = useState("");
+
     const [openModal, setOpenModal] = useState(false);
     const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
 
@@ -50,8 +52,9 @@ const Main = ({
             }
 
             const {data} = await autoFetch.post(`api/post/create-post`, {
-                content: text,
+                text,
                 image,
+                title
             });
             setPosts([data.post, ...posts]);
             toast.success(data?.msg || "Create post successfully!");
@@ -132,6 +135,8 @@ const Main = ({
                     setOpenModal={setOpenModal}
                     text={text}
                     setText={setText}
+                title={title}
+setTitle={setTitle}
                     attachment={attachment}
                     setAttachment={setAttachment}
                     createNewPost={createNewPost}

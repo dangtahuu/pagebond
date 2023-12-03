@@ -21,7 +21,7 @@ const createPost = async (req, res) => {
 
   try {
     const post = await Post.create({
-      content,
+      text,
       postedBy: req.user.userId,
       image,
       title
@@ -130,11 +130,8 @@ const editPost = async (req, res) => {
       return res.status(400).json({ msg: "You need to provide some content!" });
     }
     const post = await Post.findByIdAndUpdate(postId, {
-      content,
+      text,
       image,
-      rating,
-      location,
-      address,
       title
     },  {
       new: true,
@@ -144,6 +141,7 @@ const editPost = async (req, res) => {
     }
     return res.status(200).json({ msg: "Updated posts!", post });
   } catch (error) {
+    console.log(error)
     return res.status(400).json({ msg: error });
   }
 };

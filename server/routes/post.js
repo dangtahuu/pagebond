@@ -18,7 +18,7 @@ import {
 
 } from "../controllers/post.js";
 import formidable from "express-formidable";
-import canUpdateOrDelete from "../middleware/canUpdateOrDelete.js";
+import {canUpdateOrDeletePost} from "../middleware/canUpdateOrDelete.js";
 import isAdmin from "../middleware/isAdmin.js";
 
 const router = express.Router();
@@ -44,8 +44,8 @@ router.route("/following-posts/").get(followingPosts);
 router.route("/upload-image").post(formidable(), uploadImage);
 
 // like
-router.route("/like-post").put(likePost);
-router.route("/unlike-post").put(unlikePost);
+router.route("/like").put(likePost);
+router.route("/unlike").put(unlikePost);
 
 // comment
 router.route("/add-comment").put(addComment);
@@ -63,7 +63,7 @@ router.route("/information/:postId").get(getDetailPost);
 router
     .route("/:id")
     .get(getPost)
-    .patch(canUpdateOrDelete, editPost)
-    .delete(canUpdateOrDelete, deletePost);
+    .patch(canUpdateOrDeletePost, editPost)
+    .delete(canUpdateOrDeletePost, deletePost);
 
 export default router;

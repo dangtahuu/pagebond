@@ -16,6 +16,7 @@ import post from "./routes/post.js";
 import message from "./routes/message.js";
 import shelf from "./routes/shelf.js";
 import book from "./routes/book.js";
+import review from "./routes/review.js"
 
 import requireSignIn from "./middleware/authentication.js";
 import * as http from "http";
@@ -69,6 +70,9 @@ app.use("/api/message", requireSignIn, message);
 app.use("/api/shelf", requireSignIn, shelf);
 
 app.use("/api/book", book);
+
+app.use("/api/review", requireSignIn, review);
+
 
 
 

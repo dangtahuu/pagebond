@@ -14,14 +14,28 @@ const Review = ({
     setPosts,
     getNewPosts,
     error,
-    book,
-    title,
-    author,
-    thumbnail
+    book
 }) => {
     const [attachment, setAttachment] = useState("");
-    const [text, setText] = useState("");
-    const [rating, setRating] = useState("");
+    // const [text, setText] = useState("");
+    // const [rating, setRating] = useState("");
+    // const [content, setContent] = useState("")
+    // const [development, setDevelopment] = useState("")
+    // const [pacing, setPacing] = useState("")
+    // const [writing, setWriting] = useState("")
+    // const [insights, setInsights] = useState("")
+
+    const [input, setInput] = useState({
+        title:"",
+        text: "",
+        rating:"",
+        content:"",
+        development:"",
+        pacing:"",
+        writing:"",
+        insights:"",
+        dateRead:""
+    })
 
     const [openModal, setOpenModal] = useState(false);
     const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
@@ -40,7 +54,7 @@ const Review = ({
 
     const createNewReview = async (formData) => {
         setLoadingCreateNewPost(true);
-        if (!text) {
+        if (!input.text) {
             toast.error("You must type something...");
             return;
         }
@@ -54,23 +68,31 @@ const Review = ({
                 image = {url: data.url, public_id: data.public_id};
             }
 
-            const {data} = await autoFetch.post(`api/post/create-post`, {
-                content: text,
-                rating,
+            const {data} = await autoFetch.post(`api/review/create-review`, {
+                text: input.text,
+                rating: input.rating,
                 book,
                 image,
-                title,
-                author,
-                thumbnail,
-                type:2
+                title: input.title,
+                content:input.content,
+                development:input.development,
+                pacing:input.pacing,
+                writing:input.writing,
+                insights:input.insights,
+                dateRead: input.dateRead
             });
             setPosts([data.post, ...posts]);
-            toast.success(data?.msg || "Create new post successfully!");
+            toast.success(data?.msg || "Create new review successfully!");
 
         } catch (error) {
             console.log(error);
+
+            toast.error(error.response.data.msg || "Something went wrong");
+
+        } finally{
+            setLoadingCreateNewPost(false);
+
         }
-        setLoadingCreateNewPost(false);
     };
 
     const content = () => {
@@ -100,13 +122,14 @@ const Review = ({
             );
         }
         return (
-            <InfiniteScroll
-            className="!overflow-visible"
-                dataLength={posts.length}
-                next={getNewPosts}
-                hasMore={true}
-                loader={<LoadingPost />}>
-                {posts.map((post) => (
+            // <InfiniteScroll
+            // className="!overflow-visible"
+            //     dataLength={posts.length}
+            //     next={getNewPosts}
+            //     hasMore={true}
+            //     loader={<LoadingPost />}>
+            <div>
+ {posts.map((post) => (
                     <Post
                         key={post._id}
                         currentPost={post}
@@ -117,7 +140,9 @@ const Review = ({
                         book={book}
                     />
                 ))}
-            </InfiniteScroll>
+            </div>
+               
+            // </InfiniteScroll>
         );
     };
 
@@ -130,7 +155,7 @@ const Review = ({
             <FormCreatePost
                 setAttachment={setAttachment}
                 setOpenModal={setOpenModal}
-                text={text}
+                text={input.text}
                 user={user}
             />
         );
@@ -143,15 +168,11 @@ const Review = ({
             {openModal && (
                 <ReviewForm
                     setOpenModal={setOpenModal}
-                    text={text}
-                    rating={rating}
-                    setRating={setRating}
-                    book={book}
-                    setText={setText}
+                    input = {input}
+                    setInput = {setInput}
                     attachment={attachment}
                     setAttachment={setAttachment}
                     createNewPost={createNewReview}
-                    type="2"
                 />
             )}
             {loadingCreateNewPost && <LoadingPost className='mb-4' />}

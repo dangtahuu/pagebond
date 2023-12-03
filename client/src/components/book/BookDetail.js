@@ -20,6 +20,7 @@ function BookDetail() {
   const [selectedShelvesLoading, setSelectedShelvesLoading] = useState(false);
 
   const [book, setBook] = useState({
+    id:"",
     title: "",
     author: "",
     publisher: "",
@@ -80,6 +81,7 @@ function BookDetail() {
     const book = data.book;
     // console.log(book)
     setBook({
+      id,
       title: book.title,
       author: book.author || "Unknown author",
       publisher: book.publisher || "Unknown publisher",
@@ -102,10 +104,10 @@ function BookDetail() {
     setReviewLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/post/book-reviews/${id}?page=${reviewPage + 1}`
+        `/api/review/book-reviews/${id}?page=${reviewPage + 1}`
       );
       setReviewPage(reviewPage + 1);
-      setReviews([...reviews, ...data.posts]);
+      setReviews((prev)=>[...prev, ...data.posts]);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -118,10 +120,10 @@ function BookDetail() {
     setReviewLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/post/book-reviews/${id}?page=1`
+        `/api/review/book-reviews/${id}?page=1`
       );
       if (data.posts) setReviews(data.posts);
-      setRating(data.result);
+      setRating(data.ratingAvg);
       setNumberofRating(data.postsCount);
     } catch (error) {
       console.log(error);
