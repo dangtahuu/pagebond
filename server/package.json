@@ -16,6 +16,8 @@
     "bing-chat-rnz": "^0.2.6",
     "cloudinary": "^1.29.1",
     "cors": "^2.8.5",
+    "csv-parse": "^5.5.2",
+    "csv-parser": "^3.0.0",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "express-formidable": "^1.2.0",

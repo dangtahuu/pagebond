@@ -1,7 +1,10 @@
 import Post from "./../models/post.js";
-import cloudinary from "cloudinary";
 import User from "./../models/user.js";
 import Book from "../models/book.js";
+import Review from "../models/review.js";
+import Trade from "../models/trade.js";
+import SpecialPost from "../models/specialPost.js";
+import cloudinary from "cloudinary";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -10,40 +13,20 @@ cloudinary.v2.config({
 });
 
 const createPost = async (req, res) => {
-  const { content, rating, book, image, title, author, thumbnail, location, address, type } = req.body;
+  const { text, image, title } = req.body;
 
-  if (!content.length) {
-    return res.status(400).json({ msg: "Content is required!" });
+  if (!text.length) {
+    return res.status(400).json({ msg: "You need to provide some content!" });
   }
 
-  if (type==4) {
-    return res.status(400).json({ msg: "Only admin is allowed!" });
-  }
-  
   try {
     const post = await Post.create({
       content,
       postedBy: req.user.userId,
       image,
-      rating,
-      book,
-      location, 
-      address,
-      type,
-      
+      title
     });
-    if (book) {
-      const volume = await Book.findById(book)
-      if (!volume) {
-        await Book.create({
-          _id:book,
-          author,
-          title,
-          thumbnail,
-          code:book
-        })
-      }
-    }
+  
     
     const postWithUser = await Post.findById(post._id).populate(
       "postedBy",
@@ -56,96 +39,6 @@ const createPost = async (req, res) => {
   }
 };
 
-
-const createAdminPost = async (req, res) => {
-  const { content, image, title } = req.body;
-  if (!content.length || !title.length) {
-    return res.status(400).json({ msg: "Content and title are required!" });
-  }
-  try {
-    const post = await Post.create({
-      content,
-      postedBy: req.user.userId,
-      image,
-      type:4,
-      title
-    });
-
-    const postWithUser = await Post.findById(post._id).populate(
-      "postedBy",
-      "-password -secret"
-    );
-    return res.status(200).json({ post: postWithUser,  msg: "Create new post succesfully"  });
-  } catch (err) {
-    console.log(err);
-    return res.status(400).json({ msg: err });
-  }
-};
-
-// const createReview = async (req, res) => {
-//   const { content, rating, book, image, title, author, thumbnail } = req.body;
-//   if (!content.length) {
-//     return res.status(400).json({ msg: "Content is required!" });
-//   }
-//   try {
-//     const post = await Post.create({
-//       content,
-//       postedBy: req.user.userId,
-//       image,
-//       rating,
-//       book,
-//       type: 2,
-//     });
-//     console.log(book)
-//     const volume = await Book.findById(book)
-//     if (!volume) {
-//       await Book.create({
-//         _id:book,
-//         author,
-//         title,
-//         thumbnail,
-//         code:book
-//       })
-//     }
-//     const postWithUser = await Post.findById(post._id).populate(
-//       "postedBy",
-//       "-password -secret"
-//     );
-//     return res.status(200).json({ post: postWithUser });
-//   } catch (err) {
-//     console.log(err);
-//     return res.status(400).json({ msg: err });
-//   }
-// };
-
-// const createExchange = async (req, res) => {
-//   const { content, location, book, address, image } = req.body;
-//   if (!content.length) {
-//     return res.status(400).json({ msg: "Content is required!" });
-//   }
-//   // location.type="Point"
-//   try {
-//     const post = await Post.create({
-//       content,
-//       postedBy: req.user.userId,
-//       image,
-//       location,
-//       address,
-//       book,
-//       type: 3,
-
-//     });
-
-//     const postWithUser = await Post.findById(post._id).populate(
-//       "postedBy",
-//       "-password -secret"
-//     );
-//     return res.status(200).json({ post: postWithUser });
-//   } catch (err) {
-//     console.log(err);
-//     return res.status(400).json({ msg: err });
-//   }
-// };
 
 const allPosts = async (req, res) => {
   try {
@@ -167,38 +60,15 @@ const allPosts = async (req, res) => {
   }
 };
 
-const getAdminPosts = async (req, res) => {
-  try {
-    const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 10;
-    const posts = await Post.find({type:4})
-      .populate("postedBy", "-password -secret")
-      .limit(perPage)
-      .skip((page - 1) * perPage)
-      .sort({ createdAt: -1 });
-    if (!posts) {
-      return res.status(400).json({ msg: "No posts found!" });
-    }
-    const postsCount = await Post.find({}).estimatedDocumentCount();
-    return res.status(200).json({ posts, postsCount });
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json({ msg: error });
-  }
-};
-
 const uploadImage = async (req, res) => {
   try {
     const path = req.files.image.path;
-    console.log(path);
+    // console.log(path);
     const result = await cloudinary.v2.uploader.upload(path);
     return res.status(200).json({
       url: result.url,
       public_id: result.public_id,
     });
-    // return res.status(200).json({
-    //     url: path,
-    // });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -222,7 +92,7 @@ const getPost = async (req, res) => {
 };
 
 // get all posts with user's follower
-const newsFeed = async (req, res) => {
+const followingPosts = async (req, res) => {
   try {
     const { userId } = req.user;
     const user = await User.findById(userId);
@@ -235,7 +105,7 @@ const newsFeed = async (req, res) => {
     // pagination
 
     const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 3;
+    const perPage = Number(req.query.perPage) || 10;
 
     const posts = await Post.find({ postedBy: { $in: following } })
       .skip((page - 1) * perPage)
@@ -251,89 +121,14 @@ const newsFeed = async (req, res) => {
   }
 };
 
-const getReviews = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user.userId
-    // console.log(userId)
-   
-
-    const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 3;
-
-    const posts = await Post.find({ $and:[ {book: id }, {type: 2}]})
-      .skip((page - 1) * perPage)
-      .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret")
-      .sort({ createdAt: -1 })
-      .limit(perPage);
-    if (page === 1) {
-      
-      const postsCount = await Post.countDocuments({ $and:[ {book: id }, {type: 2}, { "rating" : { $ne: null } }]});
-
-      if (postsCount > 0) {
-      let result = 0;
-        const allPosts = await Post.find({ $and:[ {book: id }, {type: 2}, { "rating" : { $ne: null } }]});
-        allPosts.forEach((post) => {
-          // if(post.rating)
-          result += post.rating;
-        });
-        result = (result / postsCount).toFixed(1);
-        console.log({ posts, postsCount, result })
-      return res.status(200).json({ posts, postsCount, result });
-      } 
-      
-    }
-    return res.status(200).json({ posts });
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json({ msg: error });
-  }
-};
-
-const getExchanges = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 3;
-
-    const posts = await Post.find({ $and:[ {book: id }, {type: 3}]})
-      .skip((page - 1) * perPage)
-      .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret")
-      .sort({ createdAt: -1 })
-      .limit(perPage);
- 
-    return res.status(200).json({ posts });
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json({ msg: error });
-  }
-};
-
-
-const getMyPosts = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user.userId
-
-    const posts = await Post.find({ $and:[ {book: id }, {postedBy: userId}]})
-      .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret")
-      .sort({ createdAt: -1 })
-  
-    return res.status(200).json({ posts });
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json({ msg: error });
-  }
-};
 
 const editPost = async (req, res) => {
   try {
     const postId = req.params.id;
-    const { content, image, rating, location, address, title } = req.body;
+    const { text, image, title } = req.body;
+    if (!text.length) {
+      return res.status(400).json({ msg: "You need to provide some content!" });
+    }
     const post = await Post.findByIdAndUpdate(postId, {
       content,
       image,
@@ -467,13 +262,12 @@ const totalPosts = async (req, res) => {
   }
 };
 
-const getPostWithUserId = async (req, res) => {
+const getPostsWithUserId = async (req, res) => {
   try {
     const userId = req.params.userId;
     const posts = await Post.find({ postedBy: { _id: userId } })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book")
       .sort({
         createdAt: -1,
       });
@@ -484,13 +278,12 @@ const getPostWithUserId = async (req, res) => {
   }
 };
 
-const getInformationPost = async (req, res) => {
+const getDetailPost = async (req, res) => {
   try {
     const postId = req.params.postId;
     const post = await Post.findById(postId)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book")
       .sort({
         createdAt: -1,
       });
@@ -501,31 +294,6 @@ const getInformationPost = async (req, res) => {
   }
 };
 
-const getNearby = async (req, res) => {
-  const { long, lat, item } = req.params
-  try {
-    
-    const results = await Post.find({ $and:[{ 'location': {
-      $nearSphere: {
-        $geometry: {
-          type: 'Point',
-          coordinates: [long, lat]
-        },
-        $maxDistance: 10000,
-      }
-    }
-    },{'postedBy':{$ne: req.user.userId}}]}
-     )
-      .populate("postedBy", "-password -secret -email -username -following -follower -role -about")
-      .populate("book")
-      .limit(item)
-    return res.status(200).json({ results });
-  } catch (error) {
-    return res.status(400).json({ msg: error });
-  }
-};
-
-
 export {
   createPost,
   allPosts,
@@ -533,18 +301,12 @@ export {
   editPost,
   getPost,
   deletePost,
-  newsFeed,
+  followingPosts,
   likePost,
   unlikePost,
   addComment,
   removeComment,
   totalPosts,
-  getPostWithUserId,
-  getInformationPost,
-  getReviews,
-  getExchanges,
-  getMyPosts,
-  getNearby,
-  createAdminPost,
-  getAdminPosts
+  getPostsWithUserId,
+  getDetailPost,
 };

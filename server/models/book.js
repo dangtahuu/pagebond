@@ -15,7 +15,26 @@ const bookSchema = new mongoose.Schema(
         },
         code: {
             type: String,
-        }
+        },
+        description: {
+            type: String,
+        },
+        genres: {
+            type: [String]
+        },
+        publisher: {
+            type: String,
+        },
+        publishedDate: {
+            type: String,
+        },
+        previewLink: {
+            type: String,
+        },
+        pageCount: {
+            type: Number,
+        },
+
     },
     {timestamps: true}
 );

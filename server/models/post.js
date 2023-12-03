@@ -2,31 +2,11 @@ import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema(
   {
-    content: {
+    text: {
       type: String,
       required: true,
     },
-    type: {
-      type: Number,
-    },
-    location: {
-      type: {
-        type: String,
-      },
-      coordinates: {
-        type: [Number],
-      },
-    },
-    address: {
-      type: String,
-    },
-    rating: {
-      type: Number,
-    },
-    book: {
-      type: mongoose.Types.ObjectId,
-      ref: "Book",
-    },
+
     postedBy: {
       type: mongoose.Types.ObjectId,
       ref: "User",
@@ -60,13 +40,8 @@ const postSchema = new mongoose.Schema(
         },
       },
     ],
-    title: {
-      type: String,
-    },
   },
   { timestamps: true }
 );
-
-postSchema.index({ location: "2dsphere" });
 
 export default mongoose.model("Post", postSchema);

@@ -37,6 +37,7 @@ import ModalShelves from "./common/ModalShelves";
 import ModalShelf from "./common/ModalShelf";
 // function
 import Search from "./search/Search";
+import PostForm from "./common/PostForm";
 
 export {
   Nav,
@@ -68,5 +69,6 @@ export {
   PostDetail,
   BookDetail,
   Search,
-  ReviewForm
+  ReviewForm,
+  PostForm
 };

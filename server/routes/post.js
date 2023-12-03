@@ -7,22 +7,15 @@ import {
     editPost,
     getPost,
     deletePost,
-    newsFeed,
+    followingPosts,
     likePost,
     unlikePost,
     addComment,
     removeComment,
     totalPosts,
-    getPostWithUserId,
-    getInformationPost,
-    getReviews,
-    getExchanges,
-    // createReview,
-    // createExchange,
-    getNearby,
-    createAdminPost,
-    getAdminPosts,
-    getMyPosts
+    getPostsWithUserId,
+    getDetailPost,
+
 } from "../controllers/post.js";
 import formidable from "express-formidable";
 import canUpdateOrDelete from "../middleware/canUpdateOrDelete.js";
@@ -36,16 +29,16 @@ router.route("/").get(async (req, res) => {
 
 router.route("/create-post").post(createPost);
 router.route("/all-posts").get(isAdmin, allPosts);
-router.route("/create-adminpost").post(isAdmin, createAdminPost);
+// router.route("/create-adminpost").post(isAdmin, createAdminPost);
 
-router.route("/news-feed/").get(newsFeed);
-router.route("/get-nearby/:long/:lat/:item").get(getNearby);
-router.route("/get-adminpost/").get(getAdminPosts);
+router.route("/following-posts/").get(followingPosts);
+// router.route("/get-nearby/:long/:lat/:item").get(getNearby);
+// router.route("/get-adminpost/").get(getAdminPosts);
 
 //book
-router.route("/book-reviews/:id").get(getReviews);
-router.route("/book-exchanges/:id").get(getExchanges);
-router.route("/book-myposts/:id").get(getMyPosts);
+// router.route("/book-reviews/:id").get(getReviews);
+// router.route("/book-exchanges/:id").get(getExchanges);
+// router.route("/book-myposts/:id").get(getMyPosts);
 
 // upload-image
 router.route("/upload-image").post(formidable(), uploadImage);
@@ -61,11 +54,11 @@ router.route("/remove-comment").put(removeComment);
 router.route("/total-posts").get(totalPosts);
 
 //admin
-router.route("/admin/delete-post/:id").delete(isAdmin, deletePost);
+// router.route("/admin/delete-post/:id").delete(isAdmin, deletePost);
 
 // get post with userID 
-router.route("/getPostWithUser/:userId").get(getPostWithUserId);
-router.route("/information/:postId").get(getInformationPost);
+router.route("/getPostWithUser/:userId").get(getPostsWithUserId);
+router.route("/information/:postId").get(getDetailPost);
 
 router
     .route("/:id")

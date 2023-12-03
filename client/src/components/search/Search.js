@@ -186,7 +186,7 @@ function Search() {
                         "https://sciendo.com/product-not-found.png"
                       }
                       alt=""
-                      onClick={() => navigate(`/book/${a.code}`)}
+                      onClick={() => navigate(`/book/${a._id}`)}
                     />
                     <div className="flex flex-col justify-between p-2 leading-normal">
                       <p

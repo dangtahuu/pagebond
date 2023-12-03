@@ -1,4 +1,5 @@
 import Book from "../models/book.js";
+import Post from "../models/post.js";
 
 const searchBook = async (req, res) => {
     const term = req.query.term;
@@ -45,4 +46,36 @@ const searchBook = async (req, res) => {
     }
   };
 
-  export {searchBook, getBook}
+  async function deleteAll(req,res) {
+    // return('aaa')
+
+  try {
+    // const a = await Book.deleteMany({})
+    const a = await Post.deleteMany({})
+
+    console.log('success')
+  } catch (e) {console.log(e)}
+
+}
+
+async function editAll(req,res) {
+  // return('aaa')
+try {
+  const allItems = await Book.find({});
+  for (const item of allItems) {
+    // console.log(item.genres)
+
+    let genres = item.genres[0].split(',');
+
+    await Book.findByIdAndUpdate(item._id, { genres });
+  }
+  // const a = await Book.deleteMany({})
+  console.log('success')
+  return res.status(200).json({ mes: "success"});
+
+} catch (e) {console.log(e)}
+return res.status(400).json({ mes: "fail"});
+
+}
+
+export {searchBook, getBook, deleteAll, editAll}

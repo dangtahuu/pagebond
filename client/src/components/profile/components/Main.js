@@ -4,7 +4,7 @@ import React, {useEffect, useState} from "react";
 import {toast} from "react-toastify";
 
 // components
-import {LoadingPost, Modal, Post, LoadingForm, FormCreatePost} from "../..";
+import {LoadingPost, Modal, Post, LoadingForm, FormCreatePost, PostForm} from "../..";
 
 const Main = ({
     autoFetch,
@@ -18,6 +18,8 @@ const Main = ({
     getDeletePostId,
 }) => {
     const [text, setText] = useState("");
+    const [title, setTitle] = useState("");
+
     const [attachment, setAttachment] = useState("");
     const [openModal, setOpenModal] = useState(false);
     const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
@@ -29,7 +31,7 @@ const Main = ({
     const createNewPost = async (formData) => {
         setLoadingCreateNewPost(true);
         if (!text) {
-            toast.error("You must type something...");
+            toast.error("You must type something!");
             return;
         }
         try {
@@ -43,8 +45,9 @@ const Main = ({
             }
 
             const {data} = await autoFetch.post(`api/post/create-post`, {
-                content: text,
+                text,
                 image,
+                title
             });
             setPosts([data.post, ...posts]);
             toast.success(data?.msg || "Create new post successfully!");
@@ -97,10 +100,12 @@ const Main = ({
     return (
         <div>
             {openModal && (
-                <Modal
+                <PostForm
                     setOpenModal={setOpenModal}
                     text={text}
                     setText={setText}
+                    title={title}
+                    setTitle={setTitle}
                     attachment={attachment}
                     setAttachment={setAttachment}
                     createNewPost={createNewPost}
