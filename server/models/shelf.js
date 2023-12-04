@@ -7,7 +7,7 @@ const shelfSchema = new mongoose.Schema(
             required: true
         },
         books: [{type: mongoose.Types.ObjectId, ref: "Book"}],
-        shelfOf: {
+        owner: {
             type: mongoose.Types.ObjectId, ref: "User", required: true
         },
         

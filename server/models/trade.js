@@ -9,13 +9,18 @@ const tradeSchema = new mongoose.Schema(
     location: {
       type: {
         type: String,
+        enum: ['Point'], 
+      required: true
       },
       coordinates: {
         type: [Number],
+        required: true
+
       },
     },
     address: {
       type: String,
+      required: true
     },
     condition: {
       type: Number,
@@ -24,6 +29,7 @@ const tradeSchema = new mongoose.Schema(
     book: {
       type: mongoose.Types.ObjectId,
       ref: "Book",
+      required: true
     },
     postedBy: {
       type: mongoose.Types.ObjectId,

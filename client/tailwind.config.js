@@ -1,3 +1,4 @@
+/** @type {import('tailwindcss').Config} */
 module.exports = {
     darkMode: "class",
     mode: "jit",
@@ -8,6 +9,16 @@ module.exports = {
                 space: "url('/images/bg.png')",
             },
         },
+        extend: {
+            colors: {
+                navBar: '#14181c',
+                mainbg: '#1c2127',
+                dialogue: '#445566',
+                smallText: '#99aabb',
+                mainText: '#ccd7ff'
+              }
+        }
+      
     },
     variants: {
         scrollbar: ["dark"],

@@ -1,35 +1,22 @@
 import express from "express";
 
-import{
-  create,
-  getAll,
-  getOne,
-  getAllWithBook,
-  getMy,
-  edit,
-  deleteOne,
-  like,
-  unlike,
-  addComment,
-  removeComment,
-  getWithUser,
-  getFollowing,
-} from "../controllers/review.js";
+import { create, getAll, getOne, getAllWithBook, getMy, edit, deleteOne ,like,unlike,addComment,removeComment,getWithUser, getNearby, following}
+ from "../controllers/trade.js";
 import formidable from "express-formidable";
-import {canUpdateOrDeleteReview} from "../middleware/canUpdateOrDelete.js";
+import {canUpdateOrDeleteTrade} from "../middleware/canUpdateOrDelete.js";
 import isAdmin from "../middleware/isAdmin.js";
 
 const router = express.Router();
 
 router.route("/").get(async (req, res) => {
-  res.json({ msg: "Review" });
+  res.json({ msg: "Trade" });
 });
 
 router.route("/create").post(create);
 router.route("/all").get(isAdmin, getAll);
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 
-router.route("/following/").get(getFollowing);
+router.route("/following/").get(following);
 // router.route("/get-nearby/:long/:lat/:item").get(getNearby);
 // router.route("/get-adminpost/").get(getAdminPosts);
 
@@ -60,7 +47,7 @@ router.route("/withUser/:userId").get(getWithUser);
 router
   .route("/:id")
   .get(getOne)
-  .patch(canUpdateOrDeleteReview, edit)
-  .delete(canUpdateOrDeleteReview, deleteOne);
+  .patch(canUpdateOrDeleteTrade, edit)
+  .delete(canUpdateOrDeleteTrade, deleteOne);
 
 export default router;

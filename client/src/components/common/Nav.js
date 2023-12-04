@@ -71,7 +71,7 @@ const Nav = () => {
   };
 
   return (
-    <div className="flex fixed top-0 w-screen bg-white shadow-md h-14 px-4 sm:px-6 md:px-12 z-[100] items-center dark:bg-[#242526] transition-50 dark:text-[#DDDFE3] border-b-[#8a8a8a] py-1 ">
+    <div className="flex fixed top-0 w-screen bg-navBar shadow-md h-14 px-4 sm:px-6 md:px-12 z-[100] items-center dark:bg-[#242526] transition-50 dark:text-[#DDDFE3] border-b-[#8a8a8a] py-1 ">
       <div
         className="flex items-center min-w-[33%] "
         style={{ flex: "1 1 auto" }}

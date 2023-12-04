@@ -1,4 +1,5 @@
 import Shelf from "../models/shelf.js";
+import User from "../models/user.js"
 
 const createShelf = async (req, res) => {
     const { name } = req.body;
@@ -122,6 +123,70 @@ const createShelf = async (req, res) => {
     }
   };
 
+  const getTopShelvesOfBook = async(req,res) => {
+    const { id } = req.params
+    try {
+      
+      const shelves = await Shelf.find({
+        books: { $in: [id] }, // Find shelves where "books" array contains the book value
+      });
+  
+      const shelfNameCount = {};
+
+      // Count occurrences of each shelf name
+      shelves.forEach(shelf => {
+        shelfNameCount[shelf.name] = (shelfNameCount[shelf.name] || 0) + 1;
+      });
+    
+      // Sort shelf names based on count in descending order
+      const sortedShelfNames = Object.keys(shelfNameCount).sort((a, b) => shelfNameCount[b] - shelfNameCount[a]);
+    
+      // Return the top n shelf names
+      // return sortedShelfNames.slice(0, 1); 
+
+      return res.status(200).json({ names: sortedShelfNames.slice(0, 1) });
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json({ msg: error });
+    }
+  };
+
+  const massAdd = async (req, res) => {
+    const listShelf = ["read",
+      "to read",
+      "challenging",
+      "dark",
+      "emotional",
+      "funny",
+      "inspiring",
+      "lighthearted",
+      "sad",
+      "mind-boggling",
+      "adventurous",
+      "introspective",
+      "charming",
+      "nostalgic",
+      "euphoric"]
+    try {
+      const users = await User.find({})
+     for(const user of users) {
+      // console.log(user)
+      for (const shelf of listShelf) {
+        const newShelf = await Shelf.create({
+          name:shelf,
+          owner: user._id,
+        });
+      }
+     }
+     
+   
+      return res.status(200).json({ msg:"New shelf created!" });
+    } catch (err) {
+      console.log(err);
+      return res.status(400).json({ msg: err });
+    }
+  };
+
   export {
     createShelf,
     bookToShelf,
@@ -129,5 +194,7 @@ const createShelf = async (req, res) => {
     getSelectedShelves,
     getShelf,
     editShelf,
-    deleteShelf
+    deleteShelf,
+    getTopShelvesOfBook,
+    massAdd
   }

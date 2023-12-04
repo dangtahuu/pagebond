@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {toast} from "react-toastify";
-import {Modal, Post, LoadingPost, LoadingForm, FormCreatePost, ReviewForm} from "../..";
+import {Modal, Post, LoadingPost, LoadingForm, FormCreatePost, ReviewForm, TradeForm} from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 
-const Review = ({
+const Trade = ({
     posts,
     loading,
     token,
@@ -15,7 +15,7 @@ const Review = ({
     getNewPosts,
     error,
     book,
-    moreReviews
+    moreTrades
 }) => {
     const [attachment, setAttachment] = useState("");
 
@@ -46,7 +46,7 @@ const Review = ({
         }
     }, [book]);
 
-    const createNewReview = async (formData) => {
+    const createNewTrade = async (formData) => {
         setLoadingCreateNewPost(true);
         if (!input.text) {
             toast.error("You must type something...");
@@ -62,21 +62,16 @@ const Review = ({
                 image = {url: data.url, public_id: data.public_id};
             }
 
-            const {data} = await autoFetch.post(`api/review/create`, {
+            const {data} = await autoFetch.post(`api/trade/create`, {
                 text: input.text,
-                rating: input.rating,
+                condition: input.condition,
+                address: input.address,
+                location: input.location,
                 book,
-                image,
-                title: input.title,
-                content:input.content,
-                development:input.development,
-                pacing:input.pacing,
-                writing:input.writing,
-                insights:input.insights,
-                dateRead: input.dateRead
+                image
             });
             setPosts([data.post, ...posts]);
-            toast.success(data?.msg || "Create new review successfully!");
+            toast.success(data?.msg || "Create new trade post successfully!");
 
         } catch (error) {
             console.log(error);
@@ -134,8 +129,8 @@ const Review = ({
                         book={book}
                     />
                 ))}
+                {moreTrades && (<div className="text-sm cursor-pointer text-smallText block w-[100px] text-center mx-auto" onClick={getNewPosts}>LOAD MORE</div>)}
 
-                {moreReviews && (<div onClick={getNewPosts}>LOAD MORE</div>)}
             </div>
                
             // </InfiniteScroll>
@@ -162,20 +157,19 @@ const Review = ({
             {form()}
 
             {openModal && (
-                <ReviewForm
+                <TradeForm
                     setOpenModal={setOpenModal}
                     input = {input}
                     setInput = {setInput}
                     attachment={attachment}
                     setAttachment={setAttachment}
-                    createNewPost={createNewReview}
+                    createNewPost={createNewTrade}
                 />
             )}
             {loadingCreateNewPost && <LoadingPost className='mb-4' />}
             {content()}
-            
         </div>
     );
 };
 
-export default Review;
+export default Trade;

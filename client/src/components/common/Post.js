@@ -21,6 +21,7 @@ import PostLoading from "../loading/Loading.Post";
 import ReviewForm from "./ReviewForm";
 // const typeOfPost = ['post','review','trade','specialPost']
 import PostForm from "./PostForm";
+import TradeForm from "./TradeForm";
 
 const Post = ({
   currentPost,
@@ -66,6 +67,9 @@ const Post = ({
     insights: currentPost.insights || "",
     dateRead: currentPost.dateRead || "",
     image: currentPost.image || "",
+    condition: currentPost.image || "",
+    address: currentPost.address || "",
+    location: currentPost.location || ""
   });
 
   const [attachment, setAttachment] = useState(
@@ -139,14 +143,13 @@ const Post = ({
           setImageComment(null);
           return;
         }
-      } else {
+      }
         const { data } = await autoFetch.put(`/api/${type}/add-comment`, {
           postId,
           comment: textComment,
           image,
         });
         setPost({ ...post, comments: data.post.comments });
-      }
       setShowComment(true);
       setTextComment("");
       setImageComment(null);
@@ -239,6 +242,15 @@ const Post = ({
           image: image,
         });
         postData = data.post;
+      } else if (type === "trade") {
+        const { data } = await autoFetch.patch(`api/trade/${currentPost._id}`, {
+          text: input.text,
+          condition: input.condition,
+          address: input.address,
+          location: input.location,
+          image
+        });
+        postData = data.post;
       }
 
       // setPost(data.post);
@@ -254,6 +266,9 @@ const Post = ({
         insights: postData.insights || "",
         dateRead: postData.dateRead || "",
         image: postData.image || "",
+        address: postData.address || "",
+        location: postData.location || "",
+        condition: postData.condition || ""
       });
 
       setInput({
@@ -268,6 +283,9 @@ const Post = ({
         insights: postData.insights || "",
         dateRead: postData.dateRead || "",
         image: postData.image || "",
+        address: postData.address || "",
+        location: postData.location || "",
+        condition: postData.condition || ""
       });
 
 
@@ -298,7 +316,7 @@ const Post = ({
 
   return (
     <div
-      className={`dark:bg-[#242526] bg-white mb-5 pt-3 pb-2.5 md:pb-3 rounded-lg ${className} `}
+      className={` mb-3 pt-3 pb-2.5  border-t-[1px] border-t-dialogue`}
     >
       {/* Model when in mode edit post */}
       {/* {openModal && (
@@ -343,6 +361,22 @@ const Post = ({
 
 {openModal && type === "review" && (
         <ReviewForm
+          setOpenModal={setOpenModal}
+          input={input}
+          setInput={setInput}
+          attachment={attachment}
+          setAttachment={setAttachment}
+          isEditPost={true}
+          // imageEdit={imageEdit}
+          setFormDataEdit={setFormData}
+          handleEditPost={updatePost}
+          // setImageEdit={setImageEdit}
+          // type={type}
+        />
+      )}
+
+{openModal && type === "trade" && (
+        <TradeForm
           setOpenModal={setOpenModal}
           input={input}
           setInput={setInput}
@@ -506,18 +540,20 @@ const Post = ({
       {(commentCount > 0 || likeCount > 0) && (
         <div className="px-4 py-[10px] flex gap-x-[6px] items-center text-[15px] ">
           {/* like quantity */}
-          {likeCount > 0 && (
+          
             <>
               {!post.likes.includes(userId) ? (
                 <>
-                  <AiOutlineHeart className="text-[18px] text-[#65676b] dark:text-[#afb0b1]" />
+                  <AiOutlineHeart onClick={() => like(post._id)}
+            disabled={likeLoading} className="cursor-pointer text-[18px] text-[#65676b] dark:text-[#afb0b1]" />
                   <span className="like-count">
                     {`${likeCount} like${likeCount > 1 ? "s" : ""}`}
                   </span>
                 </>
               ) : (
                 <>
-                  <AiFillHeart className="text-[18px] text-[#c22727] dark:text-[#c22727]" />
+                  <AiFillHeart  onClick={() => unlike(post._id)}
+            disabled={likeLoading}  className="cursor-pointer text-[18px] text-[#c22727] dark:text-[#c22727]" />
                   <span className="like-count">
                     {likeCount > 1
                       ? `You and ${likeCount - 1} other${
@@ -528,70 +564,21 @@ const Post = ({
                 </>
               )}
             </>
-          )}
           {/* comment quantity */}
-          <span className="text-[14px] ml-auto text-[#65676b] dark:text-[#afb0b1] ">
+          <span className="cursor-pointer text-[14px] ml-auto text-[#65676b] dark:text-[#afb0b1] 
+          "
+          onClick={() => {
+            setShowComment(!showComment);
+          }}
+          disabled={!commentCount}>
             {commentCount > 0 &&
               `${commentCount} ${commentCount > 1 ? "comments" : "comment"}`}
           </span>
         </div>
       )}
 
-      {/* button like and comment */}
-      <div className="mx-[12px] mt-2 py-1 flex items-center justify-between border-y dark:border-y-[#3E4042] border-y-[#CED0D4] px-[6px]  ">
-        {post.likes.includes(userId) ? (
-          <button
-            className=" py-[6px] px-2 flex items-center justify-center gap-x-1 w-full rounded-sm hover:bg-[#e0e0e0] text-[#c22727] dark:hover:bg-[#3A3B3C] font-semibold text-[15px] dark:text-[#c22727] transition-50 cursor-pointer  "
-            onClick={() => unlike(post._id)}
-            disabled={likeLoading}
-          >
-            {likeLoading ? (
-              <ReactLoading
-                type="spin"
-                width={20}
-                height={20}
-                color="#c22727"
-              />
-            ) : (
-              <>
-                <AiFillHeart className="text-xl translate-y-[1px] text-[#c22727] " />
-                Like
-              </>
-            )}
-          </button>
-        ) : (
-          <button
-            className=" py-[6px] px-2 inline-flex text-center items-center justify-center gap-x-1 w-full rounded-sm hover:bg-[#e0e0e0] text-[#6A7583] dark:hover:bg-[#3A3B3C] font-semibold text-[15px] dark:text-[#b0b3b8] transition-50 cursor-pointer "
-            onClick={() => like(post._id)}
-            disabled={likeLoading}
-          >
-            {likeLoading ? (
-              <ReactLoading
-                type="spin"
-                width={20}
-                height={20}
-                color="#6A7583"
-              />
-            ) : (
-              <>
-                <AiOutlineHeart className="text-xl  " />
-                <div className="text-sm">Like</div>
-              </>
-            )}
-          </button>
-        )}
 
-        <button
-          className="py-[6px] px-2 flex items-center justify-center gap-x-1 w-full rounded-sm hover:bg-[#e0e0e0] text-[#6A7583] dark:hover:bg-[#3A3B3C] font-semibold text-[15px] dark:text-[#b0b3b8] transition-50 cursor-pointer "
-          onClick={() => {
-            setShowComment(!showComment);
-          }}
-          disabled={!commentCount}
-        >
-          <FiMessageSquare className="text-xl  " />
-          <div className="text-sm">Comment</div>
-        </button>
-      </div>
+    
 
       {/* comment box */}
       {showComment && (
@@ -619,7 +606,7 @@ const Post = ({
           className="w-7 h-7 object-cover shrink-0 rounded-full "
         />
         <form
-          className="flex px-2 rounded-full bg-[#F0F2F5] w-full items-center dark:bg-[#3A3B3C]  "
+          className="flex px-2 rounded-full bg-[#2c3440] w-full items-center "
           onSubmit={(e) => {
             e.preventDefault();
             addComment(post._id);

@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Review from "./components/Review";
 import MyPost from "./components/MyPost";
+import Trade from "./components/Trade";
 import { FiEdit2 } from "react-icons/fi";
 import ModalShelves from "../common/ModalShelves";
-import { Tooltip } from "@mui/material";
+import { Rating, Tooltip } from "@mui/material";
 function BookDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -18,6 +19,8 @@ function BookDetail() {
   const [exchangeLoading, setExchangeLoading] = useState(false);
   const [shelvesLoading, setShelvesLoading] = useState(false);
   const [selectedShelvesLoading, setSelectedShelvesLoading] = useState(false);
+const [moreReviews,setMoreReviews] = useState(true)
+const [moreTrades,setMoreTrades] = useState(true)
 
   const [book, setBook] = useState({
     id:"",
@@ -30,6 +33,13 @@ function BookDetail() {
     thumbnail: "",
     previewLink: "",
     genres: [],
+    postsCount: "",
+    ratingAvg: "",
+    contentAvg:"",
+    developmentAvg:"",
+    pacingAvg:"",
+    writingAvg:"",
+    insightsAvg:"",
   });
 
   const [myPosts, setMyPosts] = useState([]);
@@ -37,62 +47,50 @@ function BookDetail() {
   const [exchange, setExchange] = useState([]);
   const [shelves, setShelves] = useState([]);
   const [selectedShelves, setSelectedShelves] = useState([]);
+  const [topShelves, setTopShelves] = useState([]);
+
   const [reviewPage, setReviewPage] = useState(1);
   const [exchangePage, setExchangePage] = useState(1);
   const [error, setError] = useState("");
-  const list = ["My Posts", "Reviews", "Exchange"];
+  const list = ["My Posts", "Reviews", "Trades"];
   const [menu, setMenu] = useState("Reviews");
-  const [rating, setRating] = useState(0);
-  const [numberOfRating, setNumberofRating] = useState(0);
   const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
     setLoading(true);
     getBook();
-    setLoading(false);
+    getTopShelves()
     getShelves();
     getSelectedShelves();
+    setLoading(false);
   }, [id]);
 
-  // const getBook = async () => {
-  //   const res = await fetch(
-  //     `https://www.googleapis.com/books/v1/volumes/${id}`
-  //   );
-  //   const bookInfo = await res.json();
-  //   setBook({
-  //     title: bookInfo.volumeInfo.title,
-  //     author: bookInfo.volumeInfo.authors[0] || "Unknown author",
-  //     publisher: bookInfo.volumeInfo.publisher || "Unknown publisher",
-  //     publishedDate:
-  //       bookInfo.volumeInfo.publishedDate || "Unknown published date",
-  //     description:
-  //       bookInfo.volumeInfo.description || "No description available",
-  //     pageCount: bookInfo.volumeInfo.pageCount || "N/a",
-  //     thumbnail:
-  //       bookInfo.volumeInfo.imageLinks.thumbnail ||
-  //       "https://d827xgdhgqbnd.cloudfront.net/wp-content/uploads/2016/04/09121712/book-cover-placeholder.png",
-  //     preview: bookInfo.previewLink || "",
-  //   });
-  // };
-
+  useEffect(() => {
+   console.log(moreTrades)
+  }, [moreTrades]);
   const getBook = async () => {
     const { data } = await autoFetch(`api/book/get-book/${id}`);
-    console.log(data);
     const book = data.book;
-    // console.log(book)
     setBook({
       id,
       title: book.title,
       author: book.author || "Unknown author",
       publisher: book.publisher || "Unknown publisher",
-      publishedDate: book.publishedDate || "Unknown published date",
+      publishedDate: `Published ${book.publishedDate}` || "Unknown published date",
       description: book.description || "No description available",
-      pageCount: book.pageCount || "No page number info",
+      pageCount: `${book.pageCount} pages` || "No page number info",
       thumbnail:
         book.thumbnail ||
         "https://d827xgdhgqbnd.cloudfront.net/wp-content/uploads/2016/04/09121712/book-cover-placeholder.png",
       previewLink: book.previewLink || "",
       genres: book.genres || [],
+      postsCount: data.postsCount || "",
+      ratingAvg: data.ratingAvg || "",
+      contentAvg:data.contentAvg ||"",
+      developmentAvg: data.developmentAvg || "",
+      pacingAvg: data.pacingAvg || "",
+      writingAvg: data.writingAvg || "",
+      insightsAvg: data.insightsAvg || "",
     });
   };
 
@@ -104,10 +102,11 @@ function BookDetail() {
     setReviewLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/review/book-reviews/${id}?page=${reviewPage + 1}`
+        `/api/review/book/${id}?page=${reviewPage + 1}`
       );
       setReviewPage(reviewPage + 1);
       setReviews((prev)=>[...prev, ...data.posts]);
+      if (data.posts.length<10) setMoreReviews(false)
     } catch (error) {
       console.log(error);
       setError(true);
@@ -120,11 +119,10 @@ function BookDetail() {
     setReviewLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/review/book-reviews/${id}?page=1`
+        `/api/review/book/${id}?page=1`
       );
       if (data.posts) setReviews(data.posts);
-      setRating(data.ratingAvg);
-      setNumberofRating(data.postsCount);
+      if (data.posts.length<10) setMoreReviews(false)
     } catch (error) {
       console.log(error);
       setError(true);
@@ -133,14 +131,15 @@ function BookDetail() {
     }
   };
 
-  const getFirstExchange = async () => {
+  const getNewExchange = async () => {
     setExchangeLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/post/book-exchanges/${id}?page=${exchangePage + 1}&perPage=5`
+        `/api/trade/book/${id}?page=${exchangePage + 1}&perPage=3`
       );
       setExchangePage(exchangePage + 1);
       setExchange([...exchange, ...data.posts]);
+      if (data.posts.length<3) setMoreTrades(false)
     } catch (error) {
       console.log(error);
       setError(true);
@@ -149,13 +148,15 @@ function BookDetail() {
     }
   };
 
-  const getNewExchange = async () => {
+  const getFirstExchange = async () => {
     setExchangeLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/post/book-exchanges/${id}?page=1&perPage=5`
+        `/api/trade/book/${id}?page=1&perPage=3`
       );
       if (data.posts) setExchange(data.posts);
+      if (data.posts.length<3) setMoreTrades(false)
+
     } catch (error) {
       console.log(error);
       setError(true);
@@ -167,8 +168,11 @@ function BookDetail() {
   const getMyPosts = async () => {
     setMyPostLoading(true);
     try {
-      const { data } = await autoFetch.get(`/api/post/book-myposts/${id}`);
-      setMyPosts(data.posts);
+      const [{ data: reviewRes }, {data: tradeRes} ] = await Promise.all([autoFetch.get(`/api/review/book-my/${id}`),autoFetch.get(`/api/trade/book-my/${id}`)]);
+      let results = [...reviewRes.posts, ...tradeRes.posts]
+      results.sort((a, b) => new Date(b.createdAt)  - new Date (a.createdAt));
+      console.log(results)
+      setMyPosts(results);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -177,6 +181,7 @@ function BookDetail() {
     }
   };
 
+  
   const getShelves = async () => {
     setShelvesLoading(true);
     try {
@@ -190,6 +195,17 @@ function BookDetail() {
     } finally {
       setShelvesLoading(false);
     }
+  };
+
+  const getTopShelves = async () => {
+    try {
+      const { data } = await autoFetch.get(
+        `/api/shelf/get-top-shelves-of-book/${id}`
+      );
+      setTopShelves(data.names);
+    } catch (error) {
+      console.log(error);
+    } 
   };
 
   const getSelectedShelves = async () => {
@@ -219,6 +235,16 @@ function BookDetail() {
       //   setSelectedShelvesLoading(false);
     }
   };
+
+  const RatingDisplay = ({value, label}) => {
+    return (
+      <div className="inline-flex mb-1">
+      <p className="mr-3 w-[100px]">{label}</p>
+      <Rating name="half-rating-read" value={value} precision={0.5} readOnly />
+      <p className="ml-3">{value}</p>
+    </div>
+    )
+  }
 
   const main = () => {
     if (menu === "My Posts") {
@@ -250,11 +276,12 @@ function BookDetail() {
           title={book.title}
           author={book.author}
           thumbnail={book.thumbnail}
+          moreReviews={moreReviews}
         />
       );
-    } else if (menu === "Exchange") {
+    } else if (menu === "Trades") {
       return (
-        <Review
+        <Trade
           posts={exchange}
           loading={exchangeLoading}
           token={token}
@@ -269,23 +296,46 @@ function BookDetail() {
           title={book.title}
           author={book.author}
           thumbnail={book.thumbnail}
+          moreTrades={moreTrades}
         />
       );
     }
   };
   return (
     <div
-      className={`md:flex w-screen min-h-screen bg-white pt-[65px] px-[3%] sm:px-[5%]`}
+      className={`md:flex w-screen text-base min-h-screen bg-mainbg text-mainText pt-[65px] px-[3%] sm:px-[5%]`}
     >
-      <div className="w-full mt-[3%] pt-3 bg-white md:grid grid-cols-10 items-start justify-center space-x-8 py-16 px-4">
+      <div className="w-full mt-[3%] pt-3  md:grid grid-cols-10 items-start justify-center space-x-8 py-16 px-4">
         <div className="col-span-2 md:pr-8">
           <img
-            className="w-full object-contain mb-6 md:mb-0"
+            className="max-w-[400px] md:w-[200px] object-contain mb-6 md:mb-0 rounded-lg"
             src={book.thumbnail}
             alt={`${book.title} cover`}
           />
-          {!reviewLoading && <div className="text-xl">{rating} ⭐</div>}
-          <button
+         
+         {topShelves && (
+          <div className="mt-3">
+            <div className="serif-display mb-2">Top Shelves</div>
+
+            {
+              topShelves.map((shelf)=> (
+                <div className="text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1">{shelf}</div>
+              ))
+            }
+          </div>
+        )}
+
+<button
+            className={`bg-[#00a11d] text-white text-sm block m-auto w-[200px] py-1.5 text-center rounded-full font-bold my-3`}
+            // disabled={!text || loading}
+            onClick={() => {
+                        setOpenModal(true);
+                    }}
+            // onClick={handleButton}
+          >
+            Shelve this book
+          </button>
+          {/* <button
             className="flex gap-x-2  items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
             onClick={() => {
               // navigate(`/update-profile`);
@@ -302,13 +352,11 @@ function BookDetail() {
               setOpenModal={setOpenModal}
               book
             ></ModalShelves>
-          )}
+          )} */}
         </div>
 
         <div className="col-span-5">
-          <Tooltip title="Delete">
-            <h1 className="text-3xl font-bold">{book.title}</h1>
-          </Tooltip>
+            <h1 className="text-4xl font-bold serif-display text-white">{book.title}</h1>
           <h2 className="text-xl font-semibold">{book.author}</h2>
 
           <div className="flex items-center">
@@ -316,9 +364,13 @@ function BookDetail() {
             {/* <span className="text-lg">{rating} ({reviews.length} reviews)</span> */}
           </div>
 
-          <div dangerouslySetInnerHTML={{ __html: book.description }} />
+          <div className="text-base mt-3 text-justify" dangerouslySetInnerHTML={{ __html: book.description }} />
           {/* <p className="text-lg">{book.description}</p> */}
-
+          <div className="text-sm  text-smallText mt-3">
+          <div>{book.pageCount} pages</div>
+          <div>{book.publishedDate} by {book.publisher}</div>
+          </div>
+         
           <div className="flex mx-0 sm:mx-10 ">
             <ul className="flex items-center justify-between w-full px-16 py-1 gap-x-10 ">
               {list.map((v) => (
@@ -337,6 +389,29 @@ function BookDetail() {
           </div>
 
           {main()}
+        </div>
+        <div className="col-span-3 ">
+          <div className="flex flex-col">
+            <div className="serif-display mb-2">From {book.postsCount} reviews</div>
+          <RatingDisplay value={book.ratingAvg} label="Rating"/>
+         <RatingDisplay value={book.contentAvg} label="Content"/>
+         <RatingDisplay value={book.developmentAvg} label="Development"/>
+         <RatingDisplay value={book.pacingAvg} label="Pacing"/>
+         <RatingDisplay value={book.writingAvg} label="Writing"/>
+         <RatingDisplay value={book.insightsAvg} label="Insights"/>
+          </div>
+        
+          {book.genres && (
+          <div className="mt-3">
+            <div className="serif-display mb-2">Genres</div>
+
+            {
+              book.genres.map((genre)=> (
+                <div className="text-xs inline-block pb-1 border-b-2 border-b-dialogue my-1 mr-3">{genre}</div>
+              ))
+            }
+          </div>
+        )}
         </div>
       </div>
     </div>

@@ -17,6 +17,7 @@ import message from "./routes/message.js";
 import shelf from "./routes/shelf.js";
 import book from "./routes/book.js";
 import review from "./routes/review.js"
+import trade from "./routes/trade.js"
 
 import requireSignIn from "./middleware/authentication.js";
 import * as http from "http";
@@ -73,6 +74,7 @@ app.use("/api/book", book);
 
 app.use("/api/review", requireSignIn, review);
 
+app.use("/api/trade", requireSignIn, trade);
 
 
 

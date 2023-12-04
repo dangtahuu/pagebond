@@ -6,15 +6,15 @@ const FormCreatePost = ({user, setOpenModal, setAttachment, text}) => {
     const {dark} = useAppContext();
     return (
         <div
-            className={`dark:bg-[#242526] shadow-md	 bg-white mb-5 pt-3 rounded-lg px-2 md:px-4`}>
+            className={` mb-5 pt-3 rounded-lg px-2 md:px-4`}>
             <div className='flex items-center gap-x-2 '>
                 <img
                     src={user.image?.url}
                     alt='userImage'
-                    className='object-cover w-10 h-10 rounded-full shrink-0 '
+                    className='object-cover w-8 h-8 rounded-full shrink-0 '
                 />
                 <div
-                className="font-bold text-lg"
+                className=" text-lg serif-display"
                     // className=' dark:bg-[#4E4F50]/70 dark:hover:bg-[#4E4F50] rounded-full px-4 py-[9px] w-[90%] flex justify-start dark:text-[#b0b3b8] font-medium transition-20 h-10 cursor-pointer text-[#65676b] bg-[#E4E6E9]/60 hover:bg-[#E4E6E9]  '
                     // onClick={() => {
                     //     setOpenModal(true);
@@ -25,7 +25,7 @@ const FormCreatePost = ({user, setOpenModal, setAttachment, text}) => {
                     {/* </div> */}
                 </div>
                 <button
-            className={`bg-black w-[100px] text-white text-sm block ml-auto mr-0 py-1.5 text-center rounded-full font-bold my-3`}
+            className={`bg-[#00a11d] w-[100px] text-white text-sm block ml-auto mr-0 py-1.5 text-center rounded-full font-bold my-3`}
             // disabled={!text || loading}
             onClick={() => {
                         setOpenModal(true);

@@ -7,7 +7,7 @@ cloudinary.v2.config({
   api_secret: "mW4Q6mKi4acL72ZhUYzw-S0_y1A",
 });
 
-const createReview = async (req, res) => {
+const create = async (req, res) => {
   const {
     text,
     rating,
@@ -65,11 +65,11 @@ const createReview = async (req, res) => {
   }
 };
 
-const allReviews = async (req, res) => {
+const getAll = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
-    const posts = await Reviews.find({})
+    const posts = await Review.find({})
       .populate("postedBy", "-password -secret")
       .limit(perPage)
       .skip((page - 1) * perPage)
@@ -77,7 +77,7 @@ const allReviews = async (req, res) => {
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
     }
-    const postsCount = await Post.find({}).estimatedDocumentCount();
+    const postsCount = await Review.find({}).estimatedDocumentCount();
     return res.status(200).json({ posts, postsCount });
   } catch (error) {
     console.log(error);
@@ -85,7 +85,7 @@ const allReviews = async (req, res) => {
   }
 };
 
-const getReview = async (req, res) => {
+const getOne = async (req, res) => {
   try {
     const postId = req.params.id;
     const post = await Review.findById(postId)
@@ -101,7 +101,7 @@ const getReview = async (req, res) => {
   }
 };
 
-const getReviews = async (req, res) => {
+const getAllWithBook = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.userId;
@@ -116,48 +116,7 @@ const getReviews = async (req, res) => {
       .populate("comments.postedBy", "-password -secret")
       .sort({ createdAt: -1 })
       .limit(perPage);
-
-    if (page === 1) {
-      const postsCount = await Review.countDocuments({ book: id });
-
-      if (postsCount > 0) {
-        let ratingSum,
-          contentSum,
-          developmentSum,
-          pacingSum,
-          writingSum,
-          insightsSum = 0;
-        const allPosts = await Review.find({ book: id });
-        allPosts.forEach((post) => {
-          ratingSum += post.rating;
-          contentSum += post.content;
-          developmentSum += post.development;
-          pacingSum += post.pacing;
-          writingSum += post.writing;
-          insightsSum += post.insights;
-        });
-        const ratingAvg = (ratingSum / postsCount).toFixed(1);
-        const contentAvg = (contentSum / postsCount).toFixed(1);
-        const developmentAvg = (developmentSum / postsCount).toFixed(1);
-        const pacingAvg = (pacingSum / postsCount).toFixed(1);
-        const writingAvg = (writingSum / postsCount).toFixed(1);
-        const insightsAvg = (insightsSum / postsCount).toFixed(1);
-
-        // console.log({ posts, postsCount, result });
-        return res
-          .status(200)
-          .json({
-            posts,
-            postsCount,
-            ratingAvg,
-            contentAvg,
-            developmentAvg,
-            pacingAvg,
-            writingAvg,
-            insightsAvg,
-          });
-      }
-    }
+      
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);
@@ -165,7 +124,7 @@ const getReviews = async (req, res) => {
   }
 };
 
-const getMyReviews = async (req, res) => {
+const getMy = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.userId;
@@ -184,7 +143,7 @@ const getMyReviews = async (req, res) => {
   }
 };
 
-const editReview = async (req, res) => {
+const edit = async (req, res) => {
   try {
     const postId = req.params.id;
     const {
@@ -244,7 +203,7 @@ const editReview = async (req, res) => {
   }
 };
 
-const deleteReview = async (req, res) => {
+const deleteOne = async (req, res) => {
   try {
     const postId = req.params.id;
     const post = await Review.findByIdAndDelete(postId);
@@ -260,7 +219,7 @@ const deleteReview = async (req, res) => {
   }
 };
 
-const likeReview = async (req, res) => {
+const like = async (req, res) => {
   try {
     const postId = req.body.postId;
     const post = await Review.findByIdAndUpdate(
@@ -279,7 +238,7 @@ const likeReview = async (req, res) => {
   }
 };
 
-const unlikeReview = async (req, res) => {
+const unlike = async (req, res) => {
   try {
     const postId = req.body.postId;
     const post = await Review.findByIdAndUpdate(
@@ -298,7 +257,7 @@ const unlikeReview = async (req, res) => {
   }
 };
 
-const addCommentToReview = async (req, res) => {
+const addComment = async (req, res) => {
   try {
     const { postId, comment, image } = req.body;
     const post = await Review.findByIdAndUpdate(
@@ -326,7 +285,7 @@ const addCommentToReview = async (req, res) => {
   }
 };
 
-const removeCommentfromReview = async (req, res) => {
+const removeComment = async (req, res) => {
   try {
     const { postId, commentId } = req.body;
     const post = await Review.findByIdAndUpdate(
@@ -357,7 +316,7 @@ const totalReviews = async (req, res) => {
   }
 };
 
-const getReviewsWithUserId = async (req, res) => {
+const getWithUser = async (req, res) => {
   try {
     const userId = req.params.userId;
     const posts = await Review.find({ postedBy: { _id: userId } })
@@ -374,7 +333,7 @@ const getReviewsWithUserId = async (req, res) => {
   }
 };
 
-const getFollowingReviews = async (req, res) => {
+const getFollowing = async (req, res) => {
   try {
     const { userId } = req.user;
     const user = await User.findById(userId);
@@ -404,18 +363,17 @@ const getFollowingReviews = async (req, res) => {
 };
 
 export {
-  createReview,
-  allReviews,
-  getReview,
-  getReviews,
-  getMyReviews,
-  editReview,
-  deleteReview,
-  likeReview,
-  unlikeReview,
-  addCommentToReview,
-  removeCommentfromReview,
-  totalReviews,
-  getReviewsWithUserId,
-  getFollowingReviews,
+  create,
+  getAll,
+  getOne,
+  getAllWithBook,
+  getMy,
+  edit,
+  deleteOne,
+  like,
+  unlike,
+  addComment,
+  removeComment,
+  getWithUser,
+  getFollowing,
 };

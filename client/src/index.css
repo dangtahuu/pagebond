@@ -82,9 +82,16 @@
 @layer base {
     body,
     html {
-        font-family: 'Raleway', sans-serif;
-        font-weight: 500;
-        @apply dark:bg-[#18191A] dark:text-[#e4e6eb] transition-50 bg-[#F0F2F5] text-[#050505];
+        font-family: 'Product Sans', sans-serif;
+        font-weight: 400;
+    }
+    .serif-display {
+        font-family: 'DM Serif Display', serif;
+        font-weight: 400;
+    }
+    .garamond-bold {
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 700;
     }
     .crimson {
         font-family: 'Crimson Text', serif;
