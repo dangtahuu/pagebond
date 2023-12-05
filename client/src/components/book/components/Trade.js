@@ -129,7 +129,7 @@ const Trade = ({
                         book={book}
                     />
                 ))}
-                {moreTrades && (<div className="text-sm cursor-pointer text-smallText block w-[100px] text-center mx-auto" onClick={getNewPosts}>LOAD MORE</div>)}
+                {moreTrades && (<div className="text-sm cursor-pointer text-smallText block w-[100px] text-center mx-auto " onClick={getNewPosts}>LOAD MORE</div>)}
 
             </div>
                

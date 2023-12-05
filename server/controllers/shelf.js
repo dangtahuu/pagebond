@@ -9,14 +9,14 @@ const createShelf = async (req, res) => {
     }
     
     try {
-        const exist = await Shelf.find({ $and:[{shelfOf:req.user.userId},{name:name}] })
+        const exist = await Shelf.find({ $and:[{owner:req.user.userId},{name:name}] })
         console.log(exist)
         if (exist.length) {
             return res.status(400).json({ msg: "A shelf with this name already existed!" });
           }
       const shelf = await Shelf.create({
         name,
-        shelfOf: req.user.userId,
+        owner: req.user.userId,
       });
 
       return res.status(200).json({ msg:"New shelf created!", shelf: shelf });
@@ -29,7 +29,7 @@ const createShelf = async (req, res) => {
   const bookToShelf = async (req, res) => {
     const { book, selected, nonSelected } = req.body;
   
-    if (!book.length || (!selected&&!nonSelected)) {
+    if (!book || (!selected&&!nonSelected)) {
       return res.status(400).json({ msg: "Book and shelves are required!" });
     }
     
@@ -38,7 +38,7 @@ const createShelf = async (req, res) => {
         if (selected) {selected.forEach(async (item)=>  {
       const selectedShelf = await Shelf.findByIdAndUpdate(item, {
         $addToSet: {
-            books: book,
+            books: book.id,
         },})
      
             })}
@@ -64,7 +64,7 @@ const createShelf = async (req, res) => {
   const getShelves = async (req, res) => {
     try {
       const userId = req.params.userId;
-      const shelves = await Shelf.find({ shelfOf: userId })
+      const shelves = await Shelf.find({ owner: userId })
       return res.status(200).json({ shelves });
     } catch (error) {
       console.log(error);
@@ -76,7 +76,7 @@ const createShelf = async (req, res) => {
     const book  = req.params.book;
 
     try {
-      const shelves = await Shelf.find({ $and:[{shelfOf: req.user.userId }, {books: { $in: [book] }}]})
+      const shelves = await Shelf.find({ $and:[{owner: req.user.userId }, {books: { $in: [book] }}]})
       const id = shelves.map((x)=>x._id)
       return res.status(200).json({ id });
     } catch (error) {

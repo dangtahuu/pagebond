@@ -18,6 +18,8 @@ import shelf from "./routes/shelf.js";
 import book from "./routes/book.js";
 import review from "./routes/review.js"
 import trade from "./routes/trade.js"
+import special from "./routes/special.js"
+
 
 import requireSignIn from "./middleware/authentication.js";
 import * as http from "http";
@@ -48,12 +50,22 @@ if (process.env.NODE_ENV !== "production") {
 app.use(express.json({limit: "5mb"}));
 // @ts-ignore
 app.use(express.urlencoded({extended: true}));
+
+const corsOptions ={
+    origin:'http://localhost:3000', 
+    credentials:true,            //access-control-allow-credentials:true
+    optionSuccessStatus:200
+}
 // @ts-ignore
-app.use(
-    cors({
-        origin: "*"
-    })
-);
+// app.use(
+//     cors({
+//         origin: "*"
+//     })
+// );
+
+app.use(cors(corsOptions));
+
+
 
 // const config = new Configuration({
 //     apiKey: process.env.API_TOKEN
@@ -70,11 +82,14 @@ app.use("/api/message", requireSignIn, message);
 
 app.use("/api/shelf", requireSignIn, shelf);
 
-app.use("/api/book", book);
+app.use("/api/book", requireSignIn, book);
 
 app.use("/api/review", requireSignIn, review);
 
 app.use("/api/trade", requireSignIn, trade);
+
+app.use("/api/special", requireSignIn, special);
+
 
 
 

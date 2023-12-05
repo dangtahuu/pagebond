@@ -152,7 +152,7 @@ const Suggestion = ({
                       </span>
                       {
                         // @ts-ignore
-                        p.role === "Admin" && (
+                        p.role === 1 && (
                           <TiTick className="text-[17px] text-white rounded-full bg-blue-700 " />
                         )
                       }

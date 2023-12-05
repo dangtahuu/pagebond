@@ -206,7 +206,7 @@ const PostDetail = () => {
                   }}
                 >
                   {post.postedBy.name}
-                  {post.postedBy.role === "Admin" && (
+                  {post.postedBy.role === 1 && (
                     <TiTick className="text-[15px] ml-1 text-white rounded-full bg-blue-700 " />
                   )}
                 </div>

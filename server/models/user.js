@@ -56,8 +56,10 @@ const userSchema = new mongoose.Schema(
             },
         ],
         role: {
-            type: String,
-            default: "Subscriber",
+            type: Number,
+            required: true,
+            enum: [1,2,3],
+            default: 3,
         },
     },
     {

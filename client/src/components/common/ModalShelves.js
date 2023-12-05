@@ -1,22 +1,31 @@
-import React, { useState } from "react";
-
+import React, { useEffect, useState } from "react";
+import { IoClose } from "react-icons/io5";
+import { useAppContext } from "../../context/useContext";
 import { MdCancel } from "react-icons/md";
 
 const ModalShelves = ({
   shelves = [],
+  setShelves,
   selected = [],
   submitShelves = () => {},
   setOpenModal = (event) => {},
-
-  book,
+  book="",
 }) => {
+  const { autoFetch, user, token, dark, setNameAndToken, setOneState } =
+    useAppContext();
   const [selectedOptions, setSelectedOptions] = useState(selected);
+  const [text, setText] = useState("")
+  const [loading,setLoading] = useState(false)
+
+  useEffect(()=>{
+    console.log(shelves)
+  },[shelves])
 
   const handleOptionChange = (event) => {
     const optionValue = event.target.value;
-    console.log(optionValue);
+    // console.log(optionValue);
     const isSelected = selectedOptions.includes(optionValue);
-    console.log(isSelected);
+    // console.log(isSelected);
 
     if (isSelected) {
       setSelectedOptions(
@@ -32,33 +41,64 @@ const ModalShelves = ({
     const all = shelves.map((x) => x._id);
     const non = all.filter((y) => !selectedOptions.includes(y));
     const data = { book: book, selected: selectedOptions, nonSelected: non };
+    // console.log(data)
     submitShelves(data);
     setOpenModal(false);
     // Send data to server
   };
 
+  const handleNewShelf = async() => {
+      setLoading(true);
+
+      try {
+        const { data } = await autoFetch.post("/api/shelf/create-shelf", {
+          name: text,
+        });
+        // console.log(data.shelf)
+        setShelves((prev)=>[...prev,data.shelf]);
+        // toast.success(data?.msg || "Shelf created!");
+      } catch (error) {
+        console.log(error);
+      } finally{
+        setLoading(false);
+setText("")
+      }
+  }
+
   return (
-    <div className=" fixed flex items-center justify-center w-screen h-screen dark:bg-black/50 bg-white/50 z-[1000] top-0 left-0 ">
-      <div
-        className="z-[201] bg-none fixed w-full h-full top-0 right-0 "
+    <div className=" fixed flex items-center justify-center w-screen h-screen bg-black/50 z-[200] top-0 left-0 ">
+    <div
+      className="z-[201] bg-none fixed w-full h-full top-0 right-0 "
+      onClick={() => {
+          setOpenModal(false);
+      }}
+    ></div>
+    <div className="mx-auto w-[500px] bg-dialogue rounded-xl px-4 z-[202] box-shadow relative ">
+      <IoClose
+        className="absolute top-4 right-6 text-lg opacity-50 hover:opacity-100 cursor-pointer transition-50 "
         onClick={() => {
           setOpenModal(false);
         }}
-      ></div>
-      <div className="mx-auto w-[90%] sm:w-[66%] md:w-[33%] bg-white dark:bg-[#242526] rounded-xl px-4 z-[202] box-shadow relative ">
-        <MdCancel
-          className="absolute top-4 right-6 text-[30px] opacity-50 hover:opacity-100 cursor-pointer transition-50 "
-          onClick={() => {
-            setOpenModal(false);
-          }}
-        />
+      />
         <div className="POST ">
           <div className="font-extrabold py-4 text-xl text-center border-b-[1px] border-black/20 dark:border-white/20 ">
             Add to Shelve
           </div>
+          <div className="flex justify justify-center	items-center">
+          <input className="rounded h-[30px]" value={text} onChange={(e)=>setText(e.target.value)}/>
+          <button
+            className={`bg-black h-[30px] w-[50px] ml-3 text-white text-sm block mr-0 py-1.5 text-center rounded-full font-bold my-3`}
+            // disabled={!input.text || loading}
+            onClick={handleNewShelf}
+            // ref={searchRef}
+          > Add
+            {/* {isEditPost ? "Save" : "Post"} */}
+          </button>
+          </div>
+         
           {/* Add to shelve here */}
           <form onSubmit={handleSubmit}>
-            <div className="flex flex-col mt-4 space-y-2">
+            <div className="grid grid-cols-2 mt-4 gap-x-4">
               {shelves.map((shelf) => {
                 return (
                   <div class="flex items-center text-base">
@@ -83,8 +123,7 @@ const ModalShelves = ({
               })}
             </div>
             <button
-              className="w-full py-1.5 text-center rounded-[4px] font-semibold my-3
-                            bg-[#3982E4] text-white"
+              className="bg-greenBtn w-[100px] text-white text-sm block ml-auto mr-0 py-1.5 text-center rounded-full font-bold my-3"
               type="submit"
             >
               Save

@@ -156,7 +156,7 @@ const Header = ({
               <div className="text-[24px] font-bold md:flex items-center gap-x-1 ">
                 <div className="text-center flex items-center">
                   {user.name}
-                  {user.role === "Admin" && (
+                  {user.role === 1 && (
                     <TiTick className="text-[20px] text-white rounded-full bg-blue-700 ml-2" />
                   )}
                 </div>

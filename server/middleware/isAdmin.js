@@ -5,7 +5,7 @@ const isAdmin = async (req, res, next) => {
         if (!user) {
             return res.status(400).json({msg: "No user found!"});
         }
-        if (user.role !== "Admin") {
+        if (user.role !== 1) {
             return res.status(403).json({msg: "Unauthentication"});
         }
         next();

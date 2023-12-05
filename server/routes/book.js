@@ -4,7 +4,8 @@ import {
     deleteAll,
     editAll,
     getBook,
-   searchBook
+   searchBook,
+   getSimilarBooks
 } from "../controllers/book.js";
 import formidable from "express-formidable";
 import isAdmin from "../middleware/isAdmin.js";
@@ -19,6 +20,7 @@ router.route("/search-book").get(searchBook);
 router.route("/get-book/:id").get(getBook);
 router.route("/delete-book").delete(deleteAll);
 router.route("/edit-book").put(editAll);
+router.route("/get-similar-books/:id").get(getSimilarBooks);
 
 
 

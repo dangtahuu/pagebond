@@ -255,7 +255,7 @@ const Comment = ({
                                     );
                                 }}>
                                 {comment.postedBy?.name}
-                                {comment.postedBy?.role === "Admin" && (
+                                {comment.postedBy?.role === 1 && (
                                     <TiTick className='text-[13px] text-white rounded-full bg-blue-700 ' />
                                 )}
                             </div>

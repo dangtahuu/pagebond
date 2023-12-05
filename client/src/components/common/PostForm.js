@@ -11,17 +11,13 @@ import {
 import ReactLoading from "react-loading";
 import { IoClose } from "react-icons/io5";
 import Rating from "@mui/material/Rating";
-import { IoIosHelpCircle} from "react-icons/io";
-import Tooltip from '@mui/material/Tooltip';
+import { IoIosHelpCircle } from "react-icons/io";
+import Tooltip from "@mui/material/Tooltip";
 import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 
 const PostForm = ({
-  // text = "",
-  // setText = (event) => {},
-  // title = "",
-  // setTitle = (event) => {},
-  input="",
-  setInput=(even)=>{},
+  input = "",
+  setInput = (even) => {},
   setOpenModal = (event) => {},
   attachment = "",
   setAttachment = (event) => {},
@@ -30,6 +26,7 @@ const PostForm = ({
   isEditPost = false,
   // imageEdit = null,
   setFormDataEdit = (event) => {},
+  type=""
   // setImageEdit = (event) => {},
 }) => {
   const { user } = useAppContext();
@@ -71,7 +68,7 @@ const PostForm = ({
     }
     // setText("");
     // setTitle("");
-    setInput("")
+    setInput("");
     setOpenModal(false);
     setAttachment("");
     setFormData(null);
@@ -92,7 +89,7 @@ const PostForm = ({
             onClick={() => {
               setImage(null);
               // setImageEdit(null);
-              setInput((prev)=>({...prev,image:null}))
+              setInput((prev) => ({ ...prev, image: null }));
               setFormData(null);
               setFormDataEdit(null);
             }}
@@ -141,7 +138,6 @@ const PostForm = ({
     );
   };
 
- 
   return (
     <div className=" fixed flex items-center justify-center w-screen h-screen bg-white/50 z-[200] top-0 left-0 ">
       <div
@@ -164,29 +160,30 @@ const PostForm = ({
             {isEditPost ? "Edit post" : "Create Post"}
           </div>
 
-          
-          <label className="text-xs font-bold" for="title">Give it a title</label>
+          <label className="text-xs font-bold" for="title">
+            Give it a title
+          </label>
           <textarea
-          id="title"
+            id="title"
             value={input.title}
             className={`font-bold h-10 mt-1 bg-inherit focus:ring-0 rounded-lg border-gray-300 focus:border-gray-600 w-full placeholder:text-[#a0a0a1] text-xs relative`}
             placeholder={`Title`}
             onChange={(e) => {
-              setInput((prev)=>({...prev,title:e.target.value}))
-
+              setInput((prev) => ({ ...prev, title: e.target.value }));
             }}
           />
 
-<label className="text-xs font-bold" for="text">Write your thoughts</label>
+          <label className="text-xs font-bold" for="text">
+            Write your thoughts
+          </label>
 
           <textarea
-          id="text"
+            id="text"
             value={input.text}
             className={`font-bold h-10 mt-1 bg-inherit focus:ring-0 rounded-lg border-gray-300 focus:border-gray-600 w-full placeholder:text-[#a0a0a1] h-[100px] text-xs relative`}
             placeholder={`Review`}
             onChange={(e) => {
-              setInput((prev)=>({...prev,text:e.target.value}))
-
+              setInput((prev) => ({ ...prev, text: e.target.value }));
             }}
           />
 
@@ -210,14 +207,17 @@ const PostForm = ({
             //   </div>
             // </div>
             <div className="flex items-center cursor-pointer">
-              <label className="text-xs font-bold cursor-pointer" for="">Attachment</label>
+              <label className="text-xs font-bold cursor-pointer" for="">
+                Attachment
+              </label>
 
- <MdOutlineAddPhotoAlternate className="text-xl ml-2" onClick={() => {
-                      setAttachment("photo");
-                    }}/>
+              <MdOutlineAddPhotoAlternate
+                className="text-xl ml-2"
+                onClick={() => {
+                  setAttachment("photo");
+                }}
+              />
             </div>
-           
-
           )}
 
           <button

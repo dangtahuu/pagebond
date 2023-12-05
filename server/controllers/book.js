@@ -1,6 +1,7 @@
 import Book from "../models/book.js";
 import Post from "../models/post.js";
 import Review from "../models/review.js";
+import User from "../models/user.js";
 const searchBook = async (req, res) => {
   const term = req.query.term;
   const page = Number(req.query.page) || 1;
@@ -114,4 +115,37 @@ async function editAll(req, res) {
   return res.status(400).json({ mes: "fail" });
 }
 
-export { searchBook, getBook, deleteAll, editAll };
+const getSimilarBooks = async (req, res) => {
+  const id = req.params.id;
+ console.log(process.env.MODEL_URL)
+  try {
+
+    if (!id) {
+      return res.status(400).json({ msg: "Book Id is required!" });
+    }
+
+    const response = await fetch(`${process.env.MODEL_URL}/predict?book_id=${id}`)
+    const {result} = await response.json()
+    // console.log(data.result)
+    // console.log(result)
+    if (!result) {
+      return res.status(200).json({ msg: "No recommended books!" });
+    }
+
+    const books = await Book.find({
+      _id: { $in: result }, 
+    });
+
+    
+    return res
+      .status(200)
+      .json({
+      books
+      });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+export { searchBook, getBook, deleteAll, editAll, getSimilarBooks };

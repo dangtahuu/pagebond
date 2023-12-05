@@ -297,7 +297,7 @@ function Search() {
                       // onClick={() => navigate(`/book/${a.postedBy._id}`)}
                     >
                       {a.name}
-                      {a.role === "Admin" && (
+                      {a.role === 1 && (
                         <TiTick className="text-sm ml-1 text-white rounded-full bg-blue-700 " />
                       )}
                     </p>

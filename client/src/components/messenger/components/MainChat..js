@@ -123,7 +123,7 @@ const MainChat = ({
                                         role='button'
                                         className='flex items-center py-0.5 px-3 gap-x-0.5 text-white rounded-full bg-[#1d4ed8] dark:bg-[#3A3B3C] mt-1 md:mt-0 '>
                                         {l ? l.name : "nothing"}
-                                        {l.role === "Admin" && (
+                                        {l.role === 1 && (
                                             <TiTick className='text-[13px] text-white rounded-full bg-blue-700 ' />
                                         )}
                                         <AiOutlineCloseCircle

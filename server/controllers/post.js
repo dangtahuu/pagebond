@@ -92,7 +92,7 @@ const getPost = async (req, res) => {
 };
 
 // get all posts with user's follower
-const followingPosts = async (req, res) => {
+const getFollowing = async (req, res) => {
   try {
     const { userId } = req.user;
     const user = await User.findById(userId);
@@ -111,7 +111,6 @@ const followingPosts = async (req, res) => {
       .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book")
       .sort({ createdAt: -1 })
       .limit(perPage);
     return res.status(200).json({ posts });
@@ -299,7 +298,7 @@ export {
   editPost,
   getPost,
   deletePost,
-  followingPosts,
+  getFollowing,
   likePost,
   unlikePost,
   addComment,

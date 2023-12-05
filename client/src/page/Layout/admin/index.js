@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { Admin } from "../../../components";
 const AdminPages = () => {
     const { user } = useAppContext();
-    if (user.role !== "Admin") {
+    if (user.role !== 1) {
         return <Navigate to="/" />;
     }
 

@@ -1,5 +1,6 @@
 import Review from "../models/review.js";
 import cloudinary from "cloudinary";
+import User from "../models/user.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",

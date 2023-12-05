@@ -44,7 +44,7 @@ const Nav = () => {
         className: "browse",
       },
     ];
-    // if (user.role === "Admin") {
+    // if (user.role === 1) {
     //   list.push({
     //     link: "/admin",
     //     icon: <MdAdminPanelSettings className="text-[28px] " />,

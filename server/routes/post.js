@@ -7,7 +7,7 @@ import {
     editPost,
     getPost,
     deletePost,
-    followingPosts,
+    getFollowing,
     likePost,
     unlikePost,
     addComment,
@@ -31,7 +31,7 @@ router.route("/create-post").post(createPost);
 router.route("/all-posts").get(isAdmin, allPosts);
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 
-router.route("/following-posts/").get(followingPosts);
+router.route("/following").get(getFollowing);
 // router.route("/get-nearby/:long/:lat/:item").get(getNearby);
 // router.route("/get-adminpost/").get(getAdminPosts);
 

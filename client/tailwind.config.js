@@ -15,7 +15,8 @@ module.exports = {
                 mainbg: '#1c2127',
                 dialogue: '#445566',
                 smallText: '#99aabb',
-                mainText: '#ccd7ff'
+                mainText: '#ccd7ff',
+                greenBtn: '#00a11d'
               }
         }
       

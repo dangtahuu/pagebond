@@ -8,6 +8,8 @@ import Trade from "./components/Trade";
 import { FiEdit2 } from "react-icons/fi";
 import ModalShelves from "../common/ModalShelves";
 import { Rating, Tooltip } from "@mui/material";
+import Similar from "./components/Similar";
+
 function BookDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -19,11 +21,11 @@ function BookDetail() {
   const [exchangeLoading, setExchangeLoading] = useState(false);
   const [shelvesLoading, setShelvesLoading] = useState(false);
   const [selectedShelvesLoading, setSelectedShelvesLoading] = useState(false);
-const [moreReviews,setMoreReviews] = useState(true)
-const [moreTrades,setMoreTrades] = useState(true)
+  const [moreReviews, setMoreReviews] = useState(true);
+  const [moreTrades, setMoreTrades] = useState(true);
 
   const [book, setBook] = useState({
-    id:"",
+    id: "",
     title: "",
     author: "",
     publisher: "",
@@ -35,11 +37,11 @@ const [moreTrades,setMoreTrades] = useState(true)
     genres: [],
     postsCount: "",
     ratingAvg: "",
-    contentAvg:"",
-    developmentAvg:"",
-    pacingAvg:"",
-    writingAvg:"",
-    insightsAvg:"",
+    contentAvg: "",
+    developmentAvg: "",
+    pacingAvg: "",
+    writingAvg: "",
+    insightsAvg: "",
   });
 
   const [myPosts, setMyPosts] = useState([]);
@@ -55,19 +57,19 @@ const [moreTrades,setMoreTrades] = useState(true)
   const list = ["My Posts", "Reviews", "Trades"];
   const [menu, setMenu] = useState("Reviews");
   const [openModal, setOpenModal] = useState(false);
+  const [shelfForm, setShelfForm] = useState(false);
+  const [similarBooks, setSimilarBooks] = useState([]);
 
   useEffect(() => {
     setLoading(true);
     getBook();
-    getTopShelves()
+    getSimilarBooks();
+    getTopShelves();
     getShelves();
     getSelectedShelves();
     setLoading(false);
   }, [id]);
 
-  useEffect(() => {
-   console.log(moreTrades)
-  }, [moreTrades]);
   const getBook = async () => {
     const { data } = await autoFetch(`api/book/get-book/${id}`);
     const book = data.book;
@@ -76,7 +78,8 @@ const [moreTrades,setMoreTrades] = useState(true)
       title: book.title,
       author: book.author || "Unknown author",
       publisher: book.publisher || "Unknown publisher",
-      publishedDate: `Published ${book.publishedDate}` || "Unknown published date",
+      publishedDate:
+        `Published ${book.publishedDate}` || "Unknown published date",
       description: book.description || "No description available",
       pageCount: `${book.pageCount} pages` || "No page number info",
       thumbnail:
@@ -86,7 +89,7 @@ const [moreTrades,setMoreTrades] = useState(true)
       genres: book.genres || [],
       postsCount: data.postsCount || "",
       ratingAvg: data.ratingAvg || "",
-      contentAvg:data.contentAvg ||"",
+      contentAvg: data.contentAvg || "",
       developmentAvg: data.developmentAvg || "",
       pacingAvg: data.pacingAvg || "",
       writingAvg: data.writingAvg || "",
@@ -105,8 +108,8 @@ const [moreTrades,setMoreTrades] = useState(true)
         `/api/review/book/${id}?page=${reviewPage + 1}`
       );
       setReviewPage(reviewPage + 1);
-      setReviews((prev)=>[...prev, ...data.posts]);
-      if (data.posts.length<10) setMoreReviews(false)
+      setReviews((prev) => [...prev, ...data.posts]);
+      if (data.posts.length < 10) setMoreReviews(false);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -118,11 +121,9 @@ const [moreTrades,setMoreTrades] = useState(true)
   const getFirstReviews = async () => {
     setReviewLoading(true);
     try {
-      const { data } = await autoFetch.get(
-        `/api/review/book/${id}?page=1`
-      );
+      const { data } = await autoFetch.get(`/api/review/book/${id}?page=1`);
       if (data.posts) setReviews(data.posts);
-      if (data.posts.length<10) setMoreReviews(false)
+      if (data.posts.length < 10) setMoreReviews(false);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -135,11 +136,11 @@ const [moreTrades,setMoreTrades] = useState(true)
     setExchangeLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/trade/book/${id}?page=${exchangePage + 1}&perPage=3`
+        `/api/trade/book/${id}?page=${exchangePage + 1}`
       );
       setExchangePage(exchangePage + 1);
       setExchange([...exchange, ...data.posts]);
-      if (data.posts.length<3) setMoreTrades(false)
+      if (data.posts.length < 10) setMoreTrades(false);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -151,12 +152,9 @@ const [moreTrades,setMoreTrades] = useState(true)
   const getFirstExchange = async () => {
     setExchangeLoading(true);
     try {
-      const { data } = await autoFetch.get(
-        `/api/trade/book/${id}?page=1&perPage=3`
-      );
+      const { data } = await autoFetch.get(`/api/trade/book/${id}?page=1`);
       if (data.posts) setExchange(data.posts);
-      if (data.posts.length<3) setMoreTrades(false)
-
+      if (data.posts.length < 3) setMoreTrades(false);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -168,10 +166,13 @@ const [moreTrades,setMoreTrades] = useState(true)
   const getMyPosts = async () => {
     setMyPostLoading(true);
     try {
-      const [{ data: reviewRes }, {data: tradeRes} ] = await Promise.all([autoFetch.get(`/api/review/book-my/${id}`),autoFetch.get(`/api/trade/book-my/${id}`)]);
-      let results = [...reviewRes.posts, ...tradeRes.posts]
-      results.sort((a, b) => new Date(b.createdAt)  - new Date (a.createdAt));
-      console.log(results)
+      const [{ data: reviewRes }, { data: tradeRes }] = await Promise.all([
+        autoFetch.get(`/api/review/book-my/${id}`),
+        autoFetch.get(`/api/trade/book-my/${id}`),
+      ]);
+      let results = [...reviewRes.posts, ...tradeRes.posts];
+      results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      // console.log(results);
       setMyPosts(results);
     } catch (error) {
       console.log(error);
@@ -181,7 +182,6 @@ const [moreTrades,setMoreTrades] = useState(true)
     }
   };
 
-  
   const getShelves = async () => {
     setShelvesLoading(true);
     try {
@@ -205,7 +205,7 @@ const [moreTrades,setMoreTrades] = useState(true)
       setTopShelves(data.names);
     } catch (error) {
       console.log(error);
-    } 
+    }
   };
 
   const getSelectedShelves = async () => {
@@ -223,10 +223,15 @@ const [moreTrades,setMoreTrades] = useState(true)
     }
   };
 
-  const submitShelves = async (data) => {
+  const submitShelves = async (shelves) => {
+    console.log("ssssssssssssss");
     // setSelectedShelvesLoading(true);
+    console.log(shelves);
     try {
-      const { data } = await autoFetch.post(`/api/shelf/book-to-shelf`, data);
+      const { data } = await autoFetch.post(
+        `/api/shelf/book-to-shelf`,
+        shelves
+      );
       setSelectedShelves(data.selected);
     } catch (error) {
       console.log(error);
@@ -236,15 +241,35 @@ const [moreTrades,setMoreTrades] = useState(true)
     }
   };
 
-  const RatingDisplay = ({value, label}) => {
+  const getSimilarBooks = async () => {
+    try {
+      const { data } = await autoFetch.get(
+        `/api/book/get-similar-books/${id}`
+      );
+      // console.log(books)
+      const books = data.books
+      books.shift()
+      // console.log(books)
+      setSimilarBooks(books);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const RatingDisplay = ({ value, label }) => {
     return (
       <div className="inline-flex mb-1">
-      <p className="mr-3 w-[100px]">{label}</p>
-      <Rating name="half-rating-read" value={value} precision={0.5} readOnly />
-      <p className="ml-3">{value}</p>
-    </div>
-    )
-  }
+        <p className="mr-3 w-[100px]">{label}</p>
+        <Rating
+          name="half-rating-read"
+          value={value}
+          precision={0.5}
+          readOnly
+        />
+        <p className="ml-3">{value}</p>
+      </div>
+    );
+  };
 
   const main = () => {
     if (menu === "My Posts") {
@@ -303,60 +328,56 @@ const [moreTrades,setMoreTrades] = useState(true)
   };
   return (
     <div
-      className={`md:flex w-screen text-base min-h-screen bg-mainbg text-mainText pt-[65px] px-[3%] sm:px-[5%]`}
+      className={`w-screen text-base min-h-screen bg-mainbg text-mainText pt-[65px] px-[3%] sm:px-[5%]`}
     >
-      <div className="w-full mt-[3%] pt-3  md:grid grid-cols-10 items-start justify-center space-x-8 py-16 px-4">
+      <div className="w-full mt-[3%] pt-3  md:grid grid-cols-10 items-start justify-center gap-x-8 py-16 px-4">
         <div className="col-span-2 md:pr-8">
           <img
             className="max-w-[400px] md:w-[200px] object-contain mb-6 md:mb-0 rounded-lg"
             src={book.thumbnail}
             alt={`${book.title} cover`}
           />
-         
-         {topShelves && (
-          <div className="mt-3">
-            <div className="serif-display mb-2">Top Shelves</div>
 
-            {
-              topShelves.map((shelf)=> (
-                <div className="text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1">{shelf}</div>
-              ))
-            }
-          </div>
-        )}
+          {topShelves && (
+            <div className="mt-3">
+              <div className="serif-display mb-2">Top Shelves</div>
 
-<button
+              {topShelves.map((shelf) => (
+                <div className="text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1">
+                  {shelf}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
             className={`bg-[#00a11d] text-white text-sm block m-auto w-[200px] py-1.5 text-center rounded-full font-bold my-3`}
             // disabled={!text || loading}
             onClick={() => {
-                        setOpenModal(true);
-                    }}
+              console.log(shelfForm);
+              setShelfForm(true);
+            }}
             // onClick={handleButton}
           >
             Shelve this book
           </button>
-          {/* <button
-            className="flex gap-x-2  items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
-            onClick={() => {
-              // navigate(`/update-profile`);
-            }}
-          >
-            <FiEdit2 className=" " />
-            Shelve
-          </button>
-          {openModal && (
+
+          {shelfForm && (
             <ModalShelves
               shelves={shelves}
+              setShelves={setShelves}
               selected={selectedShelves}
               submitShelves={submitShelves}
-              setOpenModal={setOpenModal}
-              book
+              setOpenModal={setShelfForm}
+              book={book}
             ></ModalShelves>
-          )} */}
+          )}
         </div>
 
         <div className="col-span-5">
-            <h1 className="text-4xl font-bold serif-display text-white">{book.title}</h1>
+          <h1 className="text-4xl font-bold serif-display text-white">
+            {book.title}
+          </h1>
           <h2 className="text-xl font-semibold">{book.author}</h2>
 
           <div className="flex items-center">
@@ -364,13 +385,18 @@ const [moreTrades,setMoreTrades] = useState(true)
             {/* <span className="text-lg">{rating} ({reviews.length} reviews)</span> */}
           </div>
 
-          <div className="text-base mt-3 text-justify" dangerouslySetInnerHTML={{ __html: book.description }} />
+          <div
+            className="text-base mt-3 text-justify"
+            dangerouslySetInnerHTML={{ __html: book.description }}
+          />
           {/* <p className="text-lg">{book.description}</p> */}
           <div className="text-sm  text-smallText mt-3">
-          <div>{book.pageCount} pages</div>
-          <div>{book.publishedDate} by {book.publisher}</div>
+            <div>{book.pageCount} pages</div>
+            <div>
+              {book.publishedDate} by {book.publisher}
+            </div>
           </div>
-         
+
           <div className="flex mx-0 sm:mx-10 ">
             <ul className="flex items-center justify-between w-full px-16 py-1 gap-x-10 ">
               {list.map((v) => (
@@ -392,27 +418,32 @@ const [moreTrades,setMoreTrades] = useState(true)
         </div>
         <div className="col-span-3 ">
           <div className="flex flex-col">
-            <div className="serif-display mb-2">From {book.postsCount} reviews</div>
-          <RatingDisplay value={book.ratingAvg} label="Rating"/>
-         <RatingDisplay value={book.contentAvg} label="Content"/>
-         <RatingDisplay value={book.developmentAvg} label="Development"/>
-         <RatingDisplay value={book.pacingAvg} label="Pacing"/>
-         <RatingDisplay value={book.writingAvg} label="Writing"/>
-         <RatingDisplay value={book.insightsAvg} label="Insights"/>
+            <div className="serif-display mb-2">
+              From {book.postsCount} reviews
+            </div>
+            <RatingDisplay value={book.ratingAvg} label="Rating" />
+            <RatingDisplay value={book.contentAvg} label="Content" />
+            <RatingDisplay value={book.developmentAvg} label="Development" />
+            <RatingDisplay value={book.pacingAvg} label="Pacing" />
+            <RatingDisplay value={book.writingAvg} label="Writing" />
+            <RatingDisplay value={book.insightsAvg} label="Insights" />
           </div>
-        
-          {book.genres && (
-          <div className="mt-3">
-            <div className="serif-display mb-2">Genres</div>
 
-            {
-              book.genres.map((genre)=> (
-                <div className="text-xs inline-block pb-1 border-b-2 border-b-dialogue my-1 mr-3">{genre}</div>
-              ))
-            }
-          </div>
-        )}
+          {book.genres && (
+            <div className="mt-3">
+              <div className="serif-display mb-2">Genres</div>
+
+              {book.genres.map((genre) => (
+                <div className="text-xs inline-block pb-1 border-b-2 border-b-dialogue my-1 mr-3">
+                  {genre}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
+      <div className="w-full mt-[3%] pt-3  ">
+        {similarBooks ? <Similar name="Similar Books" books={similarBooks}/> : <></>}
       </div>
     </div>
   );

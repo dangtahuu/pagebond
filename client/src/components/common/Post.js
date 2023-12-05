@@ -89,8 +89,8 @@ const Post = ({
     getType();
   }, []);
 
-  let likeCount = post.likes.length;
-  let commentCount = post.comments.length;
+  let likeCount = post?.likes?.length || 0;
+  let commentCount = post?.comments?.length || 0;
 
   const getType = () => {
     if (post.rating) setType("review");
@@ -411,7 +411,7 @@ const Post = ({
             }}
           >
             {post.postedBy.name}
-            {post.postedBy.role === "Admin" && (
+            {post.postedBy.role === 1 && (
               <TiTick className="text-sm ml-1 text-white rounded-full bg-blue-700 " />
             )}
           </div>
@@ -421,7 +421,7 @@ const Post = ({
           </div> */}
         </div>
         {/* Edit or delete posts */}
-        {(userId === post.postedBy._id || userRole === "Admin") && (
+        {(userId === post.postedBy._id || userRole === 1) && (
           <div
             className="ml-auto text-[25px] transition-50 cursor-pointer font-bold w-[35px] h-[35px] rounded-full hover:bg-[#F2F2F2] dark:hover:bg-[#3A3B3C] flex flex-row items-center justify-center group relative "
             onClick={() => {
@@ -475,7 +475,7 @@ const Post = ({
             alt="avatar"
             className="max-h-20 rounded-md cursor-pointer "
             onClick={() => {
-              navigate(`/book/${post.book.code}`);
+              navigate(`/book/${post.book._id}`);
             }}
           />
           {/* name and time post */}
@@ -483,7 +483,7 @@ const Post = ({
             <div
               className="flex items-center font-bold text-sm gap-x-1 cursor-pointer "
               onClick={() => {
-                navigate(`/book/${post.book.code}`);
+                navigate(`/book/${post.book._id}`);
               }}
             >
               {post.book.title}
@@ -528,7 +528,7 @@ const Post = ({
           <img
             src={post.image.url}
             alt="img_content"
-            className="w-full h-auto max-h-[300px] sm:max-h-[350px] object-contain bg-[#F0F2F5] dark:bg-[#18191A]"
+            className="w-full rounded-lg h-auto max-h-[300px] sm:max-h-[350px] object-contain bg-[#F0F2F5] dark:bg-[#18191A]"
             onClick={() => {
               navigate(`/post/information/${post._id}`);
             }}
@@ -537,7 +537,6 @@ const Post = ({
       )}
 
       {/* post's comment and like quantity */}
-      {(commentCount > 0 || likeCount > 0) && (
         <div className="px-4 py-[10px] flex gap-x-[6px] items-center text-[15px] ">
           {/* like quantity */}
           
@@ -575,7 +574,6 @@ const Post = ({
               `${commentCount} ${commentCount > 1 ? "comments" : "comment"}`}
           </span>
         </div>
-      )}
 
 
     

@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import {MdPhoto} from "react-icons/md";
 import {useAppContext} from "../../context/useContext";
+import { SlArrowDown } from "react-icons/sl";
 
-const FormCreatePost = ({user, setOpenModal, setAttachment, text}) => {
-    const {dark} = useAppContext();
+const FormCreatePost = ({user, setOpenModal, setSpecialPostOpen, setAttachment, text}) => {
+
+    const [specialMenu, setSpecialMenu] = useState(false)
     return (
         <div
-            className={` mb-5 pt-3 rounded-lg px-2 md:px-4`}>
+            className={` mb-5 pt-3 relative rounded-lg px-2 md:px-4`}>
             <div className='flex items-center gap-x-2 '>
                 <img
                     src={user.image?.url}
@@ -25,7 +27,7 @@ const FormCreatePost = ({user, setOpenModal, setAttachment, text}) => {
                     {/* </div> */}
                 </div>
                 <button
-            className={`bg-[#00a11d] w-[100px] text-white text-sm block ml-auto mr-0 py-1.5 text-center rounded-full font-bold my-3`}
+            className={`bg-[#00a11d] w-[100px] relative text-white text-sm block ml-auto mr-0 py-1.5 text-center rounded-full font-bold my-3`}
             // disabled={!text || loading}
             onClick={() => {
                         setOpenModal(true);
@@ -33,7 +35,21 @@ const FormCreatePost = ({user, setOpenModal, setAttachment, text}) => {
             // onClick={handleButton}
           >
             Create post
+          
           </button>
+       
+          {specialMenu &&
+            <button
+            className={`bg-[#00a11d] w-[140px] text-white text-sm block absolute top-14 right-2 mr-0 py-1.5 text-center rounded-full font-bold my-3`}
+          onClick={()=>setSpecialPostOpen(true)}
+          >
+            Create special post
+          </button>
+
+          }
+
+          <SlArrowDown className="cursor-pointer" onClick={()=>setSpecialMenu(prev=>!prev)}/>
+
             </div>
 
             <div

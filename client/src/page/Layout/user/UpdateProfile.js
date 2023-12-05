@@ -163,7 +163,7 @@ const UpdateProfile = () => {
                 </label>
                 <div className='mt-5 text-3xl font-bold text-center flex items-center gap-x-2 '>
                     {user.name}{" "}
-                    {user.role === "Admin" && (
+                    {user.role === 1 && (
                         <TiTick className='text-[22px] text-white rounded-full bg-blue-700 ' />
                     )}
                 </div>

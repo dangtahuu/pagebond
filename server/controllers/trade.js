@@ -1,5 +1,6 @@
 import Trade from "../models/trade.js";
 import cloudinary from "cloudinary";
+import User from "../models/user.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -299,7 +300,7 @@ const getNearby = async (req, res) => {
   }
 };
 
-const following = async (req, res) => {
+const getFollowing = async (req, res) => {
   try {
     const { userId } = req.user;
     const user = await User.findById(userId);
@@ -342,5 +343,5 @@ export {
   removeComment,
   getWithUser,
   getNearby,
-  following,
+  getFollowing,
 };

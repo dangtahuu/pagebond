@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {toast} from "react-toastify";
 import {Modal, Post, LoadingPost, LoadingForm, FormCreatePost} from "../..";
-import InfiniteScroll from "react-infinite-scroll-component";
 
 const MyPost = ({
     posts,
