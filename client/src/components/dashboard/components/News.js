@@ -6,8 +6,9 @@ import { useNavigate } from "react-router-dom";
 const News = ({
   autoFetch,
   token,
-  dark,
   error,
+  name="",
+  url=""
 }) => {
   
 
@@ -25,7 +26,7 @@ const News = ({
     setAdminLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/post/get-adminpost?page=1&perPage=5`
+       url
       );
       setListAdmin(data.posts);
       // console.log(data.posts);
@@ -39,7 +40,7 @@ const News = ({
     if (error) {
       return (
         <div className="w-full text-center text-xl font-semibold ">
-          <div>No news found!</div>
+          <div>No posts found!</div>
         </div>
       );
     }
@@ -50,17 +51,17 @@ const News = ({
     if (listAdmin.length) {
       return (
         <>
-          <div className="flex w-full crimson-600 text-xl items-center justify-between ">
-            News
+          <div className="flex w-full serif-display text-lg items-center justify-between ">
+            {name}
           
           </div>
-          <div className="">
+          <div className="w-full">
           {listAdmin.map((a) => {
             return (
               // @ts-ignore
 
               <div
-                className="w-full bg-white cursor-pointer border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 mt-4"
+                className="w-full bg-dialogue cursor-pointer rounded-lg mt-4"
                 key={a._id}
                 onClick={() => navigate(`/post/information/${a._id}`)}
               >
@@ -72,14 +73,14 @@ const News = ({
 
                 <div className="p-2">
                   <a href="#">
-                    <h5 class="mb-2 text-sm font-bold tracking-tight text-gray-900 dark:text-white">
+                    <h5 class="mb-2 text-sm font-bold tracking-tight">
                       {a.title}
                     </h5>
                   </a>
                
                   <a
                     href="#"
-                    className="inline-flex items-center px-3 py-2 text-xs font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                    className="inline-flex items-center px-3 py-2 rounded-full text-xs font-medium text-center text-white bg-greenBtn "
                   >
                     Read
                     <svg
@@ -108,13 +109,10 @@ const News = ({
     return <></>;
   };
   return (
-    <div
-      className={`bg-white ${
-        !dark && "shadow-post"
-      } flex flex-col sticky top-20 overflow-y-auto max-h-[80vh] scroll-bar items-center dark:bg-[#242526] rounded-lg py-4 px-5  w-full mb-4 md:mb-0 `}
-    >
+   <>
       {content()}
-    </div>
+
+   </>
   );
 };
 

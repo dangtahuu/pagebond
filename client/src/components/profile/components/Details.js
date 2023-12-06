@@ -117,7 +117,7 @@ const Details = ({
         }
         return (
             <div
-                className={`bg-white dark:bg-[#242526] p-4 rounded-lg max-h-[30vh] overflow-y-auto scroll-bar ${
+                className={`bg-mainbg p-4 rounded-lg max-h-[30vh] overflow-y-auto scroll-bar ${
                     !dark ? "shadow-post" : ""
                 } `}>
                 <div className='text-2xl crimson-600 '>
@@ -146,9 +146,7 @@ const Details = ({
         }
         return (
             <div
-                className={`bg-white dark:bg-[#242526] p-4 max-h-[50vh] rounded-lg overflow-y-auto scroll-bar ${
-                    !dark ? "shadow-post" : ""
-                }`}>
+                className={`bg-mainbg p-4 max-h-[50vh] rounded-lg overflow-y-auto scroll-bar`}>
                 <div className='flex justify-start items-center '>
                     <div className='text-2xl crimson-600 dark:text-[#e4e6eb] '>
                         Item

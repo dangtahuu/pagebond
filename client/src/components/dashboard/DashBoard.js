@@ -37,16 +37,32 @@ const Dashboard = () => {
   
 
   return (
-    <div className="min-h-screen bg-mainbg overflow-clip pt-16 md:pt-[85px]  ">
+    <div className="min-h-screen bg-mainbg overflow-clip pt-[70px] ">
       <div className="w-screen grid grid-cols-11 md:gap-x-8 px-3 sm:px-7 md:px-10 relative ">
         <div className="hidden lg:block lg:col-span-3 relative lg:order-1">
-       
-          <News
+        <div
+      className={`flex flex-col sticky top-20 overflow-y-auto max-h-[80vh] scroll-bar items-center pb-4 px-5  w-full mb-4 md:mb-0 `}
+    >
+       <News
             className=""
             autoFetch={autoFetch}
             dark={dark}
             token={token}
+            name="News"
+            url= "api/special/admin"
           />
+
+<News
+            className=""
+            autoFetch={autoFetch}
+            dark={dark}
+            token={token}
+            name="From verified accounts"
+            url= "api/special/official"
+
+          />
+    </div>
+         
         </div>
         <div className="col-span-11 order-2 md:col-span-7 lg:col-span-5 shrink-0 md:order-1 lg:order-2 ">
        

@@ -47,7 +47,11 @@ const specialPostSchema = new mongoose.Schema(
     type: {
         type: Number,
         required: true,
-    }
+    },
+    book: {
+      type: mongoose.Types.ObjectId,
+      ref: "Book",
+    },
   },
   { timestamps: true }
 );

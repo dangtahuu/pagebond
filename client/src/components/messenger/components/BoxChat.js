@@ -208,7 +208,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                         </div>
                     ) : (
                         <div className='flex rounded-2xl rounded-lg w-full border-[1px] border-[#8eabb4] px-1 md:px-2 my-2 '>
-                            <input
+                            {/* <input
                                 type='text'
                                 className='w-full bg-inherit border-0 focus:ring-0 px-1 py-1 md:px-3 md:py-2 text-[13px] md:text-base  '
                                 placeholder='Search'
@@ -251,7 +251,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                     //console.log(arrFilter);
                                     setOneState("allMessages", arrFilter);
                                 }}
-                            />
+                            /> */}
                             {state.textSearchPeople && (
                                 <button
                                     className='text-2xl opacity-50 hover:opacity-70 cursor-pointer '

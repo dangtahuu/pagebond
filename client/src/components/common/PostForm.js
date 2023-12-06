@@ -139,22 +139,22 @@ const PostForm = ({
   };
 
   return (
-    <div className=" fixed flex items-center justify-center w-screen h-screen bg-white/50 z-[200] top-0 left-0 ">
-      <div
-        className="z-[201] bg-none fixed w-full h-full top-0 right-0 "
+    <div className=" fixed flex items-center justify-center w-screen h-screen bg-black/50 z-[200] top-0 left-0 ">
+    <div
+      className="z-[201] bg-none fixed w-full h-full top-0 right-0 "
+      onClick={() => {
+        if (!isEditPost) {
+          setOpenModal(false);
+        }
+      }}
+    ></div>
+    <div className="mx-auto w-[80%] bg-dialogue rounded-xl px-4 z-[202] box-shadow relative ">
+      <IoClose
+        className="absolute top-4 right-6 text-lg opacity-50 hover:opacity-100 cursor-pointer transition-50 "
         onClick={() => {
-          if (!isEditPost) {
-            setOpenModal(false);
-          }
+          setOpenModal(false);
         }}
-      ></div>
-      <div className="mx-auto w-[80%] bg-white rounded-xl px-4 z-[202] box-shadow relative ">
-        <IoClose
-          className="absolute top-4 right-6 text-lg opacity-50 hover:opacity-100 cursor-pointer transition-50 "
-          onClick={() => {
-            setOpenModal(false);
-          }}
-        />
+      />
         <div>
           <div className="font-extrabold py-4 text-base border-b-[1px] border-black/20 ">
             {isEditPost ? "Edit post" : "Create Post"}

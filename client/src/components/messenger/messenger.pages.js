@@ -437,7 +437,7 @@ const initState = {
     }
 
     return (
-        <div className='w-screen bg-white h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden '>
+        <div className='w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden '>
             <div className='w-full h-full grid grid-cols-4 '>
                 <div className='col-span-1 '>
                     <BoxChat
@@ -517,7 +517,7 @@ const initState = {
                                 )}
                                 <input
                                     type='text'
-                                    className='w-full bg-inherit first-line:focus:ring-0 focus:ring-white rounded-lg border-[1px] border-[#8EABB4] flex px-4 items-center '
+                                    className='w-full bg-inherit first-line:focus:ring-0 focus:ring-white rounded-full border-[1px] border-[#8EABB4] flex px-4 items-center '
                                     placeholder='Type your message'
                                     value={state.text}
                                     onChange={(e) =>

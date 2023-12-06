@@ -105,7 +105,7 @@ export default function Dropdown() {
     return (
         <Menu
             as='div'
-            className={`w-10 h-10 relative flex items-center ${
+            className={`w-7 h-7 relative flex items-center ${
                 user ? "" : "md:hidden"
             } `}>
             <Menu.Button className='flex items-center justify-center w-full h-full rounded-full md:hover:bg-[#3E3E3E]'>
@@ -113,7 +113,7 @@ export default function Dropdown() {
                     <img
                         src={user?.image?.url}
                         alt='avatar'
-                        className='rounded-full w-full h-full object-cover bg-[#B0926A] pl-[3px] pt- p-[2px] dark:bg-slate-300 shrink-0 '
+                        className='rounded-full w-full h-full object-cover  pl-[3px] pt- p-[2px] shrink-0 '
                     />
                 ) : (
                     <AiOutlineMenu className='text-20px ' />
@@ -167,10 +167,10 @@ export default function Dropdown() {
                             ))}
                         {drop.map((v, k) => (
                             <div
-                                className={`px-1 py-1 dark:bg-[#3A3A3A] `}
+                                className={`px-1 py-1 bg-navBar `}
                                 key={k + "navigation"}
                                 style={{
-                                    backgroundColor: dark ? "" : v.bgColor,
+                                    // backgroundColor: dark ? "" : v.bgColor,
                                 }}>
                                 <Menu.Item>
                                     {({active}) => (

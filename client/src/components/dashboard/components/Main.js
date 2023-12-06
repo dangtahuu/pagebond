@@ -35,11 +35,13 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   const [specialPostOpen, setSpecialPostOpen] = useState(false);
 
   const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
-
+  const [menu, setMenu]= useState("Following")
+  const list = ['Following','Discover']
 
   // get posts
   useEffect(() => {
     getFirstData();
+    getDiscover()
     // console.log('i fire once');
   }, []);
 
@@ -75,7 +77,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const createNewSpecialPost = async (formData) => {
     setLoadingCreateNewPost(true);
-    if (!text) {
+    if (!specialInput.text) {
       toast.error("You must type something...");
       return;
     }
@@ -88,12 +90,12 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         );
         image = { url: data.url, public_id: data.public_id };
       }
-
+      console.log(user.role)
       const { data } = await autoFetch.post(`api/special/create`, {
         text: specialInput.text, 
         title: specialInput.title, 
         image,
-        type: user.role === 1 ? 1: 2,
+        type: user.role == 1 ? 1: 2,
           });
       setActivePosts((prev) => [data.post, ...prev]);
       toast.success(data?.msg || "Create new special post successfully!");
@@ -103,62 +105,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     setLoadingCreateNewPost(false);
   };
 
-  const content = () => {
-    if (loading) {
-      return (
-        <div>
-          <LoadingPost />
-        </div>
-      );
-    }
-    if (error) {
-      return (
-        <div className={`w-full text-center text-xl font-bold py-10 `}>
-          <div>No post found... Try again!</div>
-        </div>
-      );
-    }
-    if (activePosts.length === 0) {
-      return (
-        <div className="w-full text-center text-xl font-bold pt-[20vh] ">
-          <div>Nothing to display</div>
-        </div>
-      );
-    }
-    return (
-      <InfiniteScroll
-        dataLength={activePosts.length}
-        next={getNewData}
-        hasMore={moreData}
-      >
-        {activePosts.map((post) => (
-          <Post
-            key={post._id}
-            currentPost={post}
-            user_img={user.image.url}
-            userId={user._id}
-            userRole={user.role}
-          />
-        ))}
-      </InfiniteScroll>
-    );
-  };
-
-  const form = () => {
-    if (error) {
-      return <></>;
-    }
-    if (loading) return <LoadingForm />;
-    return (
-      <FormCreatePost
-        setAttachment={setAttachment}
-        setOpenModal={setPostModal}
-        setSpecialPostOpen={setSpecialPostOpen}
-        text={text}
-        user={user}
-      />
-    );
-  };
+ 
 
   //   const getFirstData = async() => {
   //     console.log('aaaa')
@@ -174,11 +121,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         getFirstSpecial(),
       ]);
       let data = [...posts, ...reviews, ...trades, ...special];
-      console.log(data);
-      console.log(posts);
-      console.log(reviews);
-      console.log(trades);
-      console.log(special);
       data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       let firstData = data.splice(0, 10);
       setActivePosts(firstData);
@@ -216,7 +158,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   };
 
   const getFirstPosts = async () => {
-    console.log("bbbbbb");
     const { data } = await autoFetch.get(`/api/post/following?page=1`);
     if (data.posts.length < 10) setMorePosts(false);
     if (data.posts.length === 0) return [];
@@ -228,7 +169,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     const { data } = await autoFetch.get(
       `/api/post/following?page=${page + 1}`
     );
-    console.log("222222");
     console.log(data.posts);
     if (data.posts.length < 10) setMorePosts(false);
     if (data.posts.length === 0) return [];
@@ -293,6 +233,88 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     return data.posts;
   };
 
+  const getDiscover = async() => {
+    try{
+      const { data } = await autoFetch.get(`/api/auth/find-people?number=25`)
+      let people = data.idsList
+      const reviewPeople = people.splice(0,10)
+      const postPeople = people.splice(0,10)
+      
+      const [{data: reviewRes},{data:postRes},{data:tradeRes}] = await Promise.all([
+        autoFetch.post(`/api/review/discover`, {suggestion: reviewPeople}),
+        autoFetch.post(`/api/post/discover`, {suggestion: postPeople}),
+        autoFetch.post(`/api/trade/discover`, {suggestion: people}),
+      ])
+
+      console.log(reviewRes.reviews)
+      console.log(postRes.posts)
+      console.log(tradeRes.trades)
+
+      
+
+    }catch(e){
+console.log(e)
+    }
+
+  }
+
+  const content = () => {
+    if (loading) {
+      return (
+        <div>
+          <LoadingPost />
+        </div>
+      );
+    }
+    if (error) {
+      return (
+        <div className={`w-full text-center text-xl font-bold py-10 `}>
+          <div>No post found... Try again!</div>
+        </div>
+      );
+    }
+    if (activePosts.length === 0) {
+      return (
+        <div className="w-full text-center text-xl font-bold pt-[20vh] ">
+          <div>Nothing to display</div>
+        </div>
+      );
+    }
+    return (
+      <InfiniteScroll
+        dataLength={activePosts.length}
+        next={getNewData}
+        hasMore={moreData}
+      >
+        {activePosts.map((post) => (
+          <Post
+            key={post._id}
+            currentPost={post}
+            user_img={user.image.url}
+            userId={user._id}
+            userRole={user.role}
+          />
+        ))}
+      </InfiniteScroll>
+    );
+  };
+
+  const form = () => {
+    if (error) {
+      return <></>;
+    }
+    if (loading) return <LoadingForm />;
+    return (
+      <FormCreatePost
+        setAttachment={setAttachment}
+        setOpenModal={setPostModal}
+        setSpecialPostOpen={setSpecialPostOpen}
+        text={text}
+        user={user}
+      />
+    );
+  };
+
   return (
     <div className="">
       {form()}
@@ -323,6 +345,24 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
             )}
 
       {loadingCreateNewPost && <LoadingPost className="mb-4" />}
+
+      <div className="flex ">
+            <ul className="flex items-center justify-start w-full py-1 mb-3 gap-x-5">
+              {list.map((v) => (
+                <li
+                  key={v + "button"}
+                  className={`li-profile ${menu === v && "active"} `}
+                  onClick={() => {
+                    setMenu(v);
+                    // navigate(`/profile/${user._id}`);
+                  }}
+                >
+                  {v}
+                </li>
+              ))}
+            </ul>
+          </div>
+
       {content()}
     </div>
   );

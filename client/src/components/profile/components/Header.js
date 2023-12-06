@@ -136,10 +136,10 @@ const Header = ({
   };
 
   return (
-    <div className="pt-[50px] md:pt-[75px] md:px-[15%] w-full dark:bg-[#242426] bg-white overflow-x-hidden ">
+    <div className="pt-[50px] md:pt-[75px] md:px-[15%] w-full bg-mainbg overflow-x-hidden ">
       {/* background image */}
       <img
-        src="/images/cover.png"
+        src="/images/cover.jpg"
         alt="bg"
         className="w-full h-[30vh] sm:h-[40vh] md:h-[54vh] object-cover rounded-b-lg "
       />

@@ -36,7 +36,7 @@
     border-radius: 0px !important;
   }
   .dashboard {
-    @apply text-[#B0926A] hover:text-[#706233];
+    @apply text-mainText hover:text-greenBtn;
   }
   .messenger {
     @apply text-[#FF5F9E] hover:text-[#E90064];
@@ -52,7 +52,7 @@
   }
   .dashboard.active::after {
     @apply content-[''] 
-        absolute h-[3px] w-[70%] left-[15%] bg-[#B0926A] opacity-100
+        absolute h-[3px] w-[70%] left-[15%] bg-greenBtn opacity-100
         bottom-0;
   }
   .search.active::after {
@@ -130,13 +130,13 @@
     @apply overflow-hidden;
   }
   .li-profile {
-    @apply py-4 rounded-lg cursor-pointer w-full text-center transition-20 relative font-semibold text-[15px] hover:bg-[#F2F2F2];
+    @apply py-1 rounded-lg cursor-pointer w-auto text-center transition-20 relative text-base;
   }
   .li-profile.active::after {
-    @apply content-[''] absolute w-[80%] bottom-[-3px] left-[10%] h-[3px] bg-[#B0926A];
+    @apply content-[''] absolute w-[80%] bottom-[-1px] left-[10%] h-[3px] bg-greenBtn;
   }
   .li-profile.active {
-    @apply text-[#B0926A] hover:bg-inherit;
+    @apply text-greenBtn hover:bg-inherit;
   }
 
   .btn-home {

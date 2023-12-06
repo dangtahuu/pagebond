@@ -12,6 +12,14 @@ cloudinary.v2.config({
   api_secret: "mW4Q6mKi4acL72ZhUYzw-S0_y1A",
 });
 
+const shuffle = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 const createPost = async (req, res) => {
   const { text, image, title } = req.body;
 
@@ -24,21 +32,21 @@ const createPost = async (req, res) => {
       text,
       postedBy: req.user.userId,
       image,
-      title
+      title,
     });
-  
-    
+
     const postWithUser = await Post.findById(post._id).populate(
       "postedBy",
       "-password -secret"
     );
-    return res.status(200).json({ post: postWithUser, msg: "Create new post succesfully" });
+    return res
+      .status(200)
+      .json({ post: postWithUser, msg: "Create new post succesfully" });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ msg: err });
   }
 };
-
 
 const allPosts = async (req, res) => {
   try {
@@ -120,7 +128,6 @@ const getFollowing = async (req, res) => {
   }
 };
 
-
 const editPost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -128,19 +135,23 @@ const editPost = async (req, res) => {
     if (!text.length) {
       return res.status(400).json({ msg: "You need to provide some content!" });
     }
-    const post = await Post.findByIdAndUpdate(postId, {
-      text,
-      image,
-      title
-    },  {
-      new: true,
-    });
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+        text,
+        image,
+        title,
+      },
+      {
+        new: true,
+      }
+    );
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
     }
     return res.status(200).json({ msg: "Updated posts!", post });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(400).json({ msg: error });
   }
 };
@@ -210,7 +221,7 @@ const addComment = async (req, res) => {
           comments: {
             text: comment,
             postedBy: req.user.userId,
-            image
+            image,
           },
         },
       },
@@ -221,7 +232,7 @@ const addComment = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret");
 
-    return res.status(200).json({  post });
+    return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -291,6 +302,63 @@ const getDetailPost = async (req, res) => {
   }
 };
 
+const getDiscover = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const suggestion = req.body.suggestion || [];
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+    let { following } = user;
+
+    let shuffledFollowing = shuffle(following);
+    console.log(suggestion)
+    let peopleList;
+
+    if (suggestion.length > 0) {
+      if (shuffledFollowing.length > 0)
+        peopleList = [...suggestion, ...shuffledFollowing.splice(0, 10)];
+      else peopleList = [...suggesion];
+    } else return res.status(200).json({ msg: "No suggestion at the moment", posts:[] });
+
+    let result = [];
+
+    for (const one of peopleList) {
+      const randomPostId = await Post.aggregate([
+        {
+          $match: {
+            $and: [
+              {
+                $and: [
+                  { likes: { $nin: [userId] } },
+                  {
+                    comments: { $not: { $elemMatch: { postedBy: user._id } } },
+                  },
+                ],
+              },
+              { postedBy: one },
+            ],
+          },
+        },
+        { $sample: { size: 1 } },
+        { $project: { _id: 1 } }, // Project only the _id field for the next step
+      ]);
+
+      const post = await Post.findById(randomPostId)
+        .populate("postedBy", "-password -secret")
+        .populate("comments.postedBy", "-password -secret")
+        .populate("book");
+      if(post) result.push(post);
+    }
+
+    return res.status(200).json({ reviews: result });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   createPost,
   allPosts,
@@ -306,4 +374,5 @@ export {
   totalPosts,
   getPostsWithUserId,
   getDetailPost,
+  getDiscover,
 };

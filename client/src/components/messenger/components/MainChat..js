@@ -64,8 +64,8 @@ const MainChat = ({
                                 <div
                                     className={`order-1 chat-element md:max-w-[70%] break-words  rounded-2xl md:rounded-[25px] ${
                                         c.sentBy._id === user._id
-                                            ? "dark:bg-[#006064] bg-[#1d4ed8] "
-                                            : "dark:bg-[#3E4042] bg-white box-shadow text-black "
+                                            ? "bg-[#00a11d] "
+                                            : "bg-white box-shadow text-black "
                                     }  px-3 py-2 ml-1 dark:text-white`}>
                                     {/* <div>{c.text}</div> */}
                                     {/* <div dangerouslySetInnerHTML={{ __html: c.text }} /> */}

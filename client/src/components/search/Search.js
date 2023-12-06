@@ -327,7 +327,7 @@ function Search() {
   };
   return (
     <div
-      className={`md:flex w-screen bg-white min-h-screen dark:bg-black dark:text-white pt-[65px] px-[3%] sm:px-[5%] md:px-[10%]`}
+      className={`md:flex w-screen bg-mainbg min-h-screen pt-[65px] px-[3%] sm:px-[5%] md:px-[10%]`}
     >
       {/* <div className="w-full h-[90%] mt-[3%] pt-3 bg-white  rounded-lg items-start justify-center py-16 px-4 overflow-y-auto"> */}
       <div className="w-full mt-[3%] pt-3 items-start justify-center py-16 px-4">

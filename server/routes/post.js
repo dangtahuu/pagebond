@@ -15,6 +15,7 @@ import {
     totalPosts,
     getPostsWithUserId,
     getDetailPost,
+    getDiscover,
 
 } from "../controllers/post.js";
 import formidable from "express-formidable";
@@ -32,6 +33,8 @@ router.route("/all-posts").get(isAdmin, allPosts);
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 
 router.route("/following").get(getFollowing);
+router.route("/discover").post(getDiscover);
+
 // router.route("/get-nearby/:long/:lat/:item").get(getNearby);
 // router.route("/get-adminpost/").get(getAdminPosts);
 

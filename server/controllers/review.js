@@ -8,6 +8,14 @@ cloudinary.v2.config({
   api_secret: "mW4Q6mKi4acL72ZhUYzw-S0_y1A",
 });
 
+const shuffle = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 const create = async (req, res) => {
   const {
     text,
@@ -33,7 +41,7 @@ const create = async (req, res) => {
     !writing ||
     !insights
   ) {
-    console.log('aaaa')
+    console.log("aaaa");
     return res.status(400).json({ msg: "Please provide all required values" });
   }
 
@@ -117,7 +125,7 @@ const getAllWithBook = async (req, res) => {
       .populate("comments.postedBy", "-password -secret")
       .sort({ createdAt: -1 })
       .limit(perPage);
-      
+
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);
@@ -199,7 +207,7 @@ const edit = async (req, res) => {
     }
     return res.status(200).json({ msg: "Updated review!", post });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(400).json({ msg: error });
   }
 };
@@ -363,6 +371,95 @@ const getFollowing = async (req, res) => {
   }
 };
 
+const getDiscover = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const suggestion = req.body.suggestion || [];
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+    let { following } = user;
+
+    let shuffledFollowing = shuffle(following);
+    console.log(suggestion)
+    let peopleList;
+
+    if (suggestion.length > 0) {
+      if (shuffledFollowing.length > 0)
+        peopleList = [...suggestion, ...shuffledFollowing.splice(0, 10)];
+      else peopleList = [...suggesion];
+    } else return res.status(200).json({ msg: "No suggestion at the moment", reviews:[] });
+
+    let result = [];
+
+    for (const one of peopleList) {
+      const randomPostId = await Review.aggregate([
+        {
+          $match: {
+            $and: [
+              {
+                $and: [
+                  { likes: { $nin: [userId] } },
+                  {
+                    comments: { $not: { $elemMatch: { postedBy: user._id } } },
+                  },
+                ],
+              },
+              { postedBy: one },
+            ],
+          },
+        },
+        { $sample: { size: 1 } },
+        { $project: { _id: 1 } }, // Project only the _id field for the next step
+      ]);
+
+      const post = await Review.findById(randomPostId)
+        .populate("postedBy", "-password -secret")
+        .populate("comments.postedBy", "-password -secret")
+        .populate("book");
+      if(post) result.push(post);
+    }
+
+    return res.status(200).json({ reviews: result });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getRandomReadBooks = async(req,res) => {
+  try {
+    const limit = req.query.limit || 5
+    const { userId } = req.user;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+  
+    const posts = await Review.find({ $and: [{postedBy: userId},{rating: {$gt: 3}}]  })
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate("book")
+
+      const uniqueBookIds = new Set();
+    
+      for (const obj of posts) {
+        if (!uniqueBookIds.has(obj.book)) {
+          uniqueBookIds.add(obj.book);
+        }
+      }
+
+      const shuffledBookIds = shuffle(uniqueBookIds)
+
+    return res.status(200).json({ bookIds: shuffledBookIds.splice(0,5) });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+
 export {
   create,
   getAll,
@@ -377,4 +474,5 @@ export {
   removeComment,
   getWithUser,
   getFollowing,
+  getDiscover,
 };

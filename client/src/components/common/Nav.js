@@ -12,6 +12,8 @@ import { FaSearch } from "react-icons/fa";
 import { RiSearchFill } from "react-icons/ri";
 import { RiFileSearchFill } from "react-icons/ri";
 
+import { AiOutlineHome , AiOutlineSearch, AiOutlineMessage, AiOutlineDashboard   } from "react-icons/ai";
+
 // components
 import { useAppContext } from "../../context/useContext.js";
 import { Dropdown} from "../";
@@ -24,33 +26,33 @@ const Nav = () => {
     const list = [
       {
         link: "/",
-        icon: <AiFillHome />,
+        icon: <AiOutlineHome />,
         className: "dashboard",
       },
       {
         link: "/search",
-        icon: <RiFileSearchFill className="text-[22px] " />,
+        icon: <AiOutlineSearch />        ,
         className: "search",
       },
       {
         link: "/messenger",
-        icon: <SiMessenger className="text-[22px] " />,
+        icon: <AiOutlineMessage />,
         className: "messenger",
       },
      
       {
         link: "/browse",
-        icon: <BsCollectionFill className="text-[22px] " />,
+        icon: <BsCollectionFill />,
         className: "browse",
       },
     ];
-    // if (user.role === 1) {
-    //   list.push({
-    //     link: "/admin",
-    //     icon: <MdAdminPanelSettings className="text-[28px] " />,
-    //     className: "admin",
-    //   });
-    // }
+    if (user.role === 1) {
+      list.push({
+        link: "/admin",
+        icon: <AiOutlineDashboard />        ,
+        className: "admin",
+      });
+    }
     return list;
   }, [user.role]);
 
@@ -60,8 +62,8 @@ const Nav = () => {
         <NavLink
           to={v.link}
           className={`relative rounded-lg dashboard bg-inherit py-2 md:py-2.5 my-1 mx-1 shrink-1 w-full flex 
-                    justify-center hover:bg-[#EBEDF0] text-[25px] transition-20 
-                    before:rounded-lg dark:bg-inherit before:opacity-0 dark:text-[#B8BBBF] dark:hover:bg-[#3A3B3C] dark:hover:text-[#d2d5d7] `}
+                    justify-center text-xl transition-20 
+                    before:rounded-lg before:opacity-0`}
           role="button"
         >
           {v.icon}
@@ -71,7 +73,7 @@ const Nav = () => {
   };
 
   return (
-    <div className="flex fixed top-0 w-screen bg-navBar shadow-md h-14 px-4 sm:px-6 md:px-12 z-[100] items-center dark:bg-[#242526] transition-50 dark:text-[#DDDFE3] border-b-[#8a8a8a] py-1 ">
+    <div className="flex fixed top-0 w-screen bg-navBar h-12 px-4 sm:px-6 md:px-12 z-[100] items-center py-1 ">
       <div
         className="flex items-center min-w-[33%] "
         style={{ flex: "1 1 auto" }}
@@ -81,14 +83,14 @@ const Nav = () => {
             <img
               src={`/images/logo.png`}
               alt="logo"
-              className=" w-7 md:w-9 h-auto "
+              className=" w-5 md:w-7 h-auto "
             />
             <div className="ml-1">
               <div
-                className="hidden min-[1326px]:block text-lg crimson-600"
+                className="hidden min-[1200px]:block text-lg serif-display"
                 style={{ lineHeight: "1.25rem" }}
               >
-                Pagebond
+                PAGEBOND
               </div>
             </div>
           </NavLink>
@@ -98,7 +100,7 @@ const Nav = () => {
         {/* {user && <SearchBook />} */}
       </div>
       <ul
-        className="hidden md:flex  items-center justify-between text-white dark:text-[#B8BBBF] text-[25px] min-w-[33%] "
+        className="hidden md:flex  items-center justify-between text-lg min-w-[33%] "
         style={{ flex: "1 1 auto" }}
       >
         {user ? (
@@ -136,7 +138,7 @@ const Nav = () => {
         <div className="flex items-center">
           {user && (
             // <div className="text-xs md:text-sm border pl-3 md:pr-5 py-[5px] rounded-l-full translate-x-[16px] bg-[#2C74B3] text-white dark:bg-[#3A3A3A] dark:border-white/30 hidden md:flex ">
-             <div className="md:pr-5">{user.name}</div> 
+             <div className="md:pr-3 serif-display text-sm">{user.name}</div> 
             // </div>
           )}
           <Dropdown />

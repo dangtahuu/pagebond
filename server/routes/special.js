@@ -1,9 +1,24 @@
 import express from "express";
 
-import  {create,getAll, getOne,edit,deleteOne,like,unlike,addComment,removeComment,getWithUser,getFollowing, getAllWithBook, getMy}
- from "../controllers/specialPost.js";
+import {
+  create,
+  getAll,
+  getOne,
+  edit,
+  deleteOne,
+  like,
+  unlike,
+  addComment,
+  removeComment,
+  getWithUser,
+  getFollowing,
+  getAllWithBook,
+  getMy,
+  getAdmin,
+  getOfficial
+} from "../controllers/specialPost.js";
 import formidable from "express-formidable";
-import {canUpdateOrDeleteSpecialPost} from "../middleware/canUpdateOrDelete.js";
+import { canUpdateOrDeleteSpecialPost } from "../middleware/canUpdateOrDelete.js";
 import isAdmin from "../middleware/isAdmin.js";
 
 const router = express.Router();
@@ -43,6 +58,10 @@ router.route("/remove-comment").put(removeComment);
 
 // get post with userID
 router.route("/withUser/:userId").get(getWithUser);
+router.route("/admin").get(getAdmin);
+router.route("/official").get(getOfficial);
+
+
 
 router
   .route("/:id")

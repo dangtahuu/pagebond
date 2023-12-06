@@ -2,6 +2,15 @@ import Book from "../models/book.js";
 import Post from "../models/post.js";
 import Review from "../models/review.js";
 import User from "../models/user.js";
+
+const shuffle = (array) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 const searchBook = async (req, res) => {
   const term = req.query.term;
   const page = Number(req.query.page) || 1;
@@ -117,7 +126,6 @@ async function editAll(req, res) {
 
 const getSimilarBooks = async (req, res) => {
   const id = req.params.id;
- console.log(process.env.MODEL_URL)
   try {
 
     if (!id) {
@@ -148,4 +156,63 @@ const getSimilarBooks = async (req, res) => {
   }
 };
 
-export { searchBook, getBook, deleteAll, editAll, getSimilarBooks };
+const getSimilarBooksForMultipleBooks = async (req, res) => {
+  try {
+    const limit = req.query.limit || 5
+    const { userId } = req.user;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+  
+    const posts = await Review.find({ $and: [{postedBy: userId},{rating: {$gt: 3}}]  })
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+
+      const uniqueBookIds = new Set();
+    
+      for (const obj of posts) {
+        if (!uniqueBookIds.has(obj.book)) {
+          uniqueBookIds.add(obj.book);
+        }
+      }
+
+      const uniqueBookIdsArray = Array.from(uniqueBookIds)
+      console.log('aaaaaa')
+      console.log(uniqueBookIds)
+      const shuffledBookIds = shuffle(uniqueBookIdsArray)
+      const idsList = shuffledBookIds.splice(0,limit)
+   
+    let similarIds = []
+
+    for(const id of idsList) {
+      const response = await fetch(`${process.env.MODEL_URL}/predict?book_id=${id}`)
+      let {result} = await response.json()
+      // console.log
+      if(result) {
+        result.shift()
+        let shuffled = shuffle(result)
+        similarIds.push(result[0])
+      }
+    }
+
+    if (similarIds.length===0) {
+      return res.status(200).json({ msg: "No recommended books!" });
+    }
+
+    const books = await Book.find({
+      _id: { $in: similarIds }, 
+    });
+
+    return res
+      .status(200)
+      .json({
+      books
+      });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+export { searchBook, getBook, deleteAll, editAll, getSimilarBooks, getSimilarBooksForMultipleBooks };

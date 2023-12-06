@@ -8,7 +8,7 @@ const FormCreatePost = ({user, setOpenModal, setSpecialPostOpen, setAttachment, 
     const [specialMenu, setSpecialMenu] = useState(false)
     return (
         <div
-            className={` mb-5 pt-3 relative rounded-lg px-2 md:px-4`}>
+            className={`relative px-2`}>
             <div className='flex items-center gap-x-2 '>
                 <img
                     src={user.image?.url}
@@ -40,7 +40,7 @@ const FormCreatePost = ({user, setOpenModal, setSpecialPostOpen, setAttachment, 
        
           {specialMenu &&
             <button
-            className={`bg-[#00a11d] w-[140px] text-white text-sm block absolute top-14 right-2 mr-0 py-1.5 text-center rounded-full font-bold my-3`}
+            className={`bg-greenBtn w-[140px] text-white text-sm block absolute top-10 right-1 mr-0 py-1.5 text-center rounded-full font-bold my-3`}
           onClick={()=>setSpecialPostOpen(true)}
           >
             Create special post

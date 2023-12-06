@@ -174,7 +174,7 @@ const Profile = () => {
     };
 
     return (
-        <div className='min-h-screen w-[99.5vw] pb-7 '>
+        <div className='min-h-screen w-[99.5vw] bg-mainbg pb-7 '>
             {!loading ? (
                 <Header
                     user={user}
