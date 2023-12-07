@@ -15,6 +15,7 @@ import{
   getWithUser,
   getFollowing,
   getDiscover,
+  getPopular
 } from "../controllers/review.js";
 import formidable from "express-formidable";
 import {canUpdateOrDeleteReview} from "../middleware/canUpdateOrDelete.js";
@@ -31,6 +32,8 @@ router.route("/all").get(isAdmin, getAll);
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 
 router.route("/following").get(getFollowing);
+router.route("/popular").get(getPopular);
+
 router.route("/discover").post(getDiscover);
 
 // router.route("/get-nearby/:long/:lat/:item").get(getNearby);

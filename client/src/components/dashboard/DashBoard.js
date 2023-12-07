@@ -19,18 +19,20 @@ const Dashboard = () => {
   } = useAppContext();
   const [location, setLocation] = useState({});
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        // console.log(position.coords.latitude);
-        if(position.coords.latitude) {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });}
-      })
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition((position) => {
+  //       // console.log(position.coords.latitude);
+  //       if(position.coords.latitude) {
+  //         console.log('0000000')
+  //         console.log(position.coords.latitude)
+  //       setLocation({
+  //         latitude: position.coords.latitude,
+  //         longitude: position.coords.longitude,
+  //       });}
+  //     })
+  //   }
+  // }, []);
 
 
 
@@ -72,6 +74,7 @@ const Dashboard = () => {
             setOneState={setOneState}
             token={token}
             user={user}
+            // location={location}
           />
         </div>
         <div className="col-span-11 order-1 md:col-span-4 lg:col-span-3 md:order-2 lg:order-3 ">
@@ -83,13 +86,13 @@ const Dashboard = () => {
             token={token}
             dark={dark}
           />
-          {/* {location.longitude && <NearYou 
+          <NearYou 
           autoFetch={autoFetch}
           location={location}
           dark={dark}
           token={token}
-          error={error}
-          />} */}
+          // error={error}
+          />
         </div>
       </div>
     </div>

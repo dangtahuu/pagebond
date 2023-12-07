@@ -2531,6 +2531,11 @@ body,
   border-top-color: rgb(68 85 102 / var(--tw-border-opacity));
 }
 
+.border-t-smallText {
+  --tw-border-opacity: 1;
+  border-top-color: rgb(153 170 187 / var(--tw-border-opacity));
+}
+
 .bg-\[\#00a11d\] {
   --tw-bg-opacity: 1;
   background-color: rgb(0 161 29 / var(--tw-bg-opacity));

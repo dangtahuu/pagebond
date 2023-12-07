@@ -1,9 +1,24 @@
 import express from "express";
 
-import { create, getAll, getOne, getAllWithBook, getMy, edit, deleteOne ,like,unlike,addComment,removeComment,getWithUser, getNearby, getFollowing, getDiscover}
- from "../controllers/trade.js";
+import {
+  create,
+  getAll,
+  getOne,
+  getAllWithBook,
+  getMy,
+  edit,
+  deleteOne,
+  like,
+  unlike,
+  addComment,
+  removeComment,
+  getWithUser,
+  getNearby,
+  getFollowing,
+  getDiscover,
+} from "../controllers/trade.js";
 import formidable from "express-formidable";
-import {canUpdateOrDeleteTrade} from "../middleware/canUpdateOrDelete.js";
+import { canUpdateOrDeleteTrade } from "../middleware/canUpdateOrDelete.js";
 import isAdmin from "../middleware/isAdmin.js";
 
 const router = express.Router();
@@ -18,6 +33,7 @@ router.route("/all").get(isAdmin, getAll);
 
 router.route("/following").get(getFollowing);
 router.route("/discover").post(getDiscover);
+router.route("/get-nearby/:long/:lat/").get(getNearby);
 
 // router.route("/get-nearby/:long/:lat/:item").get(getNearby);
 // router.route("/get-adminpost/").get(getAdminPosts);

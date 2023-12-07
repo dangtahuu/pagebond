@@ -1,6 +1,7 @@
 import Review from "../models/review.js";
 import cloudinary from "cloudinary";
 import User from "../models/user.js";
+import mongoose, { mongo } from "mongoose";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -382,83 +383,188 @@ const getDiscover = async (req, res) => {
     let { following } = user;
 
     let shuffledFollowing = shuffle(following);
-    console.log(suggestion)
     let peopleList;
 
-    if (suggestion.length > 0) {
+    const suggestionIds = suggestion.map((one) => mongoose.Types.ObjectId(one));
+
+    if (suggestionIds.length > 0) {
       if (shuffledFollowing.length > 0)
-        peopleList = [...suggestion, ...shuffledFollowing.splice(0, 10)];
-      else peopleList = [...suggesion];
-    } else return res.status(200).json({ msg: "No suggestion at the moment", reviews:[] });
+        peopleList = [...suggestionIds, ...shuffledFollowing.splice(0, 10)];
+      else peopleList = [...suggestionIds];
+    } else
+      return res
+        .status(200)
+        .json({ msg: "No suggestion at the moment", reviews: [] });
 
     let result = [];
 
-    for (const one of peopleList) {
-      const randomPostId = await Review.aggregate([
-        {
-          $match: {
-            $and: [
-              {
-                $and: [
-                  { likes: { $nin: [userId] } },
-                  {
-                    comments: { $not: { $elemMatch: { postedBy: user._id } } },
-                  },
-                ],
-              },
-              { postedBy: one },
-            ],
+    if (suggestion.length > 0) {
+      for (const one of suggestion) {
+        const randomPostId = await Review.aggregate([
+          {
+            $match: {
+              $and: [
+                {
+                  $and: [
+                    { likes: { $nin: [mongoose.Types.ObjectId(userId)] } },
+                    {
+                      comments: {
+                        $not: {
+                          $elemMatch: {
+                            postedBy: mongoose.Types.ObjectId(userId),
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+                { postedBy: mongoose.Types.ObjectId(one) },
+              ],
+            },
           },
-        },
-        { $sample: { size: 1 } },
-        { $project: { _id: 1 } }, // Project only the _id field for the next step
-      ]);
+          { $sample: { size: 1 } },
+          { $project: { _id: 1 } },
+        ]);
 
-      const post = await Review.findById(randomPostId)
-        .populate("postedBy", "-password -secret")
-        .populate("comments.postedBy", "-password -secret")
-        .populate("book");
-      if(post) result.push(post);
+        const post = await Review.findById(randomPostId)
+          .populate("postedBy", "-password -secret")
+          .populate("comments.postedBy", "-password -secret")
+          .populate("book");
+        if (post) result.push(post);
+      }
     }
 
-    return res.status(200).json({ reviews: result });
+    const peopleListPlus = [...peopleList, user._id]
+
+    const randomPostId = await Review.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              $and: [
+                { likes: { $nin: [mongoose.Types.ObjectId(userId)] } },
+                {
+                  comments: {
+                    $not: {
+                      $elemMatch: { postedBy: mongoose.Types.ObjectId(userId) },
+                    },
+                  },
+                },
+              ],
+            },
+            {
+              $or: [
+                { likes: { $in: peopleList } },
+                {
+                  comments: { $elemMatch: { postedBy: { $in: peopleList } } },
+                },
+              ],
+            },
+            {
+              postedBy: { $nin: peopleListPlus },
+            },
+           
+          ],
+        },
+      },
+      { $sample: { size: 10 } },
+      { $project: { _id: 1 } },
+    ]);
+
+    const post = await Review.find({ _id: { $in: randomPostId } })
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate("book");
+
+      if (post.length>0) result = [...result,...post];
+
+
+    return res.status(200).json({ posts: result });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
   }
 };
 
-const getRandomReadBooks = async(req,res) => {
+const getPopular = async (req, res) => {
   try {
-    const limit = req.query.limit || 5
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const aggregated = await Review.aggregate([
+      {
+        $match: {
+          createdAt: { $gt: sevenDaysAgo },
+        },
+      },
+      {
+        $addFields: {
+          totalLikesAndComments: {
+            $add: [{ $size: "$likes" }, { $size: "$comments" }],
+          },
+        },
+      },
+      {
+        $sort: {
+          totalLikesAndComments: -1,
+        },
+      },
+      {
+        $limit: 20,
+      },
+      { $project: { _id: 1 } },
+    ]);
+
+    const idsList = [];
+    aggregated.forEach((one) => {
+      idsList.push(one._id);
+    });
+
+    const posts = await Review.find({ _id: { $in: idsList } })
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate("book");
+
+    return res.status(200).json({ posts });
+  } catch (e) {
+    console.log(e);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getRandomReadBooks = async (req, res) => {
+  try {
+    const limit = req.query.limit || 5;
     const { userId } = req.user;
     const user = await User.findById(userId);
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
-  
-    const posts = await Review.find({ $and: [{postedBy: userId},{rating: {$gt: 3}}]  })
+
+    const posts = await Review.find({
+      $and: [{ postedBy: userId }, { rating: { $gt: 3 } }],
+    })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book")
+      .populate("book");
 
-      const uniqueBookIds = new Set();
-    
-      for (const obj of posts) {
-        if (!uniqueBookIds.has(obj.book)) {
-          uniqueBookIds.add(obj.book);
-        }
+    const uniqueBookIds = new Set();
+
+    for (const obj of posts) {
+      if (!uniqueBookIds.has(obj.book)) {
+        uniqueBookIds.add(obj.book);
       }
+    }
 
-      const shuffledBookIds = shuffle(uniqueBookIds)
+    const shuffledBookIds = shuffle(uniqueBookIds);
 
-    return res.status(200).json({ bookIds: shuffledBookIds.splice(0,5) });
+    return res.status(200).json({ bookIds: shuffledBookIds.splice(0, 5) });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
   }
 };
-
 
 export {
   create,
@@ -475,4 +581,5 @@ export {
   getWithUser,
   getFollowing,
   getDiscover,
+  getPopular,
 };

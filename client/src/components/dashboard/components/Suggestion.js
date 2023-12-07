@@ -72,7 +72,7 @@ const Suggestion = ({
   const getListPeople = async () => {
     setPLoading(true);
     try {
-      const { data } = await autoFetch.get(`/api/auth/find-people?number=5`);
+      const { data } = await autoFetch.get(`/api/auth/find-people-to-follow`);
       setListPeople(data.people);
     } catch (error) {
       console.log(error);

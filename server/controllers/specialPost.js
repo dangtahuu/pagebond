@@ -369,6 +369,51 @@ const getMy = async (req, res) => {
   }
 };
 
+const getPopular = async (req, res) => {
+  try {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const aggregated = await SpecialPost.aggregate([
+      {
+        $match: {
+        createdAt: { $gt: sevenDaysAgo }
+        },
+      },
+      {
+        $addFields: {
+          totalLikesAndComments: {
+            $add: [{ $size: "$likes" }, { $size: "$comments" }],
+          },
+        },
+      },
+      {
+        $sort: {
+          totalLikesAndComments: -1,
+        },
+      },
+      {
+        $limit: 20,
+      },
+      { $project: { _id: 1 } },
+    ]);
+
+    const idsList = []
+    aggregated.forEach((one)=>{idsList.push(one._id)})
+
+    const posts = await SpecialPost.find({ _id: { $in: idsList } })
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate("book");
+
+    return res.status(200).json({ posts });
+  } catch (e) {
+    console.log(e);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   create,
   getAll,

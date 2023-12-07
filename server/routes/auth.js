@@ -9,7 +9,7 @@ import {
     ForgotPassword,
     addFollower,
     userFollower,
-    findPeople,
+    findPeopleToFollow,
     userFollowing,
     removeFollower,
     userUnFollower,
@@ -18,6 +18,7 @@ import {
     allUsers,
     deleteUserWithAdmin,
     listUserFollower,
+    findPeopleWithMostInteraction
 } from "./../controllers/auth.js";
 
 const router = express.Router();
@@ -43,7 +44,9 @@ router
 router.route("/user-following/:id").get(requireSignIn, userFollowing);
 router.route("/user-follower/:id").get(requireSignIn, listUserFollower);
 
-router.route("/find-people").get(requireSignIn, findPeople);
+router.route("/find-people-to-follow").get(requireSignIn, findPeopleToFollow);
+router.route("/find-people-most-interaction").get(requireSignIn, findPeopleWithMostInteraction);
+
 
 router.route("/search-user").get(
     // requireSignIn, 

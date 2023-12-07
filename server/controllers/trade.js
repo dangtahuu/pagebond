@@ -8,6 +8,9 @@ cloudinary.v2.config({
   api_secret: "mW4Q6mKi4acL72ZhUYzw-S0_y1A",
 });
 
+import mongoose from "mongoose";
+
+
 const shuffle = (array) => { 
   for (let i = array.length - 1; i > 0; i--) { 
     const j = Math.floor(Math.random() * (i + 1)); 
@@ -278,9 +281,10 @@ const getWithUser = async (req, res) => {
 };
 
 const getNearby = async (req, res) => {
-  const { long, lat, item } = req.params;
+  console.log('99999999999999')
+  const { long, lat } = req.params;
   try {
-    const results = await Trade.find({
+    const result = await Trade.find({
       $and: [
         {
           location: {
@@ -301,8 +305,14 @@ const getNearby = async (req, res) => {
         "-password -secret -email -username -following -follower -role -about"
       )
       .populate("book")
-      .limit(item);
-    return res.status(200).json({ results });
+      .limit(50);
+
+    console.log()
+    const shuffled = shuffle(result)
+
+    const posts = shuffled.slice(0,10)
+
+    return res.status(200).json({ posts });
   } catch (error) {
     return res.status(400).json({ msg: error });
   }
@@ -348,51 +358,92 @@ const getDiscover = async (req, res) => {
     let { following } = user;
 
     let shuffledFollowing = shuffle(following);
-    console.log(suggestion)
     let peopleList;
 
     if (suggestion.length > 0) {
       if (shuffledFollowing.length > 0)
         peopleList = [...suggestion, ...shuffledFollowing.splice(0, 10)];
       else peopleList = [...suggesion];
-    } else return res.status(200).json({ msg: "No suggestion at the moment", trades:[] });
+    } else
+      return res
+        .status(200)
+        .json({ msg: "No suggestion at the moment", reviews: [] });
 
     let result = [];
 
-    for (const one of peopleList) {
-      const randomPostId = await Trade.aggregate([
-        {
-          $match: {
-            $and: [
-              {
-                $and: [
-                  { likes: { $nin: [userId] } },
-                  {
-                    comments: { $not: { $elemMatch: { postedBy: user._id } } },
-                  },
-                ],
-              },
-              { postedBy: one },
-            ],
+    if (suggestion.length > 0) {
+      for (const one of suggestion) {
+        const randomPostId = await Trade.aggregate([
+          {
+            $match: {
+              $and: [
+                {
+                  $and: [
+                    { likes: { $nin: [mongoose.Types.ObjectId(userId)] } },
+                    {
+                      comments: { $not: { $elemMatch: { postedBy: mongoose.Types.ObjectId(userId) } } },
+                    },
+                  ],
+                },
+                 {postedBy: mongoose.Types.ObjectId(one)}
+              ],
+            },
           },
-        },
-        { $sample: { size: 1 } },
-        { $project: { _id: 1 } }, // Project only the _id field for the next step
-      ]);
-
-      const post = await Trade.findById(randomPostId)
-        .populate("postedBy", "-password -secret")
-        .populate("comments.postedBy", "-password -secret")
-        .populate("book");
-      if(post) result.push(post);
+          { $sample: { size: 1 } },
+          { $project: { _id: 1 } }, 
+        ]);
+  
+        const post = await Trade.findById(randomPostId)
+          .populate("postedBy", "-password -secret")
+          .populate("comments.postedBy", "-password -secret")
+          .populate("book");
+        if (post) result.push(post);
+      }
     }
 
-    return res.status(200).json({ reviews: result });
+    // for (const one of peopleList) {
+    //   const randomPostId = await RevTiew.aggregate([
+    //     {
+    //       $match: {
+    //         $and: [
+    //           {
+    //             $and: [
+    //               { likes: { $nin: [mongoose.Types.ObjectId(userId)] } },
+    //               {
+    //                 comments: { $not: { $elemMatch: { postedBy: mongoose.Types.ObjectId(userId) } } },
+    //               },
+    //             ],
+    //           },
+    //           {
+    //             $or: [
+    //               { likes: { $in: [one] } },
+    //               {
+    //                 comments: { $elemMatch: { postedBy: one } } ,
+    //               },
+    //             ],
+    //           },
+    //         ],
+    //       },
+    //     },
+    //     { $sample: { size: 1 } },
+    //     { $project: { _id: 1 } }, 
+    //   ]);
+
+    //   const post = await Review.findById(randomPostId)
+    //     .populate("postedBy", "-password -secret")
+    //     .populate("comments.postedBy", "-password -secret")
+    //     .populate("book");
+    //   if (post) result.push(post);
+    // }
+
+    return res.status(200).json({ posts: result });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
   }
 };
+
+
 
 export {
   create,

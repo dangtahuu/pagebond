@@ -288,8 +288,7 @@ const userUnFollower = async (req, res) => {
   }
 };
 
-const findPeople = async (req, res) => {
-  const limit = req.query.number || 5;
+const findPeopleToFollow = async (req, res) => {
   try {
     // current user
     const user = await User.findById(req.user.userId);
@@ -366,11 +365,82 @@ const findPeople = async (req, res) => {
       (a, b) => idsCount[b] - idsCount[a]
     );
 
-    const fist50People = sortedIds.slice(0, 50);
+    const fist50People = sortedIds.slice(0, 10);
 
     const randomPeople = shuffle(fist50People);
 
-    const idsList = randomPeople.slice(0, limit);
+    const idsList = randomPeople.slice(0, 5);
+
+    const people = await User.find({ _id: { $in: idsList } }).select(
+      "-password -secret -email -following -follower -createdAt -updatedAt"
+    );
+
+    return res.status(200).json({ people, idsList });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
+const findPeopleWithMostInteraction = async (req, res) => {
+  try {
+    // current user
+    const user = await User.findById(req.user.userId);
+    // array user following
+
+    if (!user) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+
+    const posts = await Post.find({
+      
+          $or: [
+            { likes: { $in: [user._id] } },
+            { comments: { $elemMatch: { postedBy: user._id } } },
+          ]
+      
+    });
+
+    const reviews = await Review.find({
+      
+      $or: [
+        { likes: { $in: [user._id] } },
+        { comments: { $elemMatch: { postedBy: user._id } } },
+      ]
+    
+  
+});
+const trades = await Trade.find({
+      
+  $or: [
+    { likes: { $in: [user._id] } },
+    { comments: { $elemMatch: { postedBy: user._id } } },
+  ]
+
+});
+
+const specialPosts = await SpecialPost.find({
+      
+  $or: [
+    { likes: { $in: [user._id] } },
+    { comments: { $elemMatch: { postedBy: user._id } } },
+  ]
+
+});
+
+    const totalPosts = [...posts, ...reviews, ...trades, ...specialPosts];
+    const idsCount = {};
+
+    posts.forEach((post) => {
+      idsCount[post.postedBy] = (idsCount[post.postedBy] || 0) + 1;
+    });
+
+    const sortedIds = Object.keys(idsCount).sort(
+      (a, b) => idsCount[b] - idsCount[a]
+    );
+
+    const idsList = sortedIds.slice(0, 50);
+
 
     const people = await User.find({ _id: { $in: idsList } }).select(
       "-password -secret -email -following -follower -createdAt -updatedAt"
@@ -519,7 +589,7 @@ export {
   ForgotPassword,
   addFollower,
   userFollower,
-  findPeople,
+  findPeopleToFollow,
   userFollowing,
   removeFollower,
   userUnFollower,
@@ -528,4 +598,5 @@ export {
   allUsers,
   deleteUserWithAdmin,
   listUserFollower,
+  findPeopleWithMostInteraction
 };
