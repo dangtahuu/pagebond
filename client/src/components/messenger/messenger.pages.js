@@ -43,7 +43,7 @@ const reducer = (state, action) => {
             if(state.isNewMessage)  return {
                 ...state,
                 sourceMessage: action.payload.allMessages,
-                receiveUser: action.payload.receiveUser,
+                receiveUser: state.listResultByPeopleSearch[0],
                 index: action.payload.index,
                 isGroup: action.payload.isGroup,
             };
@@ -153,6 +153,9 @@ const Message = () => {
     const queryParams = new URLSearchParams(location.search);
     const dataString = queryParams.get('data');
     const data = JSON.parse(decodeURIComponent(dataString));
+    // console.log(data)
+
+
 
 const initState = {
     receiveUser: {
@@ -166,7 +169,6 @@ const initState = {
     text: "", /// text in input send new message
     textSearch: "",
     loading: false, // loading
-    isGroup: false, // Is chatting in group?
     isNewMessage: data? true:false, // Mode new message
     textSearchNewMessage: "", // Text for search input to add people
     listPeopleToNewMessage: [],
@@ -180,9 +182,13 @@ const initState = {
     textSearchPeople: "",
 }
    
+
     const {autoFetch, user} = useAppContext(); /// own user
     const [state, dispatch] = useReducer(reducer, initState);
     const [scrLoading, setScrLoading] = useState(false);
+
+useEffect(()=>console.log(state.index),[state])
+
 
     const [image, setImage] = useState(initImage);
     const [formData, setFormData] = useState(null);
@@ -266,21 +272,13 @@ const initState = {
                     (m) => m._id !== user._id
                 );
             }
-            var newListMembers = [];
-            if (data.messages[0].members.length > 2) {
-                newListMembers = data.messages[0].members.filter(
-                    (v) => v._id !== user._id
-                );
-            }
-            // @ts-ignore
+           
             dispatch({
                 type: GET_DATA_SUCCESS,
                 payload: {
                     allMessages: data.messages,
                     receiveUser: us[0],
                     index: data.messages[0]._id,
-                    isGroup: data.messages[0].members.length > 2,
-                    listResultByPeopleSearch: newListMembers,
                 },
             });
         } catch (error) {
@@ -317,8 +315,9 @@ const initState = {
     };
 
     const handleSendMess = async (receivedId) => {
+        // console.log('bbbbb')
+        // console.log(receivedId)
         setLoading(true);
-        console.log('aaaaaaaaaaaaaaaaaa')
         try {
             let dt;
             const {text} = state;
@@ -331,63 +330,39 @@ const initState = {
                     return;
                 }
             }
-            console.log('aaaaaaaaa')
-
-            // if ((!receivedId && state.isNewMessage) || state.isGroup) {
-            //     let listId = [];
-            //     state.listResultByPeopleSearch.forEach((v) => {
-            //         listId.push(v._id);
-            //     });
-            //     dt = await autoFetch.put("/api/message/send-message", {
-            //         text,
-            //         receivedId: receivedId,
-            //         image: imageUrl,
-            //     });
-            // } else {
                 dt = await autoFetch.put("/api/message/send-message", {
                     text,
                     receivedId: receivedId,
                     image: imageUrl,
                 });
             // }
-            console.log('111111111')
 
             let id = "";
             let newSourceData = state.sourceMessage.filter((d) => {
+
                 if (d._id === dt.data.message._id) {
                     id = d._id;
                     d.content = dt.data.message.content;
                 }
                 return d;
             });
+            console.log(id)
             let mainData;
             mainData = id
                 ? newSourceData
                 : [dt.data.message, ...state.sourceMessage];
 
-            // if(dt.data.ai_res) mainData = []
-            // if (!state.isGroup && !state.isNewMessage) {
-            //     setOneState("listPeopleToNewMessage", []);
-            //     setOneState("listResultByPeopleSearch", []);
-            // }
-            // if (!id) {
-            //     id = dt.data.message._id;
-            // }
-
-            // @ts-ignore
             dispatch({
                 type: HANDLE_SEND_MESSAGE,
                 payload: {
                     allMessages: mainData,
                     sourceMessage: mainData,
-                    index: id,
+                    index: dt.data.message._id,
                 },
             });
             setImage(initImage);
-            console.log('bbbbbbbbbb')
+
             if(!dt.data.ai_res) socket.emit("new-message", dt.data.message);
-            // console.log(dt.data.ai_res)
-            // if(dt.data.ai_res) socket.emit("new-message", dt.data.ai_res);
 
         } catch (error) {
             console.log(error);
@@ -398,25 +373,25 @@ const initState = {
         setLoading(false);
     };
 
-    const searchPeopleToNewMessage = async (textSearchNewMessage) => {
-        if (!textSearchNewMessage) {
-            return;
-        }
-        try {
-            const {data} = await autoFetch.get(
-                `/api/auth/search-user/${textSearchNewMessage}`
-            );
-            // @ts-ignore
-            dispatch({
-                type: SEARCH_USER_TO_NEW_MESSAGE,
-                payload: {
-                    listPeopleToNewMessage: data.search,
-                },
-            });
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    // const searchPeopleToNewMessage = async (textSearchNewMessage) => {
+    //     if (!textSearchNewMessage) {
+    //         return;
+    //     }
+    //     try {
+    //         const {data} = await autoFetch.get(
+    //             `/api/auth/search-user/${textSearchNewMessage}`
+    //         );
+    //         // @ts-ignore
+    //         dispatch({
+    //             type: SEARCH_USER_TO_NEW_MESSAGE,
+    //             payload: {
+    //                 listPeopleToNewMessage: data.search,
+    //             },
+    //         });
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
 
     // set image to show in form
     const handleImage = (e) => {
@@ -437,7 +412,7 @@ const initState = {
     }
 
     return (
-        <div className='w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden '>
+        <div className='w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden'>
             <div className='w-full h-full grid grid-cols-4 '>
                 <div className='col-span-1 '>
                     <BoxChat
@@ -452,7 +427,7 @@ const initState = {
                     <MainChat
                         dispatch={dispatch}
                         messagesEndRef={messagesEndRef}
-                        searchPeopleToNewMessage={searchPeopleToNewMessage}
+                        // searchPeopleToNewMessage={searchPeopleToNewMessage}
                         setOneState={setOneState}
                         state={state}
                         user={user}
@@ -467,19 +442,22 @@ const initState = {
                             className='flex-grow-0 py-3 px-4'
                             onSubmit={(e) => {
                                 e.preventDefault();
+                                console.log(state.isNewMessage)
                                 if (state.isNewMessage) {
                                     if (
                                         state.listResultByPeopleSearch
                                             .length === 1
                                     ) {
-                                        setOneState(
-                                            "receiveUser",
-                                            state.listResultByPeopleSearch[0]
-                                        );
+                                        console.log(state.listResultByPeopleSearch[0])
+                                        // setOneState(
+                                        //     "receiveUser",
+                                        //     state.listResultByPeopleSearch[0]
+                                        // );
+                                        console.log(state.receiveUser)
                                     } else {
                                         setOneState("isGroup", true);
                                     }
-                                    handleSendMess("");
+                                    handleSendMess(state.receiveUser._id);
                                 } else {
                                     if (!state.text || !state.receiveUser) {
                                         return;

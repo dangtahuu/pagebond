@@ -354,7 +354,7 @@ function Search() {
                       a.image.url || "https://sciendo.com/product-not-found.png"
                     }
                     alt=""
-                    onClick={() => navigate(`/profile/${a.id}`)}
+                    onClick={() => navigate(`/profile/${a._id}`)}
                   />
                   <div className="flex flex-col justify-between p-2 leading-normal">
                     <p

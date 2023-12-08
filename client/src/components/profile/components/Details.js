@@ -140,7 +140,6 @@ const Details = ({
     };
 
     const photo = () => {
-        console.log(images)
         if (postLoading) {
             return <LoadingImage />;
         }

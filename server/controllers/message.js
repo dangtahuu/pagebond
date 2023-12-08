@@ -61,7 +61,10 @@ const sendMassage = async (req, res) => {
     try {
         const userId = req.user.userId;
         let data = { sentBy: userId };
+        console.log('aaaa')
         const { receivedId, text, image } = req.body;
+        console.log(receivedId)
+
         const limit = req.body.limit || 10;
         if (!receivedId) {
             return res
@@ -105,7 +108,7 @@ const sendMassage = async (req, res) => {
                     "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
                 );
         }
-        console.log(receivedId)
+        console.log(message)
         let ai_res
         if (receivedId==='6561e80e6dfae0a11ba298b6') {
             // const response = await openai.chat.completions.create({
