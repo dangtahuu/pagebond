@@ -7,14 +7,8 @@ import Post from "../models/post.js";
 import Review from "../models/review.js";
 import SpecialPost from "../models/specialPost.js";
 import Trade from "../models/trade.js";
-
-const shuffle = (array) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
+import shuffle from "../utils/shuffle.js";
+import sortObjectDes from "../utils/sortObjectDes.js";
 
 const register = async (req, res) => {
   try {
@@ -321,7 +315,6 @@ const findPeopleToFollow = async (req, res) => {
         },
         { postedBy: { $nin: user.following } },
         { postedBy: { $ne: user._id } },
-
       ],
     });
 
@@ -335,7 +328,6 @@ const findPeopleToFollow = async (req, res) => {
         },
         { postedBy: { $nin: user.following } },
         { postedBy: { $ne: user._id } },
-
       ],
     });
 
@@ -393,40 +385,31 @@ const findPeopleWithMostInteraction = async (req, res) => {
     }
 
     const posts = await Post.find({
-      
-          $or: [
-            { likes: { $in: [user._id] } },
-            { comments: { $elemMatch: { postedBy: user._id } } },
-          ]
-      
-    });
-
-    const reviews = await Review.find({
-      
       $or: [
         { likes: { $in: [user._id] } },
         { comments: { $elemMatch: { postedBy: user._id } } },
-      ]
-    
-  
-});
-const trades = await Trade.find({
-      
-  $or: [
-    { likes: { $in: [user._id] } },
-    { comments: { $elemMatch: { postedBy: user._id } } },
-  ]
+      ],
+    });
 
-});
+    const reviews = await Review.find({
+      $or: [
+        { likes: { $in: [user._id] } },
+        { comments: { $elemMatch: { postedBy: user._id } } },
+      ],
+    });
+    const trades = await Trade.find({
+      $or: [
+        { likes: { $in: [user._id] } },
+        { comments: { $elemMatch: { postedBy: user._id } } },
+      ],
+    });
 
-const specialPosts = await SpecialPost.find({
-      
-  $or: [
-    { likes: { $in: [user._id] } },
-    { comments: { $elemMatch: { postedBy: user._id } } },
-  ]
-
-});
+    const specialPosts = await SpecialPost.find({
+      $or: [
+        { likes: { $in: [user._id] } },
+        { comments: { $elemMatch: { postedBy: user._id } } },
+      ],
+    });
 
     const totalPosts = [...posts, ...reviews, ...trades, ...specialPosts];
     const idsCount = {};
@@ -440,7 +423,6 @@ const specialPosts = await SpecialPost.find({
     );
 
     const idsList = sortedIds.slice(0, 50);
-
 
     const people = await User.find({ _id: { $in: idsList } }).select(
       "-password -secret -email -following -follower -createdAt -updatedAt"
@@ -581,6 +563,58 @@ const deleteUserWithAdmin = async (req, res) => {
   }
 };
 
+const getPopularUsers = async (req, res) => {
+  try {
+    const limit = req.query.limit;
+
+    let allData;
+    if (limit && limit!=-1) {
+      const today = new Date();
+      const daysAgo = new Date(today);
+      daysAgo.setDate(today.getDate() - limit);
+      const posts = await Post.find({ createdAt: { $gt: daysAgo } });
+      const reviews = await Review.find({ createdAt: { $gt: daysAgo } });
+      const trades = await Trade.find({ createdAt: { $gt: daysAgo } });
+      allData = [...posts, ...reviews, ...trades];
+    } else {
+      const posts = await Post.find({});
+      const reviews = await Review.find({});
+      const trades = await Trade.find({});
+      allData = [...posts,...reviews,...trades];
+    }
+
+    const users = {};
+    for (const post of allData) {
+      users[post.postedBy] =
+        (users[post.postedBy] || 0) +
+        (post.likes.length + post.comments.length);
+    }
+
+    const sortedUsers = sortObjectDes(users);
+
+    const topUsers = Object.fromEntries(
+      Object.entries(sortedUsers).slice(0, 20)
+    );
+
+    const topUsersIds = Object.keys(topUsers);
+
+    const people = [];
+    for (const id of topUsersIds) {
+      const detailedTopUsers = await User.find({
+        _id: id,
+      }).select(
+        "-password -secret -email -following -follower -createdAt -updatedAt"
+      );
+      people.push(...detailedTopUsers);
+    }
+
+    return res.status(200).json({ people });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
 export {
   register,
   login,
@@ -598,5 +632,6 @@ export {
   allUsers,
   deleteUserWithAdmin,
   listUserFollower,
-  findPeopleWithMostInteraction
+  findPeopleWithMostInteraction,
+  getPopularUsers,
 };

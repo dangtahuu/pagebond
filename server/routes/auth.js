@@ -18,7 +18,8 @@ import {
     allUsers,
     deleteUserWithAdmin,
     listUserFollower,
-    findPeopleWithMostInteraction
+    findPeopleWithMostInteraction,
+    getPopularUsers
 } from "./../controllers/auth.js";
 
 const router = express.Router();
@@ -46,6 +47,8 @@ router.route("/user-follower/:id").get(requireSignIn, listUserFollower);
 
 router.route("/find-people-to-follow").get(requireSignIn, findPeopleToFollow);
 router.route("/find-people-most-interaction").get(requireSignIn, findPeopleWithMostInteraction);
+router.route("/popular-users").get(requireSignIn, getPopularUsers);
+
 
 
 router.route("/search-user").get(

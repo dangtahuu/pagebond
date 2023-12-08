@@ -8,12 +8,11 @@ const bookSchema = new mongoose.Schema(
         },
         author: {
             type: String,
-            required: true,
         },
         thumbnail: {
             type: String,
         },
-        code: {
+        googleBookId: {
             type: String,
         },
         description: {

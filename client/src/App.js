@@ -57,7 +57,7 @@ const App = () => {
               element={<Dashboard />}
             />
             <Route path="/messenger" element={<Message />} />
-            <Route path="/browse" element={<Browse />} />
+            {/* <Route path="/browse" element={<Browse />} /> */}
 
             <Route path="/admin" element={<Admin />} />
             <Route path="/profile/:id" element={<Profile />} />
@@ -65,6 +65,8 @@ const App = () => {
 
             <Route path="/book/:id" element={<BookDetail />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/browse" element={<Search />} />
+
 
             <Route path="/update-profile" element={<UpdateProfile />} />
             <Route path="/post/information/:id" element={<PostDetail />} />

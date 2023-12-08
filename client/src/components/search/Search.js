@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TiTick } from "react-icons/ti";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
+import Browse from "./components/Browse";
+import { IoIosArrowBack } from "react-icons/io";
 
 function Search() {
   const navigate = useNavigate();
@@ -15,29 +18,71 @@ function Search() {
 
   const [text, setText] = useState("");
   const [bookResults, setBookResults] = useState([]);
+  const [bookGoogleResults, setBookGoogleResults] = useState([]);
+
   const [userResults, setUserResults] = useState([]);
 
   const [bookPage, setBookPage] = useState(0);
   const [userPage, setUserPage] = useState(0);
   const [googleMode, setGoogleMode] = useState(false);
+
   const [hasMoreBooksData, setHasMoreBooksData] = useState(false);
   const [hasMoreUsersData, setHasMoreUsersData] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const list = ["Books", "Users"];
   const [menu, setMenu] = useState("Books");
   const [term, setTerm] = useState("")
+  const location = useLocation();
+
+  // Get the search string from the location object
+  const searchParams = new URLSearchParams(location.search);
+    // const params = new URLSearchParams(window.location.search);
+    // const qParam = params.get('q');
+    // console.log('q:', qParam);
+
+    // // Get the value of 'google' parameter
+    // const googleParam = params.get('google');
+    // console.log('google:', googleParam);
+
+  // Access the value of the 'q' query parameter
+  const isSearch = location.pathname.includes('/search')
+  const queryParam = searchParams.get('q');
+  const google = searchParams.get('google');
+  // const { q, googlevalue } = useParams();
+
+  // // Now, 'q' and 'google' contain the values from the URL parameters
+  // console.log('q:', q);
+  // console.log('google:', googlevalue);
+
+  useEffect(()=>{
+    if(queryParam)
+    {handleSearch()
+    //   console.log(queryParam)
+    // console.log(google)
+    // if(google) handleGoogleSearch()
+    }
+  },[queryParam])
+
+  useEffect(()=>{
+    if(google)
+    {handleGoogleSearch()
+    //   console.log(queryParam)
+    // console.log(google)
+    // if(google) handleGoogleSearch()
+    }
+  },[google])
+
 
   const handleSearch = async () => {
     setBookPage(0);
     setUserPage(0);
-    setGoogleMode(false);
     setBookLoading(true);
     setUserLoading(true);
     setTerm(text)
     try {
       const [{ data: booksData }, { data: usersData }] = await Promise.all([
-        autoFetch.get(`/api/book/search-book/?term=${text}`),
-        autoFetch.get(`/api/auth/search-user/?term=${text}`),
+        autoFetch.get(`/api/book/search-book/?term=${queryParam}`),
+        autoFetch.get(`/api/auth/search-user/?term=${queryParam}`),
       ]);
       if (booksData.books.length < booksData.perPage) {
         setHasMoreBooksData(false);
@@ -65,7 +110,7 @@ function Search() {
     setBookLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/book/search-book/?term=${term}&page=${bookPage + 1}`
+        `/api/book/search-book/?term=${queryParam}&page=${bookPage + 1}`
       );
       if (data.books.length < data.perPage) {
         setHasMoreBooksData(false);
@@ -86,7 +131,7 @@ function Search() {
     setUserLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/auth/search-user/?term=${term}&page=${userPage + 1}`
+        `/api/auth/search-user/?term=${queryParam}&page=${userPage + 1}`
       );
       if (data.users.length < data.perPage) {
         setHasMoreUsersData(false);
@@ -104,19 +149,19 @@ function Search() {
   };
 
   const handleGoogleSearch = async () => {
+    console.log('googels earch')
     setBookLoading(true);
-    setGoogleMode(true);
     try {
       // const response = await axios.get(
       //   `https://www.googleapis.com/books/v1/volumes?q=${text}`
       // );
       // const results = response.data.items || [];
       const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${term}`
+        `https://www.googleapis.com/books/v1/volumes?q=${queryParam}`
       );
       const res = await response.json()
       // Add the items to array_2
-      setBookResults(res.items);
+      setBookGoogleResults(res.items);
     
     } catch (e) {
       console.log(e);
@@ -125,6 +170,17 @@ function Search() {
     }
   };
 
+
+  const handleGoogleResult = async(book) => {
+    try{
+      const {data} = await autoFetch.post(`/api/book/handle-google`,{book})
+      navigate(`/book/${data.book[0]._id}`)
+      console.log(data.book[0]._id)
+    } catch(e)
+    {
+      console.log(e)
+    }
+  }
 
   const blankBookScreen = () => {
     return (
@@ -137,7 +193,10 @@ function Search() {
         {hasSearched && (
           <div class="w-[35%] m-auto block mt-10 text-center">
             Sorry we didn't find anything
-            {!googleMode &&  <div class="mt-3 font-bold cursor-pointer" onClick={handleGoogleSearch}>
+            {!google &&  <div class="mt-3 font-bold cursor-pointer" onClick={()=>{
+              navigate(`/search/?q=${queryParam}&google=true`)
+              // handleGoogleSearch()
+            }}>
               Try searching with Google Books?
             </div>}
            
@@ -165,12 +224,12 @@ function Search() {
   };
 
   const result = () => {
-    if (menu === "Books" && !googleMode) {
+    if (menu === "Books" && !google) {
       if (bookResults.length !== 0)
         return (
           <>
             <div>
-              <div className="font-bold text-xl mb-3">Showing book results for "{term}"</div>
+              <div className="font-bold text-xl mb-3">Showing book results for "{queryParam}"</div>
               {bookResults.map((a) => {
                 return (
                   // @ts-ignore
@@ -178,6 +237,7 @@ function Search() {
                   <div
                     className="flex h-auto flex-col items-center mb-3 bg-white border border-gray-200 rounded-lg shadow md:flex-row w-full hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
                     key={a._id}
+                    onClick={() => navigate(`/book/${a._id}`)}
                   >
                     <img
                       className="object-cover cursor-pointer w-full rounded-t-lg h-80 md:h-auto md:w-20 md:rounded-none md:rounded-l-lg"
@@ -186,7 +246,7 @@ function Search() {
                         "https://sciendo.com/product-not-found.png"
                       }
                       alt=""
-                      onClick={() => navigate(`/book/${a._id}`)}
+                      
                     />
                     <div className="flex flex-col justify-between p-2 leading-normal">
                       <p
@@ -215,26 +275,32 @@ function Search() {
                     Load more
                   </button>
                 )}
-
+   {!google &&  <div class="mt-3 font-bold cursor-pointer" onClick={()=>{
+              navigate(`/search/?q=${queryParam}&google=true`)
+              handleGoogleSearch()
+            }}>
+              Try searching with Google Books?
+            </div>}
             </div>
           </>
         );
       else return <>{blankBookScreen()}</>;
     } 
-    else if (menu === "Books" && googleMode) {
-      if (bookResults.length !== 0)
+    else if (menu === "Books" && google) {
+      if (bookGoogleResults.length !== 0)
       return (
         <>
           <div>
-          <div className="font-bold text-xl mb-3">Showing Google Books results for "{term}"</div>
+          <div className="font-bold text-xl mb-3">Showing Google Books results for "{queryParam}"</div>
 
-            {bookResults.map((a) => {
+            {bookGoogleResults.map((a) => {
               return (
                 // @ts-ignore
 
                 <div
                   className="flex h-auto flex-col items-center mb-3 bg-white border border-gray-200 rounded-lg shadow md:flex-row w-full hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
                   key={a.id}
+                  onClick={()=>{handleGoogleResult(a)}}
                 >
                   <img
                     className="object-cover cursor-pointer w-full rounded-t-lg h-80 md:h-auto md:w-20 md:rounded-none md:rounded-l-lg"
@@ -243,20 +309,19 @@ function Search() {
                       "https://sciendo.com/product-not-found.png"
                     }
                     alt=""
-                    onClick={() => navigate(`/book/${a.id}`)}
                   />
                   <div className="flex flex-col justify-between p-2 leading-normal">
                     <p
                       className="mb-1 text-[16px] cursor-pointer font-normal text-gray-700 dark:text-gray-400"
                       // onClick={() => navigate(`/book/${a.postedBy._id}`)}
                     >
-                      {a.volumeInfo.title}
+                      {a.volumeInfo?.title}
                     </p>
                     <p
                       className="mb-1 text-[16px] cursor-pointer font-normal text-gray-700 dark:text-gray-400"
                       // onClick={() => navigate(`/book/${a.postedBy._id}`)}
                     >
-                      {a.volumeInfo.authors[0]}
+                      {a.volumeInfo?.authors?.[0] || 'Unknown'}
                     </p>
                   </div>
                 </div>
@@ -273,7 +338,7 @@ function Search() {
       if (userResults.length !== 0)
         return (
           <div>
-              <div className="font-bold text-xl mb-3">Showing user results for "{term}"</div>
+              <div className="font-bold text-xl mb-3">Showing user results for "{queryParam}"</div>
 
             {userResults.map((a) => {
               return (
@@ -331,7 +396,13 @@ function Search() {
     >
       {/* <div className="w-full h-[90%] mt-[3%] pt-3 bg-white  rounded-lg items-start justify-center py-16 px-4 overflow-y-auto"> */}
       <div className="w-full mt-[3%] pt-3 items-start justify-center py-16 px-4">
-        <div class="relative">
+       
+        <div class="relative mt-4">
+        {isSearch && (<div className="flex items-center gap-x-2 absolute -top-[40px] cursor-pointer"
+        onClick={()=>{navigate('/browse')}}>
+          <IoIosArrowBack className="text-xl"/>
+          Back to Browse
+        </div>)}
           <div class="absolute inset-y-0 left-4 start-0 flex items-center ps-3 pointer-events-none">
             <svg
               class="w-4 h-4 text-gray-500 dark:text-gray-400"
@@ -359,30 +430,32 @@ function Search() {
           />
           <button
             class="text-white absolute right-4 end-2.5 bottom-2.5 bg-black hover:bg-gray-700 focus:outline-none font-medium rounded-full text-sm px-4 py-2"
-            onClick={handleSearch}
+            onClick={()=>{navigate(`/search?q=${text}`)}}
           >
             Search
           </button>
         </div>
-        <div className="mt-4">
-          <div className="flex mx-0 sm:mx-10 mb-10">
-            <ul className="flex items-center justify-between w-full px-16 py-1 gap-x-10 ">
-              {list.map((v) => (
-                <li
-                  key={v + "button"}
-                  className={`li-profile ${menu === v && "active"} `}
-                  onClick={() => {
-                    setMenu(v);
-                    // navigate(`/profile/${user._id}`);
-                  }}
-                >
-                  {v}
-                </li>
-              ))}
-            </ul>
-          </div>
-          {result()}
-        </div>
+       {!isSearch ? <Browse/>: (
+         <div className="mt-4">
+         <div className="flex mx-0 sm:mx-10 mb-10">
+           <ul className="flex items-center justify-between w-full px-16 py-1 gap-x-10 ">
+             {list.map((v) => (
+               <li
+                 key={v + "button"}
+                 className={`li-profile ${menu === v && "active"} `}
+                 onClick={() => {
+                   setMenu(v);
+                   // navigate(`/profile/${user._id}`);
+                 }}
+               >
+                 {v}
+               </li>
+             ))}
+           </ul>
+         </div>
+         {result()}
+       </div>
+       )}
       </div>
     </div>
   );

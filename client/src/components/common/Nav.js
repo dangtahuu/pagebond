@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { NavLink } from "react-router-dom";
-
+import { NavLink, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 // icon
 import { BsCollectionFill } from "react-icons/bs";
 import { AiFillHome } from "react-icons/ai";
@@ -21,7 +21,8 @@ import { Dropdown} from "../";
 
 const Nav = () => {
   const { user } = useAppContext();
-
+  const location = useLocation();
+  const navigate = useNavigate()
   const menuListLogged = useMemo(() => {
     const list = [
       {
@@ -30,7 +31,8 @@ const Nav = () => {
         className: "dashboard",
       },
       {
-        link: "/search",
+        link: "/browse",
+        alternative: "/search",
         icon: <AiOutlineSearch />        ,
         className: "search",
       },
@@ -40,11 +42,11 @@ const Nav = () => {
         className: "messenger",
       },
      
-      {
-        link: "/browse",
-        icon: <BsCollectionFill />,
-        className: "browse",
-      },
+      // {
+      //   link: "/browse",
+      //   icon: <BsCollectionFill />,
+      //   className: "browse",
+      // },
     ];
     if (user.role === 1) {
       list.push({
@@ -59,15 +61,15 @@ const Nav = () => {
   const navMenuLogged = () => {
     return menuListLogged.map((v) => (
       <div className={`w-full "px-[10%]"  `} key={"navlink" + v.link}>
-        <NavLink
-          to={v.link}
+        <div
+          onClick={()=>navigate(`${v.link}`)}
           className={`relative rounded-lg dashboard bg-inherit py-2 md:py-2.5 my-1 mx-1 shrink-1 w-full flex 
                     justify-center text-xl transition-20 
-                    before:rounded-lg before:opacity-0`}
+                    before:rounded-lg before:opacity-0 ${(location.pathname ===v.link || location.pathname ===v.alternative) && 'active'}`}
           role="button"
         >
           {v.icon}
-        </NavLink>
+        </div>
       </div>
     ));
   };
