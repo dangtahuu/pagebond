@@ -113,6 +113,7 @@ function Browse() {
             return (
               <div
                 className="flex flex-col gap-y-2 bg-dialogue rounded-lg items-center p-3"
+                onClick={()=>{navigate(`/profile/${person._id}`)}}
                 key={person._id}
               >
                 <img
@@ -170,7 +171,7 @@ function Browse() {
               <div
                 className="max-w-sm mr-5 cursor-pointer  rounded-lg overflow-hidden shadow-md hover:shadow-xl"
                 onClick={() => {
-                  navigate(`book/${v.id}`);
+                  navigate(`/book/${v._id}`);
                 }}
               >
                 <div className="w-full h-[140px] overflow-hidden">

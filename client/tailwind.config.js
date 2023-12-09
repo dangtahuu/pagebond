@@ -16,7 +16,8 @@ module.exports = {
                 dialogue: '#445566',
                 smallText: '#99aabb',
                 mainText: '#ccd7ff',
-                greenBtn: '#00a11d'
+                greenBtn: '#00a11d',
+                altDialogue: '#2c3440'
               }
         }
       

@@ -1,7 +1,7 @@
 import React from "react";
 import {useAppContext} from "../../context/useContext";
 import {useEffect, useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import {useLocation, useNavigate, useParams} from "react-router-dom";
 
 //components
 import Header from "./components/Header";
@@ -12,10 +12,17 @@ import FollowerPage from "./components/FollowerPage";
 import FollowingPage from "./components/FollowingPage";
 import Shelves from "./components/Shelves";
 import ShelfDetail from "./components/ShelfDetail";
+import Diary from "./components/Diary";
 const Profile = () => {
     const navigate = useNavigate();
     const { id: currentUserId, shelf } = useParams()
+    const location = useLocation();
 
+    // Get the search string from the location object
+    const searchParams = new URLSearchParams(location.search);
+   
+    // const isSearch = location.pathname.includes('/search')
+    const tabView = searchParams.get('view') || "posts";
     const {
         dark,
         autoFetch,
@@ -102,7 +109,7 @@ const Profile = () => {
             token={token}
             shelf={shelf}/>
         )}
-        if (menu === "Following") {
+        if (tabView === "following") {
             return (
                 <FollowingPage
                     dark={dark}
@@ -115,7 +122,7 @@ const Profile = () => {
                 />
             );
         }
-        if (menu === "Follower") {
+        if (tabView === "follower") {
             return (
                 <FollowerPage
                     dark={dark}
@@ -128,7 +135,7 @@ const Profile = () => {
                 />
             );
         }
-        if (menu === "Shelves") {
+        if (tabView === "shelves") {
             return (
                 <Shelves
                     dark={dark}
@@ -142,6 +149,22 @@ const Profile = () => {
                 />
             );
         }
+
+        if (tabView === "diary") {
+            return (
+                <Diary
+                    dark={dark}
+                    userId={user._id}
+                    autoFetch={autoFetch}
+                    navigate={navigate}
+                    own={own}
+                    setNameAndToken={setNameAndToken}
+                    token={token}
+                    setMenu={setMenu}
+                />
+            );
+        }
+
         return (
             <div className='w-full sm:grid grid-cols-5 gap-x-4 '>
                 <div className='col-span-2 sticky top-20 self-start'>
@@ -185,6 +208,7 @@ const Profile = () => {
                     autoFetch={autoFetch}
                     setNameAndToken={setNameAndToken}
                     token={token}
+                    tabView={tabView}
                 />
             ) : (
                 <LoadingProfile />

@@ -1080,8 +1080,16 @@ body,
   left: -120%;
 }
 
+.-right-\[14px\] {
+  right: -14px;
+}
+
 .-top-\[40px\] {
   top: -40px;
+}
+
+.-top-\[7px\] {
+  top: -7px;
 }
 
 .bottom-0 {
@@ -1246,14 +1254,6 @@ body,
 
 .top-\[8vh\] {
   top: 8vh;
-}
-
-.-right-\[14px\] {
-  right: -14px;
-}
-
-.-top-\[7px\] {
-  top: -7px;
 }
 
 .z-10 {
@@ -1646,12 +1646,20 @@ body,
   height: 100px;
 }
 
+.h-\[10px\] {
+  height: 10px;
+}
+
 .h-\[130px\] {
   height: 130px;
 }
 
 .h-\[140px\] {
   height: 140px;
+}
+
+.h-\[15px\] {
+  height: 15px;
 }
 
 .h-\[170px\] {
@@ -1712,14 +1720,6 @@ body,
 
 .h-screen {
   height: 100vh;
-}
-
-.h-\[10px\] {
-  height: 10px;
-}
-
-.h-\[15px\] {
-  height: 15px;
 }
 
 .max-h-10 {
@@ -1886,8 +1886,16 @@ body,
   width: 200px;
 }
 
+.w-\[20px\] {
+  width: 20px;
+}
+
 .w-\[218px\] {
   width: 218px;
+}
+
+.w-\[23px\] {
+  width: 23px;
 }
 
 .w-\[25\%\] {
@@ -1971,16 +1979,8 @@ body,
   width: 100vw;
 }
 
-.w-\[20px\] {
-  width: 20px;
-}
-
-.w-\[10px\] {
-  width: 10px;
-}
-
-.w-\[23px\] {
-  width: 23px;
+.w-\[50\%\] {
+  width: 50%;
 }
 
 .min-w-\[28px\] {
@@ -1995,8 +1995,8 @@ body,
   max-width: 400px;
 }
 
-.max-w-\[80\%\] {
-  max-width: 80%;
+.max-w-\[50\%\] {
+  max-width: 50%;
 }
 
 .max-w-full {
@@ -2009,10 +2009,6 @@ body,
 
 .max-w-sm {
   max-width: 24rem;
-}
-
-.max-w-\[50\%\] {
-  max-width: 50%;
 }
 
 .flex-shrink-0 {
@@ -2194,6 +2190,10 @@ body,
 
 .grid-cols-8 {
   grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.grid-cols-9 {
+  grid-template-columns: repeat(9, minmax(0, 1fr));
 }
 
 .grid-rows-3 {
@@ -2767,6 +2767,11 @@ body,
   background-color: rgb(255 255 255 / 0.5);
 }
 
+.bg-altDialogue {
+  --tw-bg-opacity: 1;
+  background-color: rgb(44 52 64 / var(--tw-bg-opacity));
+}
+
 .bg-none {
   background-image: none;
 }
@@ -3136,6 +3141,11 @@ body,
   text-align: justify;
 }
 
+.\!text-sm {
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+}
+
 .\!text-xs {
   font-size: 0.75rem !important;
   line-height: 1rem !important;
@@ -3251,10 +3261,6 @@ body,
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
-}
-
-.text-\[6px\] {
-  font-size: 6px;
 }
 
 .font-\[400\] {
@@ -4778,10 +4784,6 @@ button.loading {
 
   .md\:w-auto {
     width: auto;
-  }
-
-  .md\:max-w-\[50\%\] {
-    max-width: 50%;
   }
 
   .md\:max-w-\[70\%\] {

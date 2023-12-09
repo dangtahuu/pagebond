@@ -36,15 +36,7 @@ function Search() {
 
   // Get the search string from the location object
   const searchParams = new URLSearchParams(location.search);
-    // const params = new URLSearchParams(window.location.search);
-    // const qParam = params.get('q');
-    // console.log('q:', qParam);
-
-    // // Get the value of 'google' parameter
-    // const googleParam = params.get('google');
-    // console.log('google:', googleParam);
-
-  // Access the value of the 'q' query parameter
+ 
   const isSearch = location.pathname.includes('/search')
   const queryParam = searchParams.get('q');
   const google = searchParams.get('google');

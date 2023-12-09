@@ -15,7 +15,8 @@ import{
   getWithUser,
   getFollowing,
   getDiscover,
-  getPopular
+  getPopular,
+  getDiary
 } from "../controllers/review.js";
 import formidable from "express-formidable";
 import {canUpdateOrDeleteReview} from "../middleware/canUpdateOrDelete.js";
@@ -61,7 +62,9 @@ router.route("/remove-comment").put(removeComment);
 // router.route("/admin/delete-post/:id").delete(isAdmin, deletePost);
 
 // get post with userID
-router.route("/withUser/:userId").get(getWithUser);
+router.route("/user/:userId").get(getWithUser);
+router.route("/diary/:userId").get(getDiary);
+
 
 router
   .route("/:id")

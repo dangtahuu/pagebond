@@ -54,9 +54,7 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
 
   return (
     <div
-      className={`bg-white w-full dark:bg-[#242526] p-4 rounded-lg ${
-        !dark ? "shadow-post" : ""
-      } `}
+      className={`w-full p-4 rounded-lg `}
     >
       <div className="flex justify-between">
         <div className="text-2xl font-extrabold dark:text-[#e4e6eb] ">

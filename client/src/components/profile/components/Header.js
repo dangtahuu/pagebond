@@ -17,10 +17,13 @@ const Header = ({
   autoFetch,
   setNameAndToken,
   token,
+  tabView
 }) => {
   const [loading, setLoading] = useState(false);
 
-  const list = ["Posts", "Following", "Follower", "Shelves"];
+  const list = ["Posts", "Following", "Follower", "Shelves", "Diary"];
+  const urlList = ["posts", "following", "follower", "shelves", "diary"];
+
 
   const handleFollower = async (user) => {
     setLoading(true);
@@ -183,13 +186,13 @@ const Header = ({
       </div>
       <div className="flex mx-0 sm:mx-10 ">
         <ul className="flex items-center justify-between w-full px-16 py-1 gap-x-10 ">
-          {list.map((v) => (
+          {list.map((v,index) => (
             <li
               key={v + "button"}
-              className={`li-profile ${menu === v && "active"} `}
+              className={`li-profile ${tabView === urlList[index] && "active"} `}
               onClick={() => {
-                setMenu(v);
-                navigate(`/profile/${user._id}`);
+                // setMenu(v);
+                navigate(`/profile/${user._id}?view=${urlList[index]}`);
               }}
             >
               {v}

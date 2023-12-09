@@ -566,6 +566,22 @@ const getRandomReadBooks = async (req, res) => {
   }
 };
 
+
+const getDiary = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const posts = await Review.find({$and: [{ postedBy: { _id: userId } }, { dateRead: { $ne: null } }]})
+      .populate("book")
+      .sort({
+        dateRead: -1,
+      });
+    return res.status(200).json({ posts });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   create,
   getAll,
@@ -582,4 +598,5 @@ export {
   getFollowing,
   getDiscover,
   getPopular,
+  getDiary
 };
