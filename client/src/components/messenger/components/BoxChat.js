@@ -12,7 +12,7 @@ import {
 const IS_NEW_MESSAGE = "IS_NEW_MESSAGE";
 const CLICK_TO_BOX_MESSAGE = "CLICK_TO_BOX_MESSAGE";
 
-const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
+const BoxChat = ({setPageState, state, getData, user, dispatch}) => {
     const boxUser = (m) => {
         // when box chat has more 2 user
         if (m.members.length > 2) {
@@ -21,7 +21,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                     <GroupAvatars
                         dataSource={m.members}
                         user={user}
-                        setOneState={setOneState}
+                        setPageState={setPageState}
                     />
                     <div className='hidden md:flex flex-col pl-3'>
                         <strong className='flex-grow '>Group chat</strong>
@@ -53,7 +53,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                         <div
                             key={k}
                             onClick={() => {
-                                setOneState("receiveUser", receivePeople);
+                                setPageState("receiveUser", receivePeople);
                             }}
                             className='Ko-nghi-ra-ten flex items-center '>
                             <Avatar
@@ -115,8 +115,8 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                 type: CLICK_TO_BOX_MESSAGE,
                                 payload: {
                                     index: m._id,
-                                    isGroup: m.members.length > 2,
-                                    listResultByPeopleSearch: result,
+                                    // isGroup: m.members.length > 2,
+                                    // listResultByPeopleSearch: result,
                                 },
                             });
                         }}>
@@ -146,8 +146,8 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                     role='button'
                                     onClick={() => {
                                         if (state.isNewMessage) {
-                                            setOneState("isNewMessage", false);
-                                            setOneState(
+                                            setPageState("isNewMessage", false);
+                                            setPageState(
                                                 "allMessages",
                                                 state.sourceMessage
                                             );
@@ -169,8 +169,8 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                     role='button'
                                     onClick={() => {
                                         if (state.isNewMessage) {
-                                            setOneState("isNewMessage", false);
-                                            setOneState(
+                                            setPageState("isNewMessage", false);
+                                            setPageState(
                                                 "allMessages",
                                                 state.sourceMessage
                                             );
@@ -193,7 +193,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                             <div className='flex items-start px-1 md:px-3  '>
                                 <div className='text-[13px] md:text-base flex flex-wrap '>
                                     New message to:&nbsp;
-                                    {state.listResultByPeopleSearch.length >
+                                    {/* {state.listResultByPeopleSearch.length >
                                         0 &&
                                         state.listResultByPeopleSearch.map(
                                             (v, k) => {
@@ -202,7 +202,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                                 }
                                                 return <div>{v.name},</div>;
                                             }
-                                        )}
+                                        )} */}
                                 </div>
                             </div>
                         </div>
@@ -214,18 +214,18 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                 placeholder='Search'
                                 value={state.textSearchPeople}
                                 onChange={(e) => {
-                                    setOneState(
+                                    setPageState(
                                         "textSearchPeople",
                                         e.target.value
                                     );
                                     if (!e.target.value) {
                                         getData();
-                                        setOneState("textSearchPeople", "");
+                                        setPageState("textSearchPeople", "");
                                     }
-                                    setOneState("index", "");
-                                    setOneState("receiveUser", {});
-                                    setOneState("listResultByPeopleSearch", []);
-                                    setOneState("isGroup", false);
+                                    setPageState("index", "");
+                                    setPageState("receiveUser", {});
+                                    setPageState("listResultByPeopleSearch", []);
+                                    setPageState("isGroup", false);
 
                                     const arrFilter =
                                         state.sourceMessage.filter((v) => {
@@ -249,7 +249,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                             }
                                         });
                                     //console.log(arrFilter);
-                                    setOneState("allMessages", arrFilter);
+                                    setPageState("allMessages", arrFilter);
                                 }}
                             /> */}
                             {state.textSearchPeople && (
@@ -257,7 +257,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
                                     className='text-2xl opacity-50 hover:opacity-70 cursor-pointer '
                                     onClick={() => {
                                         getData();
-                                        setOneState("textSearchPeople", "");
+                                        setPageState("textSearchPeople", "");
                                     }}
                                     disabled={!state.textSearchPeople}>
                                     <Tooltip title='Clear' placement='top'>
@@ -273,7 +273,7 @@ const BoxChat = ({setOneState, state, getData, user, dispatch}) => {
             </div>
 
             <div className='cot-trai max-h-[70vh] md:h-[67vh] overflow-x-hidden '>
-                {colLeft()}
+                {!state.isNewMessage && colLeft()}
             </div>
         </div>
     );

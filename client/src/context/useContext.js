@@ -8,6 +8,7 @@ const token = JSON.parse(localStorage.getItem("token")) || localStorage.getItem(
 const initState = {
     user: user || "",
     token: token || "",
+    unreadMessages: 0,
     openModal: false,
     // isQrCode: false,
 };

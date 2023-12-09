@@ -9,15 +9,17 @@ import {TiTick} from "react-icons/ti";
 import {AiOutlineHeart} from "react-icons/ai";
 import {BsFillReplyFill} from "react-icons/bs";
 import ReactMarkdown from 'react-markdown';
+import { CgTrashEmpty } from "react-icons/cg";
 
 const MainChat = ({
     state,
-    setOneState,
+    setPageState,
     searchPeopleToNewMessage,
     user,
     messagesEndRef,
     dispatch,
     navigateToProfile,
+    handleDeleteMess,
 }) => {
     const messBox = () => {
         const currentMessenger = state.allMessages.find(
@@ -30,7 +32,7 @@ const MainChat = ({
                 return (
                     <div
                         key={c._id}
-                        className={`chat-message max-w-[80%] md:max-w-[50%] chat-message-${
+                        className={`chat-message w-full group chat-message-${
                             c.sentBy._id === user._id ? "right" : "left mb-2"
                         } flex items-center `}>
                         {c.sentBy._id === user._id ? (
@@ -55,7 +57,7 @@ const MainChat = ({
                                 )}
                             </div>
                         )}
-                        <div className='flex items-center group '>
+                        <div className='flex items-center relative max-w-[50%] '>
                             <Tooltip
                                 title={moment(c.created).fromNow()}
                                 placement={
@@ -80,13 +82,13 @@ const MainChat = ({
                                 </div>
                             </Tooltip>
                             <div
-                                className={`flex items-center absolute gap-x-1 text-xl h-full opacity-50 text-black dark:text-white ${
+                                className={`flex items-center absolute gap-x-1 text-xl h-full opacity-50 text-mainText ${
                                     c.sentBy._id === user._id
                                         ? "left-[-45px] flex-row-reverse  "
                                         : "right-[-45px] "
                                 }  `}>
-                                <AiOutlineHeart className='hidden cursor-pointer shrink-0 group-hover:flex ' />
-                                <BsFillReplyFill className='hidden cursor-pointer shrink-0 group-hover:flex ' />
+                                <CgTrashEmpty  onClick={()=>handleDeleteMess(state.index,c._id)} className='hidden cursor-pointer shrink-0 group-hover:flex ' />
+                                {/* <BsFillReplyFill className='hidden cursor-pointer shrink-0 group-hover:flex ' /> */}
                             </div>
                         </div>
                     </div>
@@ -96,24 +98,24 @@ const MainChat = ({
         return <></>;
     };
 
-    const listPeople = (k, v) => {
-        if (k > 3) {
-            return ` and ${
-                state.listResultByPeopleSearch.length - 4
-            } others people`;
-        }
-        if (k > 3) {
-            return "";
-        }
-        return `${k > 0 ? ", " : " "}
-                ${v ? v.name : ""}`;
-    };
+    // const listPeople = (k, v) => {
+    //     if (k > 3) {
+    //         return ` and ${
+    //             state.listResultByPeopleSearch.length - 4
+    //         } others people`;
+    //     }
+    //     if (k > 3) {
+    //         return "";
+    //     }
+    //     return `${k > 0 ? ", " : " "}
+    //             ${v ? v.name : ""}`;
+    // };
 
-    if (state.isNewMessage) {
-        return (
-            <>
-                <div className='px-4 py-2 border-bottom d-none d-lg-block'>
-                    <div className='flex flex-wrap items-center py-1 create-new-message gap-x-1 '>
+    // if (state.isNewMessage) {
+    //     return (
+    //         <>
+    //             <div className='px-4 py-2 border-bottom d-none d-lg-block'>
+                    {/* <div className='flex flex-wrap items-center py-1 create-new-message gap-x-1 '>
                         <div className='flex gap-x-0.5 flex-wrap '>
                             <div className='to '>To:</div>
                             {state.listResultByPeopleSearch.length > 0 &&
@@ -133,7 +135,7 @@ const MainChat = ({
                                                     state.listResultByPeopleSearch.filter(
                                                         (n) => n._id !== l._id
                                                     );
-                                                setOneState(
+                                                setPageState(
                                                     "listResultByPeopleSearch",
                                                     newListResult
                                                 );
@@ -147,7 +149,7 @@ const MainChat = ({
                                 type='text'
                                 value={state.textSearchNewMessage}
                                 onChange={(e) => {
-                                    setOneState(
+                                    setPageState(
                                         "textSearchNewMessage",
                                         e.target.value
                                     );
@@ -170,15 +172,15 @@ const MainChat = ({
                                 )}
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div className='relative'>
-                    <div className='p-4 chat-messages'></div>
-                </div>
-            </>
-        );
-    }
-    if (!state.allMessages.length) {
+                    </div> */}
+    //             </div>
+    //             <div className='relative'>
+    //                 <div className='p-4 chat-messages'></div>
+    //             </div>
+    //         </>
+    //     );
+    // }
+    if (!state.allMessages.length && !state.isNewMessage) {
         return (
             <div className='text-center' style={{marginTop: "50%"}}>
                 U don&rsquo;t have any message. Let&rsquo;s send message to
@@ -194,7 +196,7 @@ const MainChat = ({
                     <div className='relative'>
                         {state.isGroup ? (
                             <div className='flex'>
-                                {state.listResultByPeopleSearch.length &&
+                                {/* {state.listResultByPeopleSearch.length &&
                                     state.listResultByPeopleSearch.map(
                                         (v, k) => (
                                             <Tooltip
@@ -215,7 +217,7 @@ const MainChat = ({
                                                 />
                                             </Tooltip>
                                         )
-                                    )}
+                                    )} */}
                             </div>
                         ) : (
                             <div className='h-10'>
@@ -243,7 +245,7 @@ const MainChat = ({
                     </div>
                     {/* list name */}
                     <div className='w-full pl-3 grow text-ellipsis'>
-                        {state.isGroup &&
+                        {/* {state.isGroup &&
                         state.listResultByPeopleSearch.length ? (
                             <div className='flex text-[12px] md:text-base text-ellipsis w-full font-bold '>
                                 You,
@@ -253,13 +255,14 @@ const MainChat = ({
                                     </div>;
                                 })}
                             </div>
-                        ) : (
-                            <strong>
+                        ) : ( */}
+                           
+                           <strong>
                                 {state.receiveUser
                                     ? state.receiveUser.name
                                     : ""}
                             </strong>
-                        )}
+                        {/* )} */}
                     </div>
                 </div>
             </div>

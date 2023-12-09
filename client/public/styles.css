@@ -1050,6 +1050,10 @@ body,
   pointer-events: none;
 }
 
+.visible {
+  visibility: visible;
+}
+
 .fixed {
   position: fixed;
 }
@@ -1076,8 +1080,8 @@ body,
   left: -120%;
 }
 
-.-top-\[70px\] {
-  top: -70px;
+.-top-\[40px\] {
+  top: -40px;
 }
 
 .bottom-0 {
@@ -1244,8 +1248,12 @@ body,
   top: 8vh;
 }
 
-.-top-\[40px\] {
-  top: -40px;
+.-right-\[14px\] {
+  right: -14px;
+}
+
+.-top-\[7px\] {
+  top: -7px;
 }
 
 .z-10 {
@@ -1706,6 +1714,14 @@ body,
   height: 100vh;
 }
 
+.h-\[10px\] {
+  height: 10px;
+}
+
+.h-\[15px\] {
+  height: 15px;
+}
+
 .max-h-10 {
   max-height: 2.5rem;
 }
@@ -1955,6 +1971,18 @@ body,
   width: 100vw;
 }
 
+.w-\[20px\] {
+  width: 20px;
+}
+
+.w-\[10px\] {
+  width: 10px;
+}
+
+.w-\[23px\] {
+  width: 23px;
+}
+
 .min-w-\[28px\] {
   min-width: 28px;
 }
@@ -1981,6 +2009,10 @@ body,
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-\[50\%\] {
+  max-width: 50%;
 }
 
 .flex-shrink-0 {
@@ -3219,6 +3251,10 @@ body,
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.text-\[6px\] {
+  font-size: 6px;
 }
 
 .font-\[400\] {

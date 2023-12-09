@@ -73,7 +73,7 @@ const News = ({
 
                 <div className="p-2">
                   <a href="#">
-                    <h5 class="mb-2 text-sm font-bold tracking-tight">
+                    <h5 className="mb-2 text-sm font-bold tracking-tight">
                       {a.title}
                     </h5>
                   </a>

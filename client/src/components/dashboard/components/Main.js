@@ -56,8 +56,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       navigator.geolocation.getCurrentPosition((position) => {
         // console.log(position.coords.latitude);
         if (position.coords.latitude) {
-          console.log("0000000");
-          console.log(position.coords.latitude);
           setLocation({
             lat: position.coords.latitude,
             long: position.coords.longitude,
@@ -334,7 +332,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       );
 
       setNearTrades(data.posts);
-      console.log(data.posts);
     } catch (e) {
       console.log(e);
     }

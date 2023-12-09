@@ -1,6 +1,6 @@
 import express from "express";
 
-import { getAllMessages, sendMassage } from "../controllers/message.js";
+import { deleteMessage, getAllMessages, getUnread, markRead, sendMessage } from "../controllers/message.js";
 
 const router = express.Router();
 
@@ -9,6 +9,11 @@ router.route("/").get(async (req, res) => {
 });
 
 router.route("/get-all-messages").get(getAllMessages);
-router.route("/send-message").put(sendMassage);
+router.route("/unread").get(getUnread);
+
+router.route("/send-message").put(sendMessage);
+router.route("/delete-message").patch(deleteMessage);
+router.route("/mark-read/:id").patch(markRead);
+
 
 export default router;

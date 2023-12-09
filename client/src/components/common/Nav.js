@@ -1,7 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 // icon
+import {toast} from "react-toastify";
+
 import { BsCollectionFill } from "react-icons/bs";
 import { AiFillHome } from "react-icons/ai";
 import { SiMessenger , } from "react-icons/si";
@@ -17,12 +19,55 @@ import { AiOutlineHome , AiOutlineSearch, AiOutlineMessage, AiOutlineDashboard  
 // components
 import { useAppContext } from "../../context/useContext.js";
 import { Dropdown} from "../";
+import io from "socket.io-client";
 
+const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
+  reconnection: true,
+});
 
 const Nav = () => {
-  const { user } = useAppContext();
+  const { user, unreadMessages, autoFetch, setOneState } = useAppContext();
   const location = useLocation();
   const navigate = useNavigate()
+  const getUnreadMessages= async() => {
+    try{
+      console.log('ppppppppp')
+    const {data} = await autoFetch.get("api/message/unread");
+    console.log(data.unread)
+    setOneState("unreadMessages", data.unread);
+
+    } catch(e){
+      console.log(e)
+    }
+
+  }
+
+  useEffect(() => {
+    getUnreadMessages()
+      // socket
+      if (user) {
+        socket.on("new-message", (newMessage) => {
+          const index = newMessage.members.find(
+            (value) => value._id === user._id
+          );
+          if (!index) {
+            return;
+          }
+          // console.log('last message', newMessage.content[newMessage.content.length-1].sentBy)
+          if(newMessage.content[newMessage.content.length-1].sentBy._id.toString() === user._id) return;
+         getUnreadMessages()
+         toast.success("You have a new message");
+
+          
+          // when user open more 2 tabs
+
+        });
+      }
+     
+    return () => {
+      socket.off("new-message");
+    };
+  }, []);
   const menuListLogged = useMemo(() => {
     const list = [
       {
@@ -68,11 +113,16 @@ const Nav = () => {
                     before:rounded-lg before:opacity-0 ${(location.pathname ===v.link || location.pathname ===v.alternative) && 'active'}`}
           role="button"
         >
-          {v.icon}
+          <div className="relative">{v.icon}
+          {v.className==='messenger' && <div className="bg-greenBtn -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">{unreadMessages}</div>}
+          
+          </div>
         </div>
       </div>
     ));
   };
+
+  
 
   return (
     <div className="flex fixed top-0 w-screen bg-navBar h-12 px-4 sm:px-6 md:px-12 z-[100] items-center py-1 ">
