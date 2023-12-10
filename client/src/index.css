@@ -152,6 +152,11 @@
 }
 
 @layer components {
+
+  .primary-btn {
+    @apply bg-greenBtn rounded-full py-2 px-3;
+  }
+
   .layout-container {
     max-width: 1280px;
     margin-left: auto;

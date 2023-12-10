@@ -19,6 +19,9 @@ import book from "./routes/book.js";
 import review from "./routes/review.js"
 import trade from "./routes/trade.js"
 import special from "./routes/special.js"
+import log from "./routes/log.js"
+import voucher from "./routes/voucher.js"
+
 
 
 import requireSignIn from "./middleware/authentication.js";
@@ -89,6 +92,10 @@ app.use("/api/review", requireSignIn, review);
 app.use("/api/trade", requireSignIn, trade);
 
 app.use("/api/special", requireSignIn, special);
+app.use("/api/log", requireSignIn, log);
+app.use("/api/voucher", requireSignIn, voucher);
+
+
 
 
 

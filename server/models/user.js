@@ -55,6 +55,11 @@ const userSchema = new mongoose.Schema(
                 ref: "User",
             },
         ],
+        points: {
+            type: Number,
+            require: true,
+            default: 0,
+        },
         role: {
             type: Number,
             required: true,

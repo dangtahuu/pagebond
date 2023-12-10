@@ -9,7 +9,7 @@ import SpecialPost from "../models/specialPost.js";
 import Trade from "../models/trade.js";
 import shuffle from "../utils/shuffle.js";
 import sortObjectDes from "../utils/sortObjectDes.js";
-
+import Log from "../models/log.js";
 const register = async (req, res) => {
   try {
     const { name, email, password, rePassword, secret } = req.body;
@@ -220,10 +220,13 @@ const addFollower = async (req, res, next) => {
       $addToSet: {
         follower: req.user.userId,
       },
+      $inc: { points: 50 }
     });
+
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
+
     next();
   } catch (error) {
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
@@ -239,9 +242,20 @@ const userFollower = async (req, res) => {
       },
       { new: true }
     );
+
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
+
+    const log = await Log.create({
+      toUser: req.body.userId,
+      fromUser: req.user.userId,
+      linkTo: req.user.userId,
+      typeOfLink: 'User',
+      type:1,
+      points: 50,
+    })
+    
     res.status(200).json({ msg: "Follow successfully!", user });
   } catch (error) {
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
@@ -254,6 +268,8 @@ const removeFollower = async (req, res, next) => {
       $pull: {
         follower: req.user.userId,
       },
+      $inc: { points: -50 }
+
     });
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
@@ -276,6 +292,15 @@ const userUnFollower = async (req, res) => {
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
+   
+    const log = await Log.create({
+      toUser: req.body.userId,
+      fromUser: req.user.userId,
+      linkTo: req.user.userId,
+      typeOfLink: 'User',
+      type:2,
+      points: -50,
+    })
     res.status(200).json({ msg: "Unfollowed!", user });
   } catch (error) {
     return res.status(400).json({ msg: "Something went wrong. Try again!" });

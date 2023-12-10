@@ -21,8 +21,8 @@ const Header = ({
 }) => {
   const [loading, setLoading] = useState(false);
 
-  const list = ["Posts", "Following", "Follower", "Shelves", "Diary"];
-  const urlList = ["posts", "following", "follower", "shelves", "diary"];
+  const list = ["Posts", "Following", "Follower", "Shelves", "Diary", "Points"];
+  const urlList = ["posts", "following", "follower", "shelves", "diary", "points"];
 
 
   const handleFollower = async (user) => {

@@ -1,73 +1,140 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 // icon
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 
 import { BsCollectionFill } from "react-icons/bs";
 import { AiFillHome } from "react-icons/ai";
-import { SiMessenger , } from "react-icons/si";
-import { MdAdminPanelSettings} from "react-icons/md";
+import { SiMessenger } from "react-icons/si";
+import { MdAdminPanelSettings } from "react-icons/md";
 import { BsPersonCircle, BsPersonPlusFill } from "react-icons/bs";
 import { IoIosSearch } from "react-icons/io";
 import { FaSearch } from "react-icons/fa";
 import { RiSearchFill } from "react-icons/ri";
 import { RiFileSearchFill } from "react-icons/ri";
 
-import { AiOutlineHome , AiOutlineSearch, AiOutlineMessage, AiOutlineDashboard   } from "react-icons/ai";
+import {
+  AiOutlineHome,
+  AiOutlineSearch,
+  AiOutlineMessage,
+  AiOutlineDashboard,
+} from "react-icons/ai";
+import { IoIosNotificationsOutline } from "react-icons/io";
 
 // components
 import { useAppContext } from "../../context/useContext.js";
-import { Dropdown} from "../";
+import { Dropdown } from "../";
 import io from "socket.io-client";
 
 const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
   reconnection: true,
 });
 
+const notiText = {
+  1: "has followed you",
+  3: "has liked your post",
+  5: "has commented on your post",
+  7: "has sent you",
+  8: "has verified your account",
+  9: "has veried your post",
+};
+
+const getNotiText = (noti) => {
+  switch (noti.type) {
+    case 1:
+      return `<a className="text-bold">{noti?.fromUser?.name}</a> has followed you`;
+      break;
+    case 3:
+      return `<a className="text-bold">{noti?.fromUser?.name}</a> has liked your post <a className="text-bold">{noti?.linkTo?.text}</a>`;
+      break;
+    case 5:
+      return `<a className="text-bold">{noti?.fromUser?.name}</a> has commented on your post <a className="text-bold">{noti?.linkTo?.text}</a>`;
+      break;
+    case 7:
+      return `<a className="text-bold">{noti?.fromUser?.name}</a> has sent you <a className="text-bold">{noti?.points}</a>`;
+      break;
+    case 8:
+      return `<a className="text-bold">{noti?.fromUser?.name}</a> has verified your account`;
+      break;
+    case 9:
+      return `<a className="text-bold">{noti?.fromUser?.name}</a> has verified your post <a className="text-bold">{noti?.linkTo?.text}</a>`;
+      break;
+    default:
+      return "";
+  }
+};
+
 const Nav = () => {
   const { user, unreadMessages, autoFetch, setOneState } = useAppContext();
+  const [page, setPage] = useState(1);
+  const [notifications, setNotifications] = useState(1);
+  const [notificationsLoading, setNotificationsLoading] = useState(true)
+  const [unreadNoti, setUnreadNoti] = useState(0);
+  const [notiMenu, setNotiMenu] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate()
-  const getUnreadMessages= async() => {
-    try{
-      console.log('ppppppppp')
-    const {data} = await autoFetch.get("api/message/unread");
-    console.log(data.unread)
-    setOneState("unreadMessages", data.unread);
-
-    } catch(e){
-      console.log(e)
+  const navigate = useNavigate();
+  const getUnreadMessages = async () => {
+    try {
+      const { data } = await autoFetch.get("api/message/unread");
+      setOneState("unreadMessages", data.unread);
+    } catch (e) {
+      console.log(e);
     }
+  };
 
-  }
+  const getNotifications = async () => {
+    // setNotificationsLoading(true)
+    try {
+
+      const { data } = await autoFetch.get("api/log/noti");
+      console.log(data.notifications);
+      setNotifications(data.notifications);
+      // console.log(data.notifications)
+      setUnreadNoti(data.unread);
+    } catch (e) {
+      console.log(e);
+    }
+    setNotificationsLoading(false)
+
+  };
+
+  // const handleClickNotification = (noti) => {
+  //   if(noti.type===)
+  // }
 
   useEffect(() => {
-    getUnreadMessages()
-      // socket
-      if (user) {
-        socket.on("new-message", (newMessage) => {
-          const index = newMessage.members.find(
-            (value) => value._id === user._id
-          );
-          if (!index) {
-            return;
-          }
-          // console.log('last message', newMessage.content[newMessage.content.length-1].sentBy)
-          if(newMessage.content[newMessage.content.length-1].sentBy._id.toString() === user._id) return;
-         getUnreadMessages()
-         toast.success("You have a new message");
+  
+    // socket
+    if (user) {
+      getUnreadMessages();
+      getNotifications();
+      socket.on("new-message", (newMessage) => {
+        const index = newMessage.members.find(
+          (value) => value._id === user._id
+        );
+        if (!index) {
+          return;
+        }
+        // console.log('last message', newMessage.content[newMessage.content.length-1].sentBy)
+        if (
+          newMessage.content[
+            newMessage.content.length - 1
+          ].sentBy._id.toString() === user._id
+        )
+          return;
+        getUnreadMessages();
+        toast.success("You have a new message");
 
-          
-          // when user open more 2 tabs
+        // when user open more 2 tabs
+      });
+    }
 
-        });
-      }
-     
     return () => {
       socket.off("new-message");
     };
-  }, []);
+  }, [user]);
+
   const menuListLogged = useMemo(() => {
     const list = [
       {
@@ -78,7 +145,7 @@ const Nav = () => {
       {
         link: "/browse",
         alternative: "/search",
-        icon: <AiOutlineSearch />        ,
+        icon: <AiOutlineSearch />,
         className: "search",
       },
       {
@@ -86,7 +153,7 @@ const Nav = () => {
         icon: <AiOutlineMessage />,
         className: "messenger",
       },
-     
+
       // {
       //   link: "/browse",
       //   icon: <BsCollectionFill />,
@@ -96,7 +163,7 @@ const Nav = () => {
     if (user.role === 1) {
       list.push({
         link: "/admin",
-        icon: <AiOutlineDashboard />        ,
+        icon: <AiOutlineDashboard />,
         className: "admin",
       });
     }
@@ -107,22 +174,28 @@ const Nav = () => {
     return menuListLogged.map((v) => (
       <div className={`w-full "px-[10%]"  `} key={"navlink" + v.link}>
         <div
-          onClick={()=>navigate(`${v.link}`)}
+          onClick={() => navigate(`${v.link}`)}
           className={`relative rounded-lg dashboard bg-inherit py-2 md:py-2.5 my-1 mx-1 shrink-1 w-full flex 
                     justify-center text-xl transition-20 
-                    before:rounded-lg before:opacity-0 ${(location.pathname ===v.link || location.pathname ===v.alternative) && 'active'}`}
+                    before:rounded-lg before:opacity-0 ${
+                      (location.pathname === v.link ||
+                        location.pathname === v.alternative) &&
+                      "active"
+                    }`}
           role="button"
         >
-          <div className="relative">{v.icon}
-          {v.className==='messenger' && <div className="bg-greenBtn -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">{unreadMessages}</div>}
-          
+          <div className="relative">
+            {v.icon}
+            {v.className === "messenger" && (
+              <div className="bg-greenBtn -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">
+                {unreadMessages}
+              </div>
+            )}
           </div>
         </div>
       </div>
     ));
   };
-
-  
 
   return (
     <div className="flex fixed top-0 w-screen bg-navBar h-12 px-4 sm:px-6 md:px-12 z-[100] items-center py-1 ">
@@ -188,9 +261,45 @@ const Nav = () => {
         style={{ flex: "1 1 auto" }}
       >
         <div className="flex items-center">
+          <div className="relative mr-6">
+            <IoIosNotificationsOutline className="cursor-pointer text-xl"  onClick={()=>setNotiMenu(prev=>!prev)}/>
+            <div className=" bg-greenBtn -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute"
+          
+            >
+              {unreadNoti}
+             
+            </div>
+            {notiMenu && <div
+                // ref={filterRef}
+                className="absolute p-3 rounded-lg right-0 top-[47px] w-[400px] bg-dialogue"
+              >
+                <div className="text-sm font-bold mb-2">Notifications</div>
+                
+                {!notificationsLoading && notifications?.map((noti) => (
+                  <div className="text-sm flex justify-between items-center border-b-[1px] p-2 border-b-smallText" 
+                  // onClick={()=>handleClickNotification(noti)}
+                  >
+                    <div>
+                    <span className="font-semibold">{noti?.fromUser?.name}</span>{" "}
+                    {notiText[noti.type]}{" "}
+                    <span className="font-semibold">
+                      {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
+                        noti?.linkTo?.text}
+                    </span>
+                    <span className="font-semibold">
+                      {(noti.type === 7) &&
+                        noti?.points}
+                    </span>
+                    </div>
+                  {!noti.isRead && <div className="rounded-full bg-greenBtn w-[10px] h-[10px]"></div>}
+                  </div>
+                ))}
+              </div>}
+          </div>
+
           {user && (
             // <div className="text-xs md:text-sm border pl-3 md:pr-5 py-[5px] rounded-l-full translate-x-[16px] bg-[#2C74B3] text-white dark:bg-[#3A3A3A] dark:border-white/30 hidden md:flex ">
-             <div className="md:pr-3 serif-display text-sm">{user.name}</div> 
+            <div className="md:pr-3 serif-display text-sm">{user.name}</div>
             // </div>
           )}
           <Dropdown />

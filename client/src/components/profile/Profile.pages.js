@@ -13,6 +13,8 @@ import FollowingPage from "./components/FollowingPage";
 import Shelves from "./components/Shelves";
 import ShelfDetail from "./components/ShelfDetail";
 import Diary from "./components/Diary";
+import Points from "./components/Points";
+
 const Profile = () => {
     const navigate = useNavigate();
     const { id: currentUserId, shelf } = useParams()
@@ -46,7 +48,9 @@ const Profile = () => {
         follower: [],
         following: [],
     });
+
     const [menu, setMenu] = useState("Posts");
+
     useEffect(() => {
         getCurrentUser(currentUserId);
         getPostWithUserId(currentUserId);
@@ -60,6 +64,7 @@ const Profile = () => {
         setLoading(true);
         try {
             const {data} = await autoFetch.get(`/api/auth/${userId}`);
+            console.log(data.user)
             setUser(data.user);
         } catch (error) {
             console.log(error);
@@ -161,6 +166,22 @@ const Profile = () => {
                     setNameAndToken={setNameAndToken}
                     token={token}
                     setMenu={setMenu}
+                />
+            );
+        }
+
+        if (tabView === "points") {
+            return (
+                <Points
+                    dark={dark}
+                    user={user}
+                    autoFetch={autoFetch}
+                    navigate={navigate}
+                    own={own}
+                    setNameAndToken={setNameAndToken}
+                    token={token}
+                    setMenu={setMenu}
+                    setUser={setUser}
                 />
             );
         }

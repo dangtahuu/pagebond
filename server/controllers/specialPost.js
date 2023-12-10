@@ -1,6 +1,9 @@
 import SpecialPost from "../models/specialPost.js";
 import cloudinary from "cloudinary";
 import User from "../models/user.js";
+import Log from "../models/log.js";
+
+
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
   api_key: "846889586593325",
@@ -139,6 +142,20 @@ const like = async (req, res) => {
         new: true,
       }
     );
+    const user = await User.findByIdAndUpdate(post.postedBy, {
+      
+      $inc: { points: 5 }
+
+    });
+
+    const log = await Log.create({
+      toUser: post.postedBy,
+      fromUser: req.user.userId,
+      linkTo: post._id,
+      typeOfLink: 'SpecialPost',
+      type:3,
+      points: 5,
+    })
     return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
@@ -158,6 +175,20 @@ const unlike = async (req, res) => {
         new: true,
       }
     );
+    const user = await User.findByIdAndUpdate(post.postedBy, {
+      
+      $inc: { points: -5 }
+
+    });
+
+    const log = await Log.create({
+      toUser: post.postedBy,
+      fromUser: req.user.userId,
+      linkTo: post._id,
+      typeOfLink: 'SpecialPost',
+      type:4,
+      points: -5,
+    })
     return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
@@ -184,7 +215,20 @@ const addComment = async (req, res) => {
     )
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret");
-
+      const user = await User.findByIdAndUpdate(post.postedBy, {
+      
+        $inc: { points: 20 }
+  
+      });
+  
+      const log = await Log.create({
+        toUser: post.postedBy,
+        fromUser: req.user.userId,
+        linkTo: post._id,
+        typeOfLink: 'SpecialPost',
+        type:5,
+        points: 20,
+      })
     return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
@@ -206,7 +250,20 @@ const removeComment = async (req, res) => {
     )
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret");
-
+      const user = await User.findByIdAndUpdate(post.postedBy, {
+      
+        $inc: { points: -20 }
+  
+      });
+  
+      const log = await Log.create({
+        toUser: post.postedBy,
+        fromUser: req.user.userId,
+        linkTo: post._id,
+        typeOfLink: 'SpecialPost',
+        type:6,
+        points: -20,
+      })
     return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
