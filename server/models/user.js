@@ -63,8 +63,7 @@ const userSchema = new mongoose.Schema(
         role: {
             type: Number,
             required: true,
-            enum: [1,2,3],
-            default: 3,
+            enum: [0,1,2,3],
         },
     },
     {

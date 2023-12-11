@@ -1,9 +1,8 @@
 
 
-import React, {useState} from "react";
+import {useState} from "react";
 
 import {AiOutlineEye, AiOutlineEyeInvisible} from "react-icons/ai";
-import {Nav} from "../components";
 import {useAppContext} from "../context/useContext";
 import {Navigate, NavLink} from "react-router-dom";
 import {toast} from "react-toastify";
@@ -51,14 +50,11 @@ const Login = () => {
 
     return (
         <div>
-            <Nav />
             {/* <div className='pt-12 bg-[#f0f2f5] dark:bg-[#4E4F50] h-screen w-screen flex items-center relative transition-50 '> */}
                 {/* image chicken */}
                 <div
-                className={`bg-[#f0f2f5] dark:bg-[#4E4F50] h-screen w-screen grid items-center relative transition-50 overflow-hidden md:grid-cols-3 `}
-                style={{
-                    backgroundImage: !dark ? "none" : "url(/images/bg.png)",
-                }}>
+                className={`bg-nav dark:bg-[#4E4F50] h-screen w-screen grid items-center relative transition-50 overflow-hidden md:grid-cols-3 `}
+               >
                 {/* image background */}
                 <div className='hidden md:flex h-full items-center justify-start relative md:col-span-1 '>
                     <img
@@ -89,7 +85,7 @@ const Login = () => {
                   
 
                     <img
-                        src={`/images/ship-space.png`}
+                        src={`/images/sign-up-girl.png`}
                         alt='chicken'
                         className='w-[25%] lg:w-[50%] ml-3 h-auto object-contain z-10'
                     />

@@ -115,10 +115,7 @@
     font-weight: 900;
   }
   .input-register {
-    /* @apply border-2 border-solid border-gray-400 focus:ring-0 bg-white w-full md:w-[400px] h-[35px] md:h-[50px] px-5 rounded-lg text-sm md:text-[16px]  dark:bg-[#242526] font-medium dark:placeholder:text-white/40; */
-    /* @apply border-2 border-solid border-gray-400 focus:ring-0 bg-white w-full md:w-[400px] h-[30px] md:h-[35px] px-3 rounded-lg text-xs md:text-sm  dark:bg-[#242526] dark:placeholder:text-white/40; */
-
-    @apply focus:ring-0 bg-white w-full md:w-full h-[30px] md:h-[35px] px-3 rounded-lg text-xs md:text-sm border-2 border-solid border-gray-400  dark:bg-[#242526] font-medium dark:placeholder:text-white/40 placeholder:text-black/40;
+    @apply bg-inputBg text-gray-900 focus:ring-0 focus:border-0 focus:bg-white w-full h-[35px] px-3 rounded-lg text-xs md:text-sm;
   }
   .input-login {
     @apply border-2 border-solid border-gray-400 focus:ring-0 bg-white w-full md:w-[400px] h-[30px] md:h-[35px] px-3 rounded-lg text-xs md:text-sm  dark:bg-[#242526] dark:placeholder:text-white/40;
@@ -154,9 +151,12 @@
 @layer components {
 
   .primary-btn {
-    @apply bg-greenBtn rounded-full py-2 px-3;
+    @apply bg-greenBtn rounded-full py-2 px-3 flex justify-center items-center focus:outline-none font-semibold;
   }
 
+  .checkbox {
+    @apply rounded-sm checked:bg-greenBtn checked:text-greenBtn border-0 focus:ring-offset-0 focus:!outline-none focus:!border-0 focus:!ring-0 text-transparent	
+  }
   .layout-container {
     max-width: 1280px;
     margin-left: auto;

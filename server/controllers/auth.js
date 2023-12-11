@@ -12,7 +12,7 @@ import sortObjectDes from "../utils/sortObjectDes.js";
 import Log from "../models/log.js";
 const register = async (req, res) => {
   try {
-    const { name, email, password, rePassword, secret } = req.body;
+    const { name, email, password, rePassword, secret, official } = req.body;
 
     if (!name || !email || !password || !secret || !rePassword) {
       return res.status(400).json({ msg: "Please provide all values!" });
@@ -56,6 +56,7 @@ const register = async (req, res) => {
       password,
       secret,
       image,
+      role: official ? 0:3
     });
 
     return res.status(200).json({

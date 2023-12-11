@@ -17,7 +17,8 @@ module.exports = {
                 smallText: '#99aabb',
                 mainText: '#ccd7ff',
                 greenBtn: '#00a11d',
-                altDialogue: '#2c3440'
+                altDialogue: '#2c3440',
+                inputBg: '#ccddee',
               }
         }
       
