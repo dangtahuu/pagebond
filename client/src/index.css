@@ -155,7 +155,7 @@
   }
 
   .checkbox {
-    @apply rounded-sm checked:bg-greenBtn checked:text-greenBtn border-0 focus:ring-offset-0 focus:!outline-none focus:!border-0 focus:!ring-0 text-transparent	
+    @apply rounded-sm bg-inputBg checked:bg-greenBtn checked:text-greenBtn border-0 focus:ring-offset-0 focus:!outline-none focus:!border-0 focus:!ring-0 text-transparent	
   }
   .layout-container {
     max-width: 1280px;
