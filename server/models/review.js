@@ -50,6 +50,7 @@ const reviewSchema = new mongoose.Schema(
       public_id: String,
     },
     likes: [{ type: mongoose.Types.ObjectId, ref: "User" }],
+
     comments: [
       {
         text: String,
@@ -71,6 +72,11 @@ const reviewSchema = new mongoose.Schema(
         },
       },
     ],
+    popularity: {
+      type: Number,
+      required: true,
+      default:0,
+    },
     title: {
       type: String,
       required: true,
@@ -78,5 +84,23 @@ const reviewSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+
+// reviewSchema.pre("save", function (next) {
+//   this.popularity = this.likes.length+this.comments.length;
+//   next()
+// });
+
+reviewSchema.pre('updateOne', function(next) {
+  // Access the query and update operations
+  const update = this.getUpdate();
+  const likes = update.$set && update.$set.likes ? update.$set.likes.length : 0;
+
+  // Set the popularity field
+  this.update({}, { $set: { popularity: likes } });
+  
+  // Continue with the update operation
+  next();
+});
 
 export default mongoose.model("Review", reviewSchema);

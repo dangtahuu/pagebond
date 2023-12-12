@@ -22,13 +22,9 @@ const Trade = ({
     const [input, setInput] = useState({
         title:"",
         text: "",
-        rating:"",
-        content:"",
-        development:"",
-        pacing:"",
-        writing:"",
-        insights:"",
-        dateRead:""
+        location:"",
+        address:"",
+        image:""
     })
 
     const [openModal, setOpenModal] = useState(false);
@@ -145,8 +141,7 @@ const Trade = ({
         return (
             <FormCreatePost
                 setAttachment={setAttachment}
-                setOpenModal={setOpenModal}
-                text={input.text}
+                setOpenForm={setOpenModal}
                 user={user}
             />
         );

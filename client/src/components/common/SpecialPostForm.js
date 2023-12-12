@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { useAppContext } from "../../context/useContext";
-import { MdAddPhotoAlternate, MdCancel } from "react-icons/md";
+import {
+  MdAddPhotoAlternate,
+  MdCancel,
+} from "react-icons/md";
 
 import ReactLoading from "react-loading";
 import { IoClose } from "react-icons/io5";
+import Tooltip from "@mui/material/Tooltip";
 import { MdOutlineAddPhotoAlternate } from "react-icons/md";
-import { Tooltip } from "@mui/material";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 
-const PostForm = ({
+const SpecialPostForm = ({
   input = "",
   setInput = (even) => {},
   setOpenModal = (event) => {},
@@ -113,6 +115,7 @@ const PostForm = ({
           <div className="font-semibold text-base leading-5 text-black/60 mt-2 ">
             Add photos
           </div>
+
         </div>
         <input
           type="file"
@@ -126,28 +129,29 @@ const PostForm = ({
 
   return (
     <div className=" fixed flex items-center justify-center w-screen h-screen bg-black/50 z-[200] top-0 left-0 ">
-      <div
-        className="z-[201] bg-none fixed w-full h-full top-0 right-0 "
+    <div
+      className="z-[201] bg-none fixed w-full h-full top-0 right-0 "
+      onClick={() => {
+        if (!isEditPost) {
+          setOpenModal(false);
+        }
+      }}
+    ></div>
+    <div className="mx-auto w-[60%] bg-dialogue rounded-xl px-4 z-[202] box-shadow relative ">
+      <IoClose
+        className="absolute top-4 right-6 text-lg opacity-50 hover:opacity-100 cursor-pointer transition-50 "
         onClick={() => {
-          if (!isEditPost) {
-            setOpenModal(false);
-          }
+          setOpenModal(false);
         }}
-      ></div>
-      <div className="mx-auto w-[60%] bg-dialogue rounded-xl px-4 z-[202] box-shadow relative ">
-        <IoClose
-          className="absolute top-4 right-6 text-lg opacity-50 hover:opacity-100 cursor-pointer transition-50 "
-          onClick={() => {
-            setOpenModal(false);
-          }}
-        />
+      />
         <div>
+
           <div className="font-semibold py-3 text-base border-b-[1px] border-altDialogue ">
-            {isEditPost ? "Edit post" : "Create Post"}
+            {isEditPost ? "Edit special post" : "Create special post"}
           </div>
 
           <label className="form-label mt-3" for="title">
-            Give it a title
+            Give it a title *
           </label>
           <textarea
             id="title"
@@ -159,7 +163,7 @@ const PostForm = ({
             }}
           />
 
-          <label className="form-label" for="text">
+<label className="form-label" for="text">
             Write your thoughts *
           </label>
 
@@ -179,6 +183,7 @@ const PostForm = ({
             </div>
           )}
           {!attachment && (
+     
             <div className="flex items-center cursor-pointer">
               <label className="form-label cursor-pointer" for="">
                 Attachment
@@ -193,7 +198,7 @@ const PostForm = ({
             </div>
           )}
 
-          <div className="flex justify-between items-center mt-2 mb-3">
+<div className="flex justify-between items-center mt-2 mb-3">
             <Tooltip
               title="Support the following HTML tags: <strong>, <em>, <b>, <i>, <a>, <blockquote>, <h1>, <h2>, <h3>, <h4>, <h5>, <h6>, <ul>, <ol>, <li>, <p>, <br>"
               placement="top-start"
@@ -204,7 +209,7 @@ const PostForm = ({
             </Tooltip>
             <button
               className={`primary-btn w-[100px] block`}
-              disabled={!input.text || loading}
+              disabled={!input.text|| !input.title || loading}
               onClick={handleButton}
             >
               {isEditPost ? "Save" : "Post"}
@@ -216,4 +221,4 @@ const PostForm = ({
   );
 };
 
-export default PostForm;
+export default SpecialPostForm;

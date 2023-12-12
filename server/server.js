@@ -21,6 +21,8 @@ import trade from "./routes/trade.js"
 import special from "./routes/special.js"
 import log from "./routes/log.js"
 import voucher from "./routes/voucher.js"
+import question from "./routes/question.js"
+
 
 
 
@@ -94,6 +96,8 @@ app.use("/api/trade", requireSignIn, trade);
 app.use("/api/special", requireSignIn, special);
 app.use("/api/log", requireSignIn, log);
 app.use("/api/voucher", requireSignIn, voucher);
+app.use("/api/question", requireSignIn, question);
+
 
 
 

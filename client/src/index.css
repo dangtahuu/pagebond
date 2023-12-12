@@ -25,10 +25,12 @@
   button.loading {
     opacity: 0.6;
   }
+
   .content {
     word-wrap: break-word;
     max-width: 100%;
   }
+
   .box-comment {
     max-width: calc(100% - 90px);
   }
@@ -157,6 +159,19 @@
   .checkbox {
     @apply rounded-sm bg-inputBg checked:bg-greenBtn checked:text-greenBtn border-0 focus:ring-offset-0 focus:!outline-none focus:!border-0 focus:!ring-0 text-transparent	
   }
+
+  .radio-box {
+    @apply bg-inputBg checked:bg-greenBtn checked:text-greenBtn border-0 focus:ring-offset-0 focus:!outline-none focus:!border-0 focus:!ring-0 text-transparent	
+  }
+
+  .form-label {
+    @apply text-sm font-semibold block
+  }
+
+  .standard-input {
+    @apply mt-1 bg-inputBg text-gray-900 focus:ring-0 focus:border-transparent focus:bg-white w-full px-3 rounded-lg text-xs md:text-sm;
+  }
+
   .layout-container {
     max-width: 1280px;
     margin-left: auto;

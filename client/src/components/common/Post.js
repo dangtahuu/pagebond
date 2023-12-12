@@ -10,7 +10,6 @@ import {
   AiOutlineSend,
   AiOutlineCamera,
 } from "react-icons/ai";
-import { FiMessageSquare } from "react-icons/fi";
 import { TiTick } from "react-icons/ti";
 import { MdCancel } from "react-icons/md";
 // component
@@ -22,6 +21,10 @@ import ReviewForm from "./ReviewForm";
 // const typeOfPost = ['post','review','trade','specialPost']
 import PostForm from "./PostForm";
 import TradeForm from "./TradeForm";
+import SpecialPostForm from "./SpecialPostForm";
+import { Rating } from "@mui/material";
+import ReactMarkdown from 'react-markdown';
+import QuestionForm from "./QuestionForm";
 
 const Post = ({
   currentPost,
@@ -33,7 +36,8 @@ const Post = ({
   getDeletePostId = (postId) => {},
 }) => {
   // const navigate = useNavigate();
-  const { autoFetch, setOneState } = useAppContext();
+  const { autoFetch } = useAppContext();
+  // const [formOpen, setFormOpen] = useState(false)
   const [showOption, setShowOption] = useState(false);
   const [showComment, setShowComment] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
@@ -47,15 +51,6 @@ const Post = ({
   // open model for edit post
   const [openModal, setOpenModal] = useState(false);
 
-  // //edit post
-  // const [textEdit, setTextEdit] = useState(currentPost.content);
-  // const type = currentPost.type;
-
-  // const [titleEdit, setTitleEdit] = useState(currentPost.title);
-  // const [ratingEdit, setRatingEdit] = useState(currentPost.rating);
-  // const [locationEdit, setLocationEdit] = useState(currentPost.location);
-  // const [addressEdit, setAddressEdit] = useState(currentPost.address);
-
   const [input, setInput] = useState({
     title: currentPost.title || "",
     text: currentPost.text || "",
@@ -67,9 +62,9 @@ const Post = ({
     insights: currentPost.insights || "",
     dateRead: currentPost.dateRead || "",
     image: currentPost.image || "",
-    condition: currentPost.image || "",
+    condition: currentPost.condition || "",
     address: currentPost.address || "",
-    location: currentPost.location || ""
+    location: currentPost.location || "",
   });
 
   const [attachment, setAttachment] = useState(
@@ -81,9 +76,9 @@ const Post = ({
   const [type, setType] = useState("");
 
   // open modal
-  useEffect(() => {
-    setOneState("openModal", openModal);
-  }, [openModal]);
+  // useEffect(() => {
+  //   setOneState("openModal", openModal);
+  // }, [openModal]);
 
   useEffect(() => {
     getType();
@@ -95,7 +90,8 @@ const Post = ({
   const getType = () => {
     if (post.rating) setType("review");
     else if (post.address) setType("trade");
-    else if (post.type) setType("specialPost");
+    else if (post.type) setType("special");
+    else if (post.book) setType("question")
     else setType("post");
   };
 
@@ -144,12 +140,12 @@ const Post = ({
           return;
         }
       }
-        const { data } = await autoFetch.put(`/api/${type}/add-comment`, {
-          postId,
-          comment: textComment,
-          image,
-        });
-        setPost({ ...post, comments: data.post.comments });
+      const { data } = await autoFetch.put(`/api/${type}/add-comment`, {
+        postId,
+        comment: textComment,
+        image,
+      });
+      setPost({ ...post, comments: data.post.comments });
       setShowComment(true);
       setTextComment("");
       setImageComment(null);
@@ -229,18 +225,21 @@ const Post = ({
         });
         postData = data.post;
       } else if (type === "review") {
-        const { data } = await autoFetch.patch(`api/review/${currentPost._id}`, {
-          text: input.text,
-          rating: input.rating,
-          title: input.title,
-          content: input.content,
-          development: input.development,
-          pacing: input.pacing,
-          writing: input.writing,
-          insights: input.insights,
-          dateRead: input.dateRead,
-          image: image,
-        });
+        const { data } = await autoFetch.patch(
+          `api/review/${currentPost._id}`,
+          {
+            text: input.text,
+            rating: input.rating,
+            title: input.title,
+            content: input.content,
+            development: input.development,
+            pacing: input.pacing,
+            writing: input.writing,
+            insights: input.insights,
+            dateRead: input.dateRead,
+            image: image,
+          }
+        );
         postData = data.post;
       } else if (type === "trade") {
         const { data } = await autoFetch.patch(`api/trade/${currentPost._id}`, {
@@ -248,8 +247,28 @@ const Post = ({
           condition: input.condition,
           address: input.address,
           location: input.location,
-          image
+          image,
         });
+        postData = data.post;
+      } else if (type === "special") {
+        const { data } = await autoFetch.patch(
+          `api/special/${currentPost._id}`,
+          {
+            text: input.text,
+            image: image,
+            title: input.title,
+          }
+        );
+        postData = data.post;
+      } else if (type === "question") {
+        const { data } = await autoFetch.patch(
+          `api/question/${currentPost._id}`,
+          {
+            text: input.text,
+            image: image,
+            title: input.title,
+          }
+        );
         postData = data.post;
       }
 
@@ -268,7 +287,7 @@ const Post = ({
         image: postData.image || "",
         address: postData.address || "",
         location: postData.location || "",
-        condition: postData.condition || ""
+        condition: postData.condition || "",
       });
 
       setInput({
@@ -285,9 +304,8 @@ const Post = ({
         image: postData.image || "",
         address: postData.address || "",
         location: postData.location || "",
-        condition: postData.condition || ""
+        condition: postData.condition || "",
       });
-
 
       if (postData.image) {
         setAttachment("photo");
@@ -295,6 +313,7 @@ const Post = ({
       toast("Update post success!");
     } catch (error) {
       console.log(error);
+      toast.error(error.response.data.msg || "Something went wrong");
     }
     setLoadingEdit(false);
     setFormData(null);
@@ -315,34 +334,7 @@ const Post = ({
   }
 
   return (
-    <div
-      className={` mb-3 pt-3 pb-2.5  border-t-[1px] border-t-dialogue`}
-    >
-      {/* Model when in mode edit post */}
-      {/* {openModal && (
-        <Modal
-          setOpenModal={setOpenModal}
-          text={textEdit}
-          setText={setTextEdit}
-          rating={ratingEdit}
-          setRating={setRatingEdit}
-          location={locationEdit}
-          setLocation={setLocationEdit}
-          address={addressEdit}
-          setAddress={setAddressEdit}
-          title={titleEdit}
-          setTitle={setTitleEdit}
-          attachment={attachment}
-          setAttachment={setAttachment}
-          isEditPost={true}
-          imageEdit={imageEdit}
-          setFormDataEdit={setFormData}
-          handleEditPost={updatePost}
-          setImageEdit={setImageEdit}
-          type={type}
-        />
-      )} */}
-
+    <div className={` mb-3 pt-3 pb-2.5  border-t-[1px] border-t-dialogue`}>
       {openModal && type === "post" && (
         <PostForm
           setOpenModal={setOpenModal}
@@ -359,7 +351,7 @@ const Post = ({
         />
       )}
 
-{openModal && type === "review" && (
+      {openModal && type === "review" && (
         <ReviewForm
           setOpenModal={setOpenModal}
           input={input}
@@ -375,7 +367,7 @@ const Post = ({
         />
       )}
 
-{openModal && type === "trade" && (
+      {openModal && type === "trade" && (
         <TradeForm
           setOpenModal={setOpenModal}
           input={input}
@@ -388,6 +380,32 @@ const Post = ({
           handleEditPost={updatePost}
           // setImageEdit={setImageEdit}
           // type={type}
+        />
+      )}
+
+      {openModal && type === "special" && (
+        <SpecialPostForm
+          setOpenModal={setOpenModal}
+          input={input}
+          setInput={setInput}
+          attachment={attachment}
+          setAttachment={setAttachment}
+          isEditPost={true}
+          setFormDataEdit={setFormData}
+          handleEditPost={updatePost}
+        />
+      )}
+
+{openModal && type === "question" && (
+        <QuestionForm
+          setOpenModal={setOpenModal}
+          input={input}
+          setInput={setInput}
+          attachment={attachment}
+          setAttachment={setAttachment}
+          isEditPost={true}
+          setFormDataEdit={setFormData}
+          handleEditPost={updatePost}
         />
       )}
 
@@ -412,13 +430,16 @@ const Post = ({
           >
             {post.postedBy.name}
             {post.postedBy.role === 1 && (
+              <TiTick className="text-sm ml-1 text-white rounded-full bg-greenBtn " />
+            )}
+            {post.postedBy.role === 2 && (
               <TiTick className="text-sm ml-1 text-white rounded-full bg-blue-700 " />
             )}
           </div>
 
-          {/* <div className="text-[10px] dark:text-[#B0B3B8] flex items-center gap-x-1 ">
+          <div className="text-[10px] flex items-center gap-x-1 ">
             {moment(post.createdAt).fromNow()}
-          </div> */}
+          </div>
         </div>
         {/* Edit or delete posts */}
         {(userId === post.postedBy._id || userRole === 1) && (
@@ -459,9 +480,16 @@ const Post = ({
           </div>
         )}
       </div>
+
       {post.address && (
-        <div className="content mt-3 px-4 font-bold text-gray-500 text-xs">
-          {post.address}{" "}
+        <div className="content mt-3 px-4 font-bold text-gray-500 text-xs" onClick={()=>console.log(post)}>
+          {post.address.slice(0,80)}...
+        </div>
+      )}
+
+    {post.condition && (
+        <div className="content mt-2 px-4 font-bold text-gray-500 text-xs">
+          Condition: {post.condition}{" "}
         </div>
       )}
 
@@ -493,34 +521,42 @@ const Post = ({
               {post.book.author}
             </div>
             {post.rating && (
-              <div className="flex items-center gap-x-1 cursor-pointer">
-                {Array.from({ length: post.rating }, (_, index) => (
-                  <span key={index}>⭐</span>
-                ))}
+              <div className="flex items-center gap-x-1  cursor-pointer mt-2">
+                   <Rating
+                   className="!text-[16px]"
+          value={post.rating}
+          precision={0.5}
+          readOnly
+        />
+               
               </div>
             )}
           </div>
         </div>
       ) : post.rating ? (
         <div className="content mt-[11px] px-4">
-          {Array.from({ length: post.rating }, (_, index) => (
-            <span key={index}>⭐</span>
-          ))}
+             <Rating
+          value={post.rating}
+          precision={0.5}
+          readOnly
+        />
         </div>
       ) : (
         <></>
       )}
       {post.title && (
-        <div className="content mt-3 px-4 font-bold text-xl">{post.title}</div>
+        <div className="content mt-3 px-4 serif-display text-2xl">
+          {post.title}
+        </div>
       )}
 
-      {/* post's text */}
       <div
         className={`content mt-[11px] px-4  ${
           post.image || post.text.length > 60 ? "text-sm" : "text-base "
         } `}
-        dangerouslySetInnerHTML={{ __html: post.text }}
-      ></div>
+      >
+        {post.text}
+      </div>
 
       {/* when has image */}
       {post.image && (
@@ -537,46 +573,49 @@ const Post = ({
       )}
 
       {/* post's comment and like quantity */}
-        <div className="px-4 py-[10px] flex gap-x-[6px] items-center text-[15px] ">
-          {/* like quantity */}
-          
+      <div className="px-4 py-[10px] flex gap-x-[6px] items-center text-[15px] ">
+        {/* like quantity */}
+
+        <>
+          {!post.likes.includes(userId) ? (
             <>
-              {!post.likes.includes(userId) ? (
-                <>
-                  <AiOutlineHeart onClick={() => like(post._id)}
-            disabled={likeLoading} className="cursor-pointer text-[18px] text-[#65676b] dark:text-[#afb0b1]" />
-                  <span className="like-count">
-                    {`${likeCount} like${likeCount > 1 ? "s" : ""}`}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <AiFillHeart  onClick={() => unlike(post._id)}
-            disabled={likeLoading}  className="cursor-pointer text-[18px] text-[#c22727] dark:text-[#c22727]" />
-                  <span className="like-count">
-                    {likeCount > 1
-                      ? `You and ${likeCount - 1} other${
-                          likeCount > 2 ? "s" : ""
-                        }`
-                      : `You`}
-                  </span>
-                </>
-              )}
+              <AiOutlineHeart
+                onClick={() => like(post._id)}
+                disabled={likeLoading}
+                className="cursor-pointer text-[18px] text-[#65676b] dark:text-[#afb0b1]"
+              />
+              <span className="like-count">
+                {`${likeCount} like${likeCount > 1 ? "s" : ""}`}
+              </span>
             </>
-          {/* comment quantity */}
-          <span className="cursor-pointer text-[14px] ml-auto text-[#65676b] dark:text-[#afb0b1] 
+          ) : (
+            <>
+              <AiFillHeart
+                onClick={() => unlike(post._id)}
+                disabled={likeLoading}
+                className="cursor-pointer text-[18px] text-[#c22727] dark:text-[#c22727]"
+              />
+              <span className="like-count">
+                {likeCount > 1
+                  ? `You and ${likeCount - 1} other${likeCount > 2 ? "s" : ""}`
+                  : `You`}
+              </span>
+            </>
+          )}
+        </>
+        {/* comment quantity */}
+        <span
+          className="cursor-pointer text-[14px] ml-auto text-[#65676b] dark:text-[#afb0b1] 
           "
           onClick={() => {
             setShowComment(!showComment);
           }}
-          disabled={!commentCount}>
-            {commentCount > 0 &&
-              `${commentCount} ${commentCount > 1 ? "comments" : "comment"}`}
-          </span>
-        </div>
-
-
-    
+          disabled={!commentCount}
+        >
+          {commentCount > 0 &&
+            `${commentCount} ${commentCount > 1 ? "comments" : "comment"}`}
+        </span>
+      </div>
 
       {/* comment box */}
       {showComment && (

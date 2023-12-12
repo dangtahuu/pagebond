@@ -12,7 +12,6 @@ cloudinary.v2.config({
 
 const create = async (req, res) => {
   const { text, image, title, type, book } = req.body;
-  // const type = req.user
   if (!text.length || !title.length) {
     return res.status(400).json({ msg: "Content and title are required!" });
   }
@@ -37,7 +36,6 @@ const create = async (req, res) => {
       });
     }
    
-
     const postWithUser = await SpecialPost.findById(post._id).populate(
       "postedBy",
       "-password -secret"
@@ -94,7 +92,7 @@ const edit = async (req, res) => {
     if (!text.length || !title.length) {
       return res.status(400).json({ msg: "Content and title are required!" });
     }
-    const post = await SpecialPostost.findByIdAndUpdate(
+    const post = await SpecialPost.findByIdAndUpdate(
       postId,
       {
         text,
@@ -110,6 +108,7 @@ const edit = async (req, res) => {
     }
     return res.status(200).json({ msg: "Updated posts!", post });
   } catch (error) {
+    console.log(error)
     return res.status(400).json({ msg: error });
   }
 };
@@ -388,18 +387,17 @@ const getAllWithBook = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.userId;
-    // console.log(userId)
 
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
 
-    const posts = await SpecialPost.find({ book: id })
+    const posts = await SpecialPost.find({$and: [{ book: id },{type: {$ne: 0}}]})
       .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .sort({ createdAt: -1 })
       .limit(perPage);
-
+console.log(posts)
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);

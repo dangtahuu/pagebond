@@ -3,12 +3,14 @@ import { useAppContext } from "../../context/useContext";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Review from "./components/Review";
-import MyPost from "./components/MyPost";
+import ByMe from "./components/ByMe";
 import Trade from "./components/Trade";
 import { FiEdit2 } from "react-icons/fi";
 import ModalShelves from "../common/ModalShelves";
 import { Rating, Tooltip } from "@mui/material";
 import Similar from "./components/Similar";
+import Official from "./components/Official";
+import Question from "./components/Question";
 
 function BookDetail() {
   const navigate = useNavigate();
@@ -19,10 +21,17 @@ function BookDetail() {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [myPostLoading, setMyPostLoading] = useState(false);
   const [exchangeLoading, setExchangeLoading] = useState(false);
+  const [officialLoading, setOfficialLoading] = useState(false);
+  const [questionLoading, setQuestionLoading] = useState(false);
+
   const [shelvesLoading, setShelvesLoading] = useState(false);
   const [selectedShelvesLoading, setSelectedShelvesLoading] = useState(false);
   const [moreReviews, setMoreReviews] = useState(true);
   const [moreTrades, setMoreTrades] = useState(true);
+  const [moreOfficial, setMoreOfficial] = useState(true);
+  const [moreQuestion, setMoreQuestion] = useState(true);
+
+
 
   const [book, setBook] = useState({
     id: "",
@@ -47,14 +56,22 @@ function BookDetail() {
   const [myPosts, setMyPosts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [exchange, setExchange] = useState([]);
+  const [official, setOfficial] = useState([]);
+  const [question, setQuestion] = useState([]);
+
+
   const [shelves, setShelves] = useState([]);
   const [selectedShelves, setSelectedShelves] = useState([]);
   const [topShelves, setTopShelves] = useState([]);
 
   const [reviewPage, setReviewPage] = useState(1);
   const [exchangePage, setExchangePage] = useState(1);
+  const [officialPage, setOfficialPage] = useState(1);
+  const [questionPage, setQuestionPage] = useState(1);
+
+
   const [error, setError] = useState("");
-  const list = ["My Posts", "Reviews", "Trades"];
+  const list = ["By me", "Reviews", "Tradings", "Official", "Questions"];
   const [menu, setMenu] = useState("Reviews");
   const [openModal, setOpenModal] = useState(false);
   const [shelfForm, setShelfForm] = useState(false);
@@ -97,15 +114,12 @@ function BookDetail() {
     });
   };
 
-  useEffect(() => {
-    setOneState("openModal", openModal);
-  }, [openModal]);
 
-  const getNewReviews = async () => {
+  const getNewReviews = async (sort="popularity",filter="All") => {
     setReviewLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/review/book/${id}?page=${reviewPage + 1}`
+        `/api/review/book/${id}?page=${reviewPage + 1}&sort=${sort}&rating=${filter}`
       );
       setReviewPage(reviewPage + 1);
       setReviews((prev) => [...prev, ...data.posts]);
@@ -118,10 +132,10 @@ function BookDetail() {
     }
   };
 
-  const getFirstReviews = async () => {
+  const getFirstReviews = async (sort="popularity",filter="All") => {
     setReviewLoading(true);
     try {
-      const { data } = await autoFetch.get(`/api/review/book/${id}?page=1`);
+      const { data } = await autoFetch.get(`/api/review/book/${id}?page=1&sort=${sort}&rating=${filter}`);
       if (data.posts) setReviews(data.posts);
       if (data.posts.length < 10) setMoreReviews(false);
     } catch (error) {
@@ -154,7 +168,7 @@ function BookDetail() {
     try {
       const { data } = await autoFetch.get(`/api/trade/book/${id}?page=1`);
       if (data.posts) setExchange(data.posts);
-      if (data.posts.length < 3) setMoreTrades(false);
+      if (data.posts.length < 10) setMoreTrades(false);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -163,14 +177,77 @@ function BookDetail() {
     }
   };
 
+  const getNewOfficial = async () => {
+    setOfficialLoading(true);
+    try {
+      const { data } = await autoFetch.get(
+        `/api/special/book/${id}?page=${officialPage + 1}`
+      );
+      setExchangePage(officialPage + 1);
+      setExchange([...official, ...data.posts]);
+      if (data.posts.length < 10) setMoreOfficial(false);
+    } catch (error) {
+      console.log(error);
+      setError(true);
+    } 
+    setOfficialLoading(false);
+
+  };
+
+  const getFirstOfficial = async () => {
+    setOfficialLoading(true);
+    try {
+      const { data } = await autoFetch.get(`/api/special/book/${id}?page=1`);
+      if (data.posts) setOfficial(data.posts);
+      if (data.posts.length < 10) setMoreOfficial(false);
+    } catch (error) {
+      console.log(error);
+    } 
+    setOfficialLoading(false);
+
+  };
+
+  
+  const getNewQuestion = async () => {
+    setQuestionLoading(true);
+    try {
+      const { data } = await autoFetch.get(
+        `/api/question/book/${id}?page=${questionPage + 1}`
+      );
+      setQuestionPage(questionPage + 1);
+      setExchange([...official, ...data.posts]);
+      if (data.posts.length < 10) setMoreQuestion(false);
+    } catch (error) {
+      console.log(error);
+      setError(true);
+    } 
+    setQuestionLoading(false);
+
+  };
+
+  const getFirstQuestion = async () => {
+    setQuestionLoading(true);
+    try {
+      const { data } = await autoFetch.get(`/api/question/book/${id}?page=1`);
+      if (data.posts) setQuestion(data.posts);
+      if (data.posts.length < 10) setMoreQuestion(false);
+    } catch (error) {
+      console.log(error);
+    } 
+    setQuestionLoading(false);
+
+  };
+
   const getMyPosts = async () => {
     setMyPostLoading(true);
     try {
-      const [{ data: reviewRes }, { data: tradeRes }] = await Promise.all([
+      const [{ data: reviewRes }, { data: tradeRes }, {data: specialRes}] = await Promise.all([
         autoFetch.get(`/api/review/book-my/${id}`),
         autoFetch.get(`/api/trade/book-my/${id}`),
+        autoFetch.get(`/api/special/book-my/${id}`),
+
       ]);
-      let results = [...reviewRes.posts, ...tradeRes.posts];
+      let results = [...reviewRes.posts, ...tradeRes.posts, ...specialRes.posts];
       results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       // console.log(results);
       setMyPosts(results);
@@ -263,7 +340,7 @@ function BookDetail() {
         <Rating
           name="half-rating-read"
           value={value}
-          precision={0.5}
+          precision={0.1}
           readOnly
         />
         <p className="ml-3">{value}</p>
@@ -272,9 +349,9 @@ function BookDetail() {
   };
 
   const main = () => {
-    if (menu === "My Posts") {
+    if (menu === "By me") {
       return (
-        <MyPost
+        <ByMe
           posts={myPosts}
           loading={myPostLoading}
           token={token}
@@ -282,6 +359,8 @@ function BookDetail() {
           getAllPosts={getMyPosts}
           error={error}
           book={book}
+          setPosts={setMyPosts}
+          autoFetch={autoFetch}
         />
       );
     } else if (menu === "Reviews") {
@@ -298,13 +377,11 @@ function BookDetail() {
           getNewPosts={getNewReviews}
           error={error}
           book={book}
-          title={book.title}
-          author={book.author}
-          thumbnail={book.thumbnail}
           moreReviews={moreReviews}
+          setPage={setReviewPage}
         />
       );
-    } else if (menu === "Trades") {
+    } else if (menu === "Tradings") {
       return (
         <Trade
           posts={exchange}
@@ -322,6 +399,36 @@ function BookDetail() {
           author={book.author}
           thumbnail={book.thumbnail}
           moreTrades={moreTrades}
+        />
+      );
+    } else if (menu === "Official") {
+      return (
+        <Official
+          posts={official}
+          loading={officialLoading}
+          token={token}
+          autoFetch={autoFetch}
+          user={user}
+          getAllPosts={getFirstOfficial}
+          setPosts={setOfficial}
+          getNewPosts={getNewOfficial}
+          book={book}
+          moreTrades={moreOfficial}
+        />
+      );
+    } else if (menu === "Questions") {
+      return (
+        <Question
+          posts={question}
+          loading={questionLoading}
+          token={token}
+          autoFetch={autoFetch}
+          user={user}
+          getAllPosts={getFirstQuestion}
+          setPosts={setQuestion}
+          getNewPosts={getNewQuestion}
+          book={book}
+          moreTrades={moreQuestion}
         />
       );
     }

@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 const HeaderMenu=({list, menu, handler})=>{
     return(
         <ul className="flex items-center justify-start w-auto py-1 mb-3 gap-x-5">

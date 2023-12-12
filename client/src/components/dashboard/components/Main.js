@@ -10,13 +10,22 @@ import {
 } from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 import shuffle from "../../../utils/shuffle";
+import SpecialPostForm from "../../common/SpecialPostForm";
+import ReactLoading from "react-loading";
+import HeaderMenu from "../../common/HeaderMenu";
 
 const Main = ({ token, autoFetch, setOneState, user }) => {
   const [attachment, setAttachment] = useState("");
   const [specialAttachment, setSpecialAttachment] = useState("");
 
-  const [text, setText] = useState("");
-  const [title, setTitle] = useState("");
+  // const [text, setText] = useState("");
+  // const [title, setTitle] = useState("");
+
+  const [input, setInput] = useState({
+    text: "",
+    title: "",
+    image: "",
+  });
 
   const [specialInput, setSpecialInput] = useState({
     text: "",
@@ -37,7 +46,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   const [reservedPosts, setReservedPosts] = useState([]);
   const [moreData, setmoreData] = useState(true);
 
-  const [postModal, setPostModal] = useState(false);
+  const [postOpen, setPostOpen] = useState(false);
   const [specialPostOpen, setSpecialPostOpen] = useState(false);
 
   const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
@@ -80,10 +89,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const createNewPost = async (formData) => {
     setLoadingCreateNewPost(true);
-    if (!text) {
-      toast.error("You must type something...");
-      return;
-    }
+
     try {
       let image = null;
       if (formData) {
@@ -95,24 +101,21 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       }
 
       const { data } = await autoFetch.post(`api/post/create-post`, {
-        text,
+        text: input.text,
         image,
-        title,
+        title: input.title,
       });
       setActivePosts((prev) => [data.post, ...prev]);
-      toast.success(data?.msg || "Create post successfully!");
+      toast.success(data?.msg || "Create new post successfully!");
     } catch (error) {
       console.log(error);
+      // toast.error(error.response.data.msg || "Something went wrong");
     }
     setLoadingCreateNewPost(false);
   };
 
   const createNewSpecialPost = async (formData) => {
     setLoadingCreateNewPost(true);
-    if (!specialInput.text) {
-      toast.error("You must type something...");
-      return;
-    }
     try {
       let image = null;
       if (formData) {
@@ -127,19 +130,22 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         text: specialInput.text,
         title: specialInput.title,
         image,
-        type: user.role == 1 ? 1 : 2,
+        type: user.role === 1 ? 1 : 0,
       });
       setActivePosts((prev) => [data.post, ...prev]);
-      toast.success(data?.msg || "Create new special post successfully!");
+
+      if (user.role === 1)
+        toast.success("Create new special post successfully!");
+      else
+        toast.success(
+          "An admin will verify your special post before it gets promoted"
+        );
     } catch (error) {
       console.log(error);
+      toast.error(error.response.data.msg || "Something went wrong");
     }
     setLoadingCreateNewPost(false);
   };
-
-  //   const getFirstData = async() => {
-  //     console.log('aaaa')
-  //   }
 
   const getFirstData = async () => {
     console.log("aaaaa");
@@ -320,24 +326,14 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getNearby = async () => {
     try {
-      // const location = await getLocation();
-
-      //   const { data } = await autoFetch.get(`/api/auth/find-people-to-follow`)
-      //   let people = data.idsList
-      // const reviewPeople = people.splice(0,10)
-      // const postPeople = people.splice(0,10)
-
       const { data } = await autoFetch.get(
         `/api/trade/get-nearby/${location.long}/${location.lat}`
       );
-
       setNearTrades(data.posts);
     } catch (e) {
       console.log(e);
     }
   };
-
-
 
   const content1 = () => {
     if (loading) {
@@ -403,8 +399,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     //   );
     // }
     return (
-    <div>
-      <div>popular reviews</div>
+      <div>
+        <div>popular reviews</div>
         {popularReviews.map((post) => (
           <Post
             key={post._id}
@@ -414,8 +410,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
             userRole={user.role}
           />
         ))}
-<div>popular posts</div>
-{popularPosts.map((post) => (
+        <div>popular posts</div>
+        {popularPosts.map((post) => (
           <Post
             key={post._id}
             currentPost={post}
@@ -424,8 +420,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
             userRole={user.role}
           />
         ))}
-<div>near trades</div>
-{nearTrades.map((post) => (
+        <div>near trades</div>
+        {nearTrades.map((post) => (
           <Post
             key={post._id}
             currentPost={post}
@@ -434,8 +430,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
             userRole={user.role}
           />
         ))}
-<div>suggested posts</div>
-{suggestedPosts.map((post) => (
+        <div>suggested posts</div>
+        {suggestedPosts.map((post) => (
           <Post
             key={post._id}
             currentPost={post}
@@ -448,73 +444,50 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     );
   };
 
-  const form = () => {
-    if (error) {
-      return <></>;
-    }
-    if (loading) return <LoadingForm />;
-    return (
-      <FormCreatePost
-        setAttachment={setAttachment}
-        setOpenModal={setPostModal}
-        setSpecialPostOpen={setSpecialPostOpen}
-        text={text}
-        user={user}
-      />
-    );
-  };
-
   return (
     <div className="">
-      {form()}
+      <FormCreatePost
+        setOpenForm={setPostOpen}
+        setOpenSpecial={setSpecialPostOpen}
+        user={user}
+        allowSpecialPost={true}
+        text="post"
+      />
 
-      {/* {postModal && (
-        <Modal
-          setOpenModal={setPostModal}
-          text={text}
-          setText={setText}
-          title={title}
-          setTitle={setTitle}
+      {postOpen && (
+        <PostForm
+          setOpenModal={setPostOpen}
+          input={input}
+          setInput={setInput}
           attachment={attachment}
           setAttachment={setAttachment}
           createNewPost={createNewPost}
         />
-      )} */}
+      )}
 
       {specialPostOpen && (
-        <PostForm
+        <SpecialPostForm
           setOpenModal={setSpecialPostOpen}
           input={specialInput}
           setInput={setSpecialInput}
           attachment={specialAttachment}
           setAttachment={setSpecialAttachment}
           createNewPost={createNewSpecialPost}
-          type={2}
         />
       )}
 
-      {loadingCreateNewPost && <LoadingPost className="mb-4" />}
-
-      <div className="flex ">
-        <ul className="flex items-center justify-start w-full py-1 mb-3 gap-x-5">
-          {list.map((v) => (
-            <li
-              key={v + "button"}
-              className={`li-profile ${menu === v && "active"} `}
-              onClick={() => {
-                setMenu(v);
-                // navigate(`/profile/${user._id}`);
-              }}
-            >
-              {v}
-            </li>
-          ))}
-        </ul>
+      <div className="flex">
+        <HeaderMenu list={list} menu={menu} handler={setMenu} />
       </div>
 
-      {menu==="Following" && content1()}
-      {menu==="Discover" && content2()}
+      {loadingCreateNewPost && (
+        <div className="flex justify-center">
+          <ReactLoading type="bubbles" width={64} height={64} color="white" />
+        </div>
+      )}
 
+      {menu === "Following" && content1()}
+      {menu === "Discover" && content2()}
     </div>
   );
 };

@@ -7,6 +7,7 @@ import {toast} from "react-toastify";
 import {AiOutlineCamera, AiOutlineSend} from "react-icons/ai";
 import {TiTick} from "react-icons/ti";
 import {MdCancel} from "react-icons/md";
+import ReactMarkdown from 'react-markdown';
 
 const Comment = ({
     currentComment,
@@ -235,20 +236,19 @@ const Comment = ({
                 <img
                     src={comment.postedBy?.image?.url}
                     alt='own_avt_cmt'
-                    className='z-10 object-cover w-10 h-10 rounded-full cursor-pointer '
+                    className='z-10 object-cover w-8 h-8 rounded-full cursor-pointer '
                     onClick={() => {
-                        console.log('aaa')
                         navigate(`/profile/${comment.postedBy?._id}`);
                     }}
                 />
                 <div
-                    className={`box-comment relative w-full ${
+                    className={`relative w-full ${
                         editLoading && "opacity-50"
                     } `}>
                     <div className='flex items-center w-full gap-x-1 '>
-                        <div className='rounded-xl bg-[#F0F2F5] dark:bg-[#3A3B3C] px-3 py-2 max-w-full relative  '>
+                        <div className='rounded-xl bg-dialogue px-3 py-2 max-w-full relative  '>
                             <div
-                                className='font-bold text-[13px] text-[#050505] dark:text-[#e4e6eb] flex items-center gap-x-1 cursor-pointer '
+                                className='font-bold text-[13px] flex items-center gap-x-1 cursor-pointer '
                                 onClick={() => {
                                     navigate(
                                         `/profile/${comment.postedBy?._id}`
@@ -260,8 +260,8 @@ const Comment = ({
                                 )}
                             </div>
                             <div
-                                className={`content text-[15px] text-[#050505] dark:text-[#cecfd1] `}>
-                                {text}
+                                className={`content text-sm `}>
+                                 <ReactMarkdown>{text.replace(/\[\^\d+\^\]/g, '')}</ReactMarkdown>
                             </div>
                             {imageEdit&&<img src={imageEdit.url} />}
 

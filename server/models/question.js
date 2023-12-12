@@ -1,37 +1,21 @@
 import mongoose from "mongoose";
 
-const tradeSchema = new mongoose.Schema(
+const questionSchema = new mongoose.Schema(
   {
     text: {
       type: String,
       required: true,
     },
-    location: {
-      type: {
-        type: String,
-        enum: ['Point'], 
-      required: true
-      },
-      coordinates: {
-        type: [Number],
-        required: true
-
-      },
-    },
-    address: {
-      type: String,
-      required: true
-    },
-    condition: {
+    title: {
       type: String,
       required: true,
-      enum: ["New","Like new", "Good", "Worn", "Bad"]
+
     },
     book: {
-      type: mongoose.Types.ObjectId,
-      ref: "Book",
-      required: true
-    },
+        type: mongoose.Types.ObjectId,
+        ref: "Book",
+        required: true,
+      },
     postedBy: {
       type: mongoose.Types.ObjectId,
       ref: "User",
@@ -69,6 +53,4 @@ const tradeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-tradeSchema.index({ location: "2dsphere" });
-
-export default mongoose.model("Trade", tradeSchema);
+export default mongoose.model("Question", questionSchema);

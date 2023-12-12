@@ -1,8 +1,8 @@
 import Message from "../models/message.js";
 import cloudinary from "cloudinary";
-import OpenAI from "openai";
+// import OpenAI from "openai";
 import { BingChat } from "bing-chat-rnz";
-import { BingAIClient } from "@waylaidwanderer/chatgpt-api";
+// import { BingAIClient } from "@waylaidwanderer/chatgpt-api";
 import mongoose from "mongoose";
 
 cloudinary.v2.config({
@@ -13,31 +13,9 @@ cloudinary.v2.config({
 
 const api = new BingChat({
   cookie:
-    "1eFnAvj4fvs__ZI9YW0QJPW1gzqFCTdE23gFkJIrq_zJ-hoWnrEDO2YS3CCc9duy65mkMWkNrBl9uipgbRYUEjL_N6GaYbojlRlLwHrrW_o3RVAa3en8Dk82x0zUw4VBAb-Uuuoa7jNMis4sKCPl4uXzLV1PefdbsPWKzAsvtw70moZT8AdgD9s90GBrDfNjAhbw154Wo35awYZiUA0KIuFxrhteaaPy4MQCA-y1f4p0",
+    "1WuqLKrFr0QR_kEOqCT6qMy_4VBUK_RWZxOfeXFzNaBLZy6qn4PCvtw1xQnyEkyVFtDRwafbowdR6rtzMbs__YbnHJuQxgmm6NOhlnaUrUc4elZODqv1cjQNpGHH7bBNDZeBpDF17PfdtUAKFQfivNmn2Vg2IC_BiIEDPSpWMkTE9q77BL_1HW_jLmyofo3CkJIxNRXXSXo3uPDjfqy7YCjiT3vDJlpjeST9i5nEUyEk",
 });
 
-const options = {
-  // Necessary for some people in different countries, e.g. China (https://cn.bing.com)
-  host: "",
-  // "_U" cookie from bing.com
-  userToken:
-    "1AkkaaLB_M_qBQMtc_H29epe246gB2ODphdo_EOGkk-9yVN8K4Q_LVhdBEJQd9jnNifxuP935SXxhfillctXtAp4NzxUZieI46itpwf8rPW_FFx0p-ATpxnE__fm6guseAScO5vkM19XlDdbTuoZoTbFctKr_iBWpf4thw2TavSd-detfJgPyJZmBYiinm-uJza0yrilyETEftpPr0-nCfstT1lOSNiEYHCxU27YavDM",
-  // If the above doesn't work, provide all your cookies as a string instead
-  cookies: "",
-  // A proxy string like "http://<ip>:<port>"
-  proxy: "",
-  // (Optional) Set to true to enable `console.debug()` logging
-  debug: false,
-};
-
-let bingAIClient = new BingAIClient(options);
-
-const openai = new OpenAI({
-  apiKey: "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",
-  // process.env.API_TOKEN
-});
-
-// const openai = new OpenAIApi(config);
 
 const getAllMessages = async (req, res) => {
   try {
