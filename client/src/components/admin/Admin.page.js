@@ -3,7 +3,9 @@ import Users from "./components/table/Users.components";
 import Posts from "./components/table/Posts.components";
 // import AdminPost from "./components/AdminPost";
 import { useAppContext } from "../../context/useContext";
-
+import UserGrid from "./components/UserGrid";
+import PostGrid from "./components/PostGrid";
+import HeaderMenu from "../common/HeaderMenu";
 const Admin = () => {
   const { autoFetch, user, token, dark, setOneState } = useAppContext();
 
@@ -22,37 +24,41 @@ const Admin = () => {
     return `${yyyy}-${mm >= 10 ? mm : "0" + mm}-${dd >= 10 ? dd : "0" + dd}`;
   };
 
+  const [bigMenu,setBigMenu] = useState("Users")
+  const bigList = ["Users", "Posts", "Reviews","Trades", "Questions", "Special Posts"]
+
+  const userList = ["All", "Reported", "Blocked"]
+  const postList = ["All", "Reported"]
+  const [menu,setMenu] = useState("All")
+
+
   return (
-    <div className="w-screen mb-50 pt-[65px] ">
-      <div className="w-full h-full p-8 m-auto md:w-[80%]">
-        {/* quantity */}
-        <div className=" flex gap-x-5  h-[200px] py-5 justify-center ">
-          <div className="w-full h-full rounded-lg bg-sky-600 dark:bg-[#242526] flex flex-col items-center justify-center py-4 sm:py-0 ">
-            <div className="text-white text-[24px] font-bold ">Total users</div>
-            <div className="text-white text-[60px] leading-[60px] font-extrabold ">
-              {totalUser}
-            </div>
-          </div>
-          <div className="w-full h-full rounded-lg bg-[#019267] dark:bg-[#242526] flex flex-col items-center justify-center py-4 sm:py-0 ">
-            <div className="text-white text-[24px] font-bold ">Total posts</div>
-            <div className="text-white text-[60px] leading-[60px] font-extrabold ">
-              {totalPost}
-            </div>
-          </div>
-        </div>
-        {/* <div className="m-auto md:w-[65%]">
-          <AdminPost
-            autoFetch={autoFetch}
-            dark={dark}
-            setOneState={setOneState}
-            token={token}
-            user={user}
-          />
-        </div> */}
-        <div className=" ">
-          <Users convertDate={convertDate} countUsers={setTotalUser} />
-          <Posts convertDate={convertDate} countPosts={setTotalPost} />
-        </div>
+    <div className="w-screen min-h-screen bg-mainbg">
+      <div className="w-full p-8 m-auto md:w-[80%]">
+        
+         <div className="flex mx-0 sm:mx-10 mt-10 mb-10">
+           <ul className="flex items-center justify-between w-full px-16 py-1 gap-x-10 ">
+             {bigList.map((v) => (
+               <li
+                 key={v + "button"}
+                 className={`li-profile ${bigMenu === v && "active"} `}
+                 onClick={() => {
+                   setBigMenu(v);
+                   setMenu("All")
+                   // navigate(`/profile/${user._id}`);
+                 }}
+               >
+                 {v}
+               </li>
+             ))}
+           </ul>
+         </div>
+        {bigMenu==="Users" && <HeaderMenu list={userList} menu={menu} handler={setMenu}/>}
+        {bigMenu!=="Users" && <HeaderMenu list={postList} menu={menu} handler={setMenu}/>}
+
+{bigMenu==="Users" && <UserGrid option={menu}/>}
+{bigMenu!=="Users" && <PostGrid option={menu} menu={bigMenu}/>}
+
       </div>
     </div>
   );

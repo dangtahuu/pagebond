@@ -19,7 +19,12 @@ import {
     deleteUserWithAdmin,
     listUserFollower,
     findPeopleWithMostInteraction,
-    getPopularUsers
+    getPopularUsers,
+    reportUser,
+  unblockUser,
+  blockUser,
+  allReported,
+  allBlocked,
 } from "./../controllers/auth.js";
 
 const router = express.Router();
@@ -35,6 +40,14 @@ router.route("/forgot-password").post(ForgotPassword);
 // user
 router.route("/current-user").get(requireSignIn, currentUser);
 router.route("/update-user").patch(requireSignIn, updateUser);
+
+router.route("/report").patch(requireSignIn, reportUser);
+router.route("/block").patch(requireSignIn, isAdmin, blockUser);
+router.route("/unblock").patch(requireSignIn, isAdmin, unblockUser);
+
+
+
+
 
 //admin
 router.route("/current-admin").get(requireSignIn, isAdmin, currentUser);
@@ -57,7 +70,10 @@ router.route("/search-user").get(
 
 router.route("/user-follow").put(requireSignIn, addFollower, userFollower);
 
-router.route("/all-users").get(requireSignIn, isAdmin, allUsers);
+router.route("/all").get(requireSignIn, isAdmin, allUsers);
+router.route("/all-reported").get(requireSignIn, isAdmin, allReported);
+router.route("/all-blocked").get(requireSignIn, isAdmin, allBlocked);
+
 
 router.route("/:id").get(requireSignIn, getInformationUser);
 

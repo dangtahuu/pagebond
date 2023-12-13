@@ -65,6 +65,10 @@ const tradeSchema = new mongoose.Schema(
         },
       },
     ],
+    reported: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

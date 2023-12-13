@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import {
-  // Modal,
   Post,
-  LoadingPost,
-  LoadingForm,
   FormCreatePost,
   PostForm,
 } from "../..";
@@ -15,43 +12,41 @@ import ReactLoading from "react-loading";
 import HeaderMenu from "../../common/HeaderMenu";
 
 const Main = ({ token, autoFetch, setOneState, user }) => {
+  const [menu, setMenu] = useState("Following");
+  const list = ["Following", "Discover"];
+
+  const [postOpen, setPostOpen] = useState(false);
+  const [specialPostOpen, setSpecialPostOpen] = useState(false);
+
   const [attachment, setAttachment] = useState("");
   const [specialAttachment, setSpecialAttachment] = useState("");
-
-  // const [text, setText] = useState("");
-  // const [title, setTitle] = useState("");
-
   const [input, setInput] = useState({
     text: "",
     title: "",
     image: "",
   });
-
   const [specialInput, setSpecialInput] = useState({
     text: "",
     title: "",
     image: "",
   });
 
-  const [page, setPage] = useState(1);
+  const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
 
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  const [page, setPage] = useState(0);
+
+  const [loading, setLoading] = useState(true);
+
+  const [activePosts, setActivePosts] = useState([]);
+  const [reservedPosts, setReservedPosts] = useState([]);
+  
+  const [moreData, setmoreData] = useState(true);
+
   const [morePosts, setMorePosts] = useState(true);
   const [moreReviews, setMoreReviews] = useState(true);
   const [moreTrades, setMoreTrades] = useState(true);
   const [moreSpecialPosts, setMoreSpecialPosts] = useState(true);
-
-  const [activePosts, setActivePosts] = useState([]);
-  const [reservedPosts, setReservedPosts] = useState([]);
-  const [moreData, setmoreData] = useState(true);
-
-  const [postOpen, setPostOpen] = useState(false);
-  const [specialPostOpen, setSpecialPostOpen] = useState(false);
-
-  const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
-  const [menu, setMenu] = useState("Following");
-  const list = ["Following", "Discover"];
 
   const [popularReviews, setPopularReviews] = useState([]);
   const [popularPosts, setPopularPosts] = useState([]);
@@ -63,7 +58,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
-        // console.log(position.coords.latitude);
         if (position.coords.latitude) {
           setLocation({
             lat: position.coords.latitude,
@@ -74,22 +68,17 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
   }, []);
 
-  // get posts
   useEffect(() => {
     getFirstData();
     getDiscover();
-    // console.log('i fire once');
   }, []);
 
   useEffect(() => {
     if (location) getNearby();
-
-    // console.log('i fire once');
   }, [location]);
 
   const createNewPost = async (formData) => {
     setLoadingCreateNewPost(true);
-
     try {
       let image = null;
       if (formData) {
@@ -106,12 +95,14 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         title: input.title,
       });
       setActivePosts((prev) => [data.post, ...prev]);
-      toast.success(data?.msg || "Create new post successfully!");
+      toast.success("Create new post successfully!");
     } catch (error) {
       console.log(error);
-      // toast.error(error.response.data.msg || "Something went wrong");
+      toast.error(error.response.data.msg || "Something went wrong");
+    } finally {
+      setLoadingCreateNewPost(false);
     }
-    setLoadingCreateNewPost(false);
+    
   };
 
   const createNewSpecialPost = async (formData) => {
@@ -143,37 +134,41 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
-    }
+    } finally{
     setLoadingCreateNewPost(false);
+    }
   };
 
   const getFirstData = async () => {
-    console.log("aaaaa");
     try {
       const [posts, reviews, trades, special] = await Promise.all([
-        getFirstPosts(),
-        getFirstReviews(),
-        getFirstTrades(),
-        getFirstSpecial(),
+        getPosts(),
+        getReviews(),
+        getTrades(),
+        getSpecial(),
       ]);
       let data = [...posts, ...reviews, ...trades, ...special];
       data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       let firstData = data.splice(0, 10);
       setActivePosts(firstData);
       setReservedPosts(data);
+      setPage((prev) => prev++);
       if (!data.length) setmoreData(false);
     } catch (e) {
       console.log(e);
+    } 
+    finally {
+      setLoading(false)
     }
   };
 
-  const getNewData = async () => {
+  const getMoreData = async () => {
     try {
       const [posts, reviews, trades, special] = await Promise.all([
-        getNewPosts(),
-        getNewReviews(),
-        getNewTrades(),
-        getNewSpecial(),
+        getPosts(),
+        getReviews(),
+        getTrades(),
+        getSpecial(),
       ]);
       let data = [
         ...reservedPosts,
@@ -193,79 +188,37 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
   };
 
-  const getFirstPosts = async () => {
-    const { data } = await autoFetch.get(`/api/post/following?page=1`);
-    if (data.posts.length < 10) setMorePosts(false);
-    if (data.posts.length === 0) return [];
-    return data.posts;
-  };
-
-  const getNewPosts = async () => {
+  const getPosts = async () => {
     if (!morePosts) return [];
-    const { data } = await autoFetch.get(
-      `/api/post/following?page=${page + 1}`
-    );
-    console.log(data.posts);
+    const { data } = await autoFetch.get(`/api/post/following?page=${page + 1}`);
     if (data.posts.length < 10) setMorePosts(false);
     if (data.posts.length === 0) return [];
-
     return data.posts;
   };
 
-  const getFirstReviews = async () => {
-    const { data } = await autoFetch.get(`/api/review/following?page=1`);
-    if (data.posts.length < 10) setMoreReviews(false);
-    if (data.posts.length === 0) return [];
-
-    return data.posts;
-  };
-
-  const getNewReviews = async () => {
+  const getReviews = async () => {
     if (!moreReviews) return [];
-    const { data } = await autoFetch.get(
-      `/api/review/following?page=${page + 1}`
-    );
+    const { data } = await autoFetch.get(`/api/review/following?page=${page + 1}`);
     if (data.posts.length < 10) setMoreReviews(false);
     if (data.posts.length === 0) return [];
 
     return data.posts;
   };
 
-  const getFirstTrades = async () => {
-    const { data } = await autoFetch.get(`/api/trade/following?page=1`);
-    if (data.posts.length < 10) setMoreTrades(false);
-    if (data.posts.length === 0) return [];
-
-    return data.posts;
-  };
-
-  const getNewTrades = async () => {
+  const getTrades = async () => {
     if (!moreTrades) return [];
-    const { data } = await autoFetch.get(
-      `/api/trade/following?page=${page + 1}`
-    );
+    const { data } = await autoFetch.get(`/api/trade/following?page=${page + 1}`);
     if (data.posts.length < 10) setMoreTrades(false);
     if (data.posts.length === 0) return [];
 
     return data.posts;
   };
 
-  const getFirstSpecial = async () => {
-    const { data } = await autoFetch.get(`/api/special/following?page=1`);
-    if (data.posts.length < 10) setMoreSpecialPosts(false);
-    if (data.posts.length === 0) return [];
-
-    return data.posts;
-  };
-
-  const getNewSpecial = async () => {
+  const getSpecial = async () => {
     if (!moreSpecialPosts) return [];
-    const { data } = await autoFetch.get(
-      `/api/special/following?page=${page + 1}`
-    );
+    const { data } = await autoFetch.get(`/api/special/following?page=${page + 1}`);
     if (data.posts.length < 10) setMoreSpecialPosts(false);
     if (data.posts.length === 0) return [];
-
     return data.posts;
   };
 
@@ -335,21 +288,13 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
   };
 
-  const content1 = () => {
+  const Following = () => {
     if (loading) {
       return (
-        <div>
-          <LoadingPost />
-        </div>
+        <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
       );
     }
-    if (error) {
-      return (
-        <div className={`w-full text-center text-xl font-bold py-10 `}>
-          <div>No post found... Try again!</div>
-        </div>
-      );
-    }
+
     if (activePosts.length === 0) {
       return (
         <div className="w-full text-center text-xl font-bold pt-[20vh] ">
@@ -360,7 +305,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     return (
       <InfiniteScroll
         dataLength={activePosts.length}
-        next={getNewData}
+        next={getMoreData}
         hasMore={moreData}
       >
         {activePosts.map((post) => (
@@ -376,21 +321,14 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     );
   };
 
-  const content2 = () => {
-    // if (loading) {
-    //   return (
-    //     <div>
-    //       <LoadingPost />
-    //     </div>
-    //   );
-    // }
-    // if (error) {
-    //   return (
-    //     <div className={`w-full text-center text-xl font-bold py-10 `}>
-    //       <div>No post found... Try again!</div>
-    //     </div>
-    //   );
-    // }
+  const Discover = () => {
+
+    if (loading) {
+      return (
+        <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+      );
+    }
+
     // if (activePosts.length === 0) {
     //   return (
     //     <div className="w-full text-center text-xl font-bold pt-[20vh] ">
@@ -400,7 +338,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     // }
     return (
       <div>
-        <div>popular reviews</div>
+        <div>Popular reviews</div>
         {popularReviews.map((post) => (
           <Post
             key={post._id}
@@ -410,7 +348,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
             userRole={user.role}
           />
         ))}
-        <div>popular posts</div>
+        <div>Popular posts</div>
         {popularPosts.map((post) => (
           <Post
             key={post._id}
@@ -420,7 +358,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
             userRole={user.role}
           />
         ))}
-        <div>near trades</div>
+        <div>Nearby trades</div>
         {nearTrades.map((post) => (
           <Post
             key={post._id}
@@ -430,7 +368,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
             userRole={user.role}
           />
         ))}
-        <div>suggested posts</div>
+        <div>Suggested posts</div>
         {suggestedPosts.map((post) => (
           <Post
             key={post._id}
@@ -486,8 +424,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         </div>
       )}
 
-      {menu === "Following" && content1()}
-      {menu === "Discover" && content2()}
+      {menu === "Following" && <Following/>}
+      {menu === "Discover" && <Discover/>}
     </div>
   );
 };

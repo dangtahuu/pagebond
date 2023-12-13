@@ -2,7 +2,8 @@ import express from "express";
 
 import {
     createPost,
-    allPosts,
+    getAll,
+    getAllReported,
     uploadImage,
     editPost,
     getPost,
@@ -16,7 +17,9 @@ import {
     getPostsWithUserId,
     getDetailPost,
     getDiscover,
-    getPopular
+    getPopular,
+    report,
+    dismissReport
 
 } from "../controllers/post.js";
 import formidable from "express-formidable";
@@ -30,7 +33,9 @@ router.route("/").get(async (req, res) => {
 });
 
 router.route("/create-post").post(createPost);
-router.route("/all-posts").get(isAdmin, allPosts);
+router.route("/all").get(isAdmin, getAll);
+router.route("/all-reported").get(isAdmin, getAllReported);
+
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 
 router.route("/following").get(getFollowing);
@@ -60,11 +65,16 @@ router.route("/remove-comment").put(removeComment);
 router.route("/total-posts").get(totalPosts);
 
 //admin
-// router.route("/admin/delete-post/:id").delete(isAdmin, deletePost);
+router.route("/admin/delete/:id").delete(isAdmin, deletePost);
 
 // get post with userID 
 router.route("/getPostWithUser/:userId").get(getPostsWithUserId);
 router.route("/information/:postId").get(getDetailPost);
+
+router.route("/report").patch(report);
+router.route("/unreport").patch(isAdmin,dismissReport);
+
+
 
 router
     .route("/:id")

@@ -502,7 +502,9 @@ const Message = () => {
   };
 
   if (scrLoading) {
-    return <LoadingMessenger />;
+    return     <div className="w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden">
+        <div className="w-full h-full flex items-center justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+</div>
   }
 
   return (

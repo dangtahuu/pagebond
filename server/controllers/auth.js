@@ -558,13 +558,41 @@ const getInformationUser = async (req, res) => {
 
 const allUsers = async (req, res) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 10;
     const users = await User.find({})
       .select("-password -secret")
-      .skip((page - 1) * perPage)
       .sort({ createdAt: -1 })
-      .limit(perPage);
+    if (!users) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+    const numberUsers = await User.find({}).estimatedDocumentCount();
+    return res.status(200).json({ users, numberUsers });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
+const allReported = async (req, res) => {
+  try {
+    const users = await User.find({blocked: "Reported"})
+      .select("-password -secret")
+      .sort({ createdAt: -1 })
+    if (!users) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+    const numberUsers = await User.find({}).estimatedDocumentCount();
+    return res.status(200).json({ users, numberUsers });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
+const allBlocked = async (req, res) => {
+  try {
+    const users = await User.find({blocked: "Blocked"})
+      .select("-password -secret")
+      .sort({ createdAt: -1 })
     if (!users) {
       return res.status(400).json({ msg: "No user found!" });
     }
@@ -641,6 +669,57 @@ const getPopularUsers = async (req, res) => {
   }
 };
 
+const reportUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.body.userId, {
+      blocked: "Reported"
+    });
+
+    if (!user) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+    return res.status(200).json({ user });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
+const blockUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.body.userId, {
+      blocked: "Blocked"
+    });
+
+    if (!user) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+    return res.status(200).json({ user });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
+const unblockUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.body.userId, {
+      blocked: "Clean"
+    });
+
+    if (!user) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+    return res.status(200).json({ user });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
 export {
   register,
   login,
@@ -660,4 +739,9 @@ export {
   listUserFollower,
   findPeopleWithMostInteraction,
   getPopularUsers,
+  reportUser,
+  unblockUser,
+  allReported,
+  allBlocked,
+  blockUser,
 };

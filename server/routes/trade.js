@@ -16,6 +16,9 @@ import {
   getNearby,
   getFollowing,
   getDiscover,
+  report,
+  dismissReport,
+  getAllReported
 } from "../controllers/trade.js";
 import formidable from "express-formidable";
 import { canUpdateOrDeleteTrade } from "../middleware/canUpdateOrDelete.js";
@@ -29,6 +32,8 @@ router.route("/").get(async (req, res) => {
 
 router.route("/create").post(create);
 router.route("/all").get(isAdmin, getAll);
+router.route("/all-reported").get(isAdmin, getAllReported);
+
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 
 router.route("/following").get(getFollowing);
@@ -58,9 +63,12 @@ router.route("/remove-comment").put(removeComment);
 
 //admin
 // router.route("/admin/delete-post/:id").delete(isAdmin, deletePost);
-
+router.route("/report").patch(report);
+router.route("/unreport").patch(isAdmin,dismissReport);
 // get post with userID
 router.route("/withUser/:userId").get(getWithUser);
+
+router.route("/admin/delete/:id").delete(isAdmin, deleteOne);
 
 router
   .route("/:id")

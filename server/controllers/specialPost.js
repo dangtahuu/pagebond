@@ -51,17 +51,13 @@ const create = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 10;
     const posts = await SpecialPost.find({})
       .populate("postedBy", "-password -secret")
-      .limit(perPage)
-      .skip((page - 1) * perPage)
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
     }
-    const postsCount = await Post.find({}).estimatedDocumentCount();
+    const postsCount = await SpecialPost.find({}).estimatedDocumentCount();
     return res.status(200).json({ posts, postsCount });
   } catch (error) {
     console.log(error);
@@ -307,46 +303,24 @@ const getAdmin = async (req, res) => {
 
 const getOfficial = async (req, res) => {
   try {
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const days = new Date();
+    days.setDate(days.getDate() - 7);
 
-    // const query = {
-    //   type: 2,
-    //   createdAt: { $gte: threeDaysAgo }
-    // };
-    // const posts = await SpecialPost.find(query)
-    //   .populate("postedBy", "-password -secret")
-    //   .populate("comments.postedBy", "-password -secret")
-    //   .populate("book")
-    // const posts = await SpecialPost.aggregate([
-    //   {
-    //     $match: {
-    //       type: 2,
-    //       createdAt: { $gte: threeDaysAgo }
-    //     }
-    //   },
-    //   { $sample: { size: 3 } }
-    // ])
-    //   .populate("postedBy", "-password -secret")
-    //   .populate("comments.postedBy", "-password -secret")
-    //   .populate("book");
     const randomPostIds = await SpecialPost.aggregate([
       {
         $match: {
           type: 2,
-          createdAt: { $gte: threeDaysAgo }
+          createdAt: { $gte: days }
         }
       },
       { $sample: { size: 3 } },
-      { $project: { _id: 1 } } // Project only the _id field for the next step
     ]);
     
     const postIds = randomPostIds.map(post => post._id);
     
     const posts = await SpecialPost.find({ _id: { $in: postIds } })
       .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret")
-      .populate("book");
+      
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);
@@ -469,6 +443,62 @@ const getPopular = async (req, res) => {
   }
 };
 
+const report = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await SpecialPost.findByIdAndUpdate(
+      postId,
+      {
+       reported: true
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const dismissReport = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await SpecialPost.findByIdAndUpdate(
+      postId,
+      {
+       reported: false
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getAllReported = async (req, res) => {
+  try {
+    const posts = await SpecialPost.find({reported: true})
+      .populate("postedBy", "-password -secret")
+      .sort({ createdAt: -1 });
+    if (!posts) {
+      return res.status(400).json({ msg: "No posts found!" });
+    }
+    const postsCount = await SpecialPost.find({}).estimatedDocumentCount();
+    return res.status(200).json({ posts, postsCount });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   create,
   getAll,
@@ -484,5 +514,8 @@ export {
   getAllWithBook,
   getMy,
   getAdmin,
-  getOfficial
+  getOfficial,
+  report,
+  dismissReport,
+  getAllReported
 };

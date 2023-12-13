@@ -203,6 +203,18 @@ const Post = ({
     }
   };
 
+  const reportPost = async (postId) => {
+    try {
+      const { data } = await autoFetch.patch(`api/${type}/report`,{
+        postId
+      });
+      toast("Report succesfully! An admin will look into your request");
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.msg || "Something went wrong");
+    }
+  };
+
   //update post
   const updatePost = async () => {
     setLoadingEdit(true);
@@ -442,9 +454,9 @@ const Post = ({
           </div>
         </div>
         {/* Edit or delete posts */}
-        {(userId === post.postedBy._id || userRole === 1) && (
+        
           <div
-            className="ml-auto text-[25px] transition-50 cursor-pointer font-bold w-[35px] h-[35px] rounded-full hover:bg-[#F2F2F2] dark:hover:bg-[#3A3B3C] flex flex-row items-center justify-center group relative "
+            className="ml-auto text-[25px] transition-50 cursor-pointer font-bold w-[35px] h-[35px] rounded-full hover:bg-dialogue flex flex-row items-center justify-center group relative "
             onClick={() => {
               setShowOption(!showOption);
             }}
@@ -458,8 +470,9 @@ const Post = ({
                 setShowOption(false);
               }}
             >
-              <li
-                className="px-3 py-1 bg-[#F0F2F5] border-[#3A3B3C]/40 text-[#333]/60 hover:border-[#3A3B3C]/60 hover:text-[#333]/80 dark:bg-[#3A3B3C] rounded-md border dark:text-[#e4e6eb]/60 transition-50 dark:hover:text-[#e4e6eb] dark:border-[#3A3B3C] dark:hover:border-[#e4e6eb]/60 "
+              {(userId === post.postedBy._id)&& <>
+                <li
+                className="px-3 py-1 bg-navBar rounded-md"
                 onClick={() => {
                   setOpenModal(true);
                 }}
@@ -467,7 +480,7 @@ const Post = ({
                 Edit
               </li>
               <li
-                className="mt-1 px-3 py-1 bg-[#F0F2F5] border-[#3A3B3C]/40 text-[#333]/60 hover:border-[#3A3B3C]/60 hover:text-[#333]/80 dark:bg-[#3A3B3C] rounded-md border dark:text-[#e4e6eb]/60 transition-50 dark:hover:text-[#e4e6eb] dark:border-[#3A3B3C] dark:hover:border-[#e4e6eb]/60"
+                className="mt-1 px-3 py-1 bg-navBar rounded-md"
                 onClick={() => {
                   if (window.confirm("Do you want to delete this post?")) {
                     deletePost(post._id);
@@ -475,10 +488,23 @@ const Post = ({
                 }}
               >
                 Delete
-              </li>
+              </li></>}
+            
+                {(userId !== post.postedBy._id && post.postedBy.type !== 1) && <li
+                className="mt-1 px-3 py-1 bg-navBar rounded-md"
+                onClick={() => {
+                  if (window.confirm("Do you want to report this post?")) {
+                    reportPost(post._id);
+                  }
+                }}
+              >
+                Report
+              </li>}
+             
             </ul>
           </div>
-        )}
+        
+
       </div>
 
       {post.address && (

@@ -7,6 +7,11 @@ const shelfSchema = new mongoose.Schema(
             required: true
         },
         books: [{type: mongoose.Types.ObjectId, ref: "Book"}],
+        type: {
+            type:Number,
+            enum:[1,2],
+            default: 2
+        },
         owner: {
             type: mongoose.Types.ObjectId, ref: "User", required: true
         },

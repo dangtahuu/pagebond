@@ -52,6 +52,10 @@ const specialPostSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "Book",
     },
+    reported: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

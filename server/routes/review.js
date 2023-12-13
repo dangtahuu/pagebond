@@ -16,7 +16,10 @@ import{
   getFollowing,
   getDiscover,
   getPopular,
-  getDiary
+  getDiary,
+  report,
+  dismissReport,
+  getAllReported
 } from "../controllers/review.js";
 import formidable from "express-formidable";
 import {canUpdateOrDeleteReview} from "../middleware/canUpdateOrDelete.js";
@@ -30,6 +33,8 @@ router.route("/").get(async (req, res) => {
 
 router.route("/create").post(create);
 router.route("/all").get(isAdmin, getAll);
+router.route("/all-reported").get(isAdmin, getAllReported);
+
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 
 router.route("/following").get(getFollowing);
@@ -65,7 +70,9 @@ router.route("/remove-comment").put(removeComment);
 router.route("/user/:userId").get(getWithUser);
 router.route("/diary/:userId").get(getDiary);
 
-
+router.route("/report").patch(report);
+router.route("/unreport").patch(isAdmin,dismissReport);
+router.route("/admin/delete/:id").delete(isAdmin, deleteOne);
 router
   .route("/:id")
   .get(getOne)

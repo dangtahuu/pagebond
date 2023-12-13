@@ -152,7 +152,7 @@ const createShelf = async (req, res) => {
   };
 
   const massAdd = async (req, res) => {
-    const listShelf = ["read",
+    const listShelf = [
       "to read",
       "challenging",
       "dark",
@@ -162,6 +162,7 @@ const createShelf = async (req, res) => {
       "lighthearted",
       "sad",
       "mind-boggling",
+      "informative",
       "adventurous",
       "introspective",
       "charming",

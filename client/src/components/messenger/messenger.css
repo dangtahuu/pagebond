@@ -159,12 +159,12 @@
     background-color: #252f3c;
 }
 
-.Ko-nghi-ra-ten {
+.dialogue-wrapper {
     width: 100%;
     height: 100%;
     z-index: 2;
 }
-.col-left.active .Ko-nghi-ra-ten {
+.col-left.active .dialogue-wrapper {
     color: white;
 }
 .last-mess {

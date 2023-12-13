@@ -54,17 +54,13 @@ const create = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 10;
     const posts = await Trade.find({})
       .populate("postedBy", "-password -secret")
-      .limit(perPage)
-      .skip((page - 1) * perPage)
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No trade posts found!" });
     }
-    const postsCount = await Post.find({}).estimatedDocumentCount();
+    const postsCount = await Trade.find({}).estimatedDocumentCount();
     return res.status(200).json({ posts, postsCount });
   } catch (error) {
     console.log(error);
@@ -498,7 +494,61 @@ const getDiscover = async (req, res) => {
   }
 };
 
+const report = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await Trade.findByIdAndUpdate(
+      postId,
+      {
+       reported: true
+      },
+      {
+        new: true,
+      }
+    );
 
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const dismissReport = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await Trade.findByIdAndUpdate(
+      postId,
+      {
+       reported: false
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getAllReported = async (req, res) => {
+  try {
+    const posts = await Trade.find({reported: true})
+      .populate("postedBy", "-password -secret")
+      .sort({ createdAt: -1 });
+    if (!posts) {
+      return res.status(400).json({ msg: "No posts found!" });
+    }
+    const postsCount = await Trade.find({}).estimatedDocumentCount();
+    return res.status(200).json({ posts, postsCount });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
 
 export {
   create,
@@ -515,5 +565,8 @@ export {
   getWithUser,
   getNearby,
   getFollowing,
-  getDiscover
+  getDiscover,
+  report,
+  dismissReport,
+  getAllReported
 };

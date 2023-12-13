@@ -14,6 +14,12 @@ import { FaSearch } from "react-icons/fa";
 import { RiSearchFill } from "react-icons/ri";
 import { RiFileSearchFill } from "react-icons/ri";
 
+import { BiMessageDetail } from "react-icons/bi";
+import { BiHomeAlt2 } from "react-icons/bi";
+import { BiSearch } from "react-icons/bi";
+import { BiBookContent } from "react-icons/bi";
+import { BiFace } from "react-icons/bi";
+
 import {
   AiOutlineHome,
   AiOutlineSearch,
@@ -139,19 +145,24 @@ const Nav = () => {
     const list = [
       {
         link: "/",
-        icon: <AiOutlineHome />,
+        icon: <BiHomeAlt2 />,
         className: "dashboard",
       },
       {
         link: "/browse",
         alternative: "/search",
-        icon: <AiOutlineSearch />,
+        icon: <BiSearch />,
         className: "search",
       },
       {
         link: "/messenger",
-        icon: <AiOutlineMessage />,
+        icon: <BiMessageDetail />,
         className: "messenger",
+      },
+      {
+        link: `/profile/${user._id}`,
+        icon: <BiFace />        ,
+        className: "profile",
       },
 
       // {
@@ -163,7 +174,7 @@ const Nav = () => {
     if (user.role === 1) {
       list.push({
         link: "/admin",
-        icon: <AiOutlineDashboard />,
+        icon: <BiBookContent />,
         className: "admin",
       });
     }
@@ -187,7 +198,7 @@ const Nav = () => {
           <div className="relative">
             {v.icon}
             {v.className === "messenger" && (
-              <div className="bg-greenBtn -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">
+              <div className="bg-greenBtn !text-mainText -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">
                 {unreadMessages}
               </div>
             )}

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 // icon
 import { FiEdit2 } from "react-icons/fi";
-import { GoPrimitiveDot } from "react-icons/go";
+// import { GoPrimitiveDot } from "react-icons/go";
 import { TiTick } from "react-icons/ti";
 
 const Header = ({
@@ -116,23 +116,16 @@ const Header = ({
         >
           Follow
         </button>
-          <Link
-            to={{
-              pathname: "/messenger",
-              search: `?data=${encodeURIComponent(JSON.stringify(user))}`,
-            }}
-          >
             <button
           className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
 
               onClick={() => {
-                navigate(`/messenger/${user._id}`);
+                navigate(`/messenger/?data=${encodeURIComponent(JSON.stringify(user))}`);
               }}
             >
              
               Message
             </button>
-          </Link>
     
       </div>
     );
@@ -173,7 +166,7 @@ const Header = ({
               <span className="cursor-pointer flex-shrink-0 ">
                 {user.following.length} following
               </span>
-              <GoPrimitiveDot />
+              {/* <GoPrimitiveDot /> */}
               <span className="cursor-pointer flex-shrink-0 ">
                 {user.follower.length} follower
               </span>

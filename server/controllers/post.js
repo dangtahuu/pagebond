@@ -50,14 +50,26 @@ const createPost = async (req, res) => {
   }
 };
 
-const allPosts = async (req, res) => {
+const getAll = async (req, res) => {
   try {
-    const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 10;
     const posts = await Post.find({})
       .populate("postedBy", "-password -secret")
-      .limit(perPage)
-      .skip((page - 1) * perPage)
+      .sort({ createdAt: -1 });
+    if (!posts) {
+      return res.status(400).json({ msg: "No posts found!" });
+    }
+    const postsCount = await Post.find({}).estimatedDocumentCount();
+    return res.status(200).json({ posts, postsCount });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getAllReported = async (req, res) => {
+  try {
+    const posts = await Post.find({reported: true})
+      .populate("postedBy", "-password -secret")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
@@ -161,6 +173,7 @@ const editPost = async (req, res) => {
 const deletePost = async (req, res) => {
   try {
     const postId = req.params.id;
+    console.log('00000000')
     const post = await Post.findByIdAndDelete(postId);
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
@@ -512,9 +525,50 @@ const getPopular = async (req, res) => {
   }
 };
 
+const report = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+       reported: true
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const dismissReport = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+       reported: false
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   createPost,
-  allPosts,
+  getAll,
+  getAllReported,
   uploadImage,
   editPost,
   getPost,
@@ -528,5 +582,7 @@ export {
   getPostsWithUserId,
   getDetailPost,
   getDiscover,
-  getPopular
+  getPopular,
+  report,
+  dismissReport
 };

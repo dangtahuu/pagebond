@@ -1,118 +1,79 @@
-import { LoadingSuggestion } from "../..";
-
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ReactLoading from "react-loading";
 
-const News = ({
-  autoFetch,
-  token,
-  error,
-  name="",
-  url=""
-}) => {
-  
-
-  const [adminLoading, setAdminLoading] = useState(false);
-  const [listAdmin, setListAdmin] = useState([]);
+const News = ({ autoFetch, name = "", url = ""}) => {
+  const [loading, setLoading] = useState(true);
+  const [list, setList] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (token) {
-      getListAdmin();
-    }
+      getList();
   }, []);
 
-  const getListAdmin = async () => {
-    setAdminLoading(true);
+  const getList = async () => {
     try {
-      const { data } = await autoFetch.get(
-       url
-      );
-      setListAdmin(data.posts);
-      // console.log(data.posts);
+      const { data } = await autoFetch.get(url);
+      setList(data.posts);
     } catch (error) {
       console.log(error);
     }
-    setAdminLoading(false);
+    setLoading(false);
   };
 
-  const content = () => {
-    if (error) {
-      return (
-        <div className="w-full text-center text-xl font-semibold ">
-          <div>No posts found!</div>
-        </div>
-      );
-    }
-    if (adminLoading) {
-      return <LoadingSuggestion />;
-    }
+  const Content = () => {
+    if (loading) {
+      
+      return <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+    } else {
+      if (list.length) {
+        return (
+          <>
+            <div className="w-full">
+              {list.map((a) => {
+                return (
 
-    if (listAdmin.length) {
-      return (
-        <>
-          <div className="flex w-full serif-display text-lg items-center justify-between ">
-            {name}
-          
-          </div>
-          <div className="w-full">
-          {listAdmin.map((a) => {
-            return (
-              // @ts-ignore
-
-              <div
-                className="w-full bg-dialogue cursor-pointer rounded-lg mt-4"
-                key={a._id}
-                onClick={() => navigate(`/post/information/${a._id}`)}
-              >
-                <img
-                  className="rounded-t-lg max-h-32 w-full object-cover"
-                  src={a.image?.url}
-                  alt=""
-                />
-
-                <div className="p-2">
-                  <a href="#">
-                    <h5 className="mb-2 text-sm font-bold tracking-tight">
-                      {a.title}
-                    </h5>
-                  </a>
-               
-                  <a
-                    href="#"
-                    className="inline-flex items-center px-3 py-2 rounded-full text-xs font-medium text-center text-white bg-greenBtn "
+                  <div
+                    className="w-full bg-dialogue cursor-pointer rounded-lg mt-4"
+                    key={a._id}
+                    onClick={() => navigate(`/post/information/${a._id}`)}
                   >
-                    Read
-                    <svg
-                      aria-hidden="true"
-                      className="w-4 h-4 ml-2 -mr-1"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                        clip-rule="evenodd"
-                      ></path>
-                    </svg>
-                  </a>
-                </div>
-              </div>
-            );
-          })}
-          </div>
-          
-        </>
-      );
-    }
-    return <></>;
-  };
-  return (
-   <>
-      {content()}
+                    <img
+                      className="rounded-t-lg max-h-32 w-full object-cover"
+                      src={a.image?.url}
+                      alt=""
+                    />
 
-   </>
+                    <div className="p-2">
+                        <h5 className="mb-2 text-base serif-display">
+                          {a.title}
+                        </h5>
+                      {a.type===2 &&
+                        <h5 className="mb-2 text-sm">
+                          by <span className="font-semibold">{a.postedBy.name}</span>
+                        </h5>
+                      }
+                     
+                      <button className="primary-btn">Read</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        );
+      }
+    }
+    return <div>No posts available</div>;
+  };
+
+  return (
+    <>
+      <div className="flex w-full serif-display text-lg items-center justify-between mb-3">
+        {name}
+      </div>
+      <Content />
+    </>
   );
 };
 

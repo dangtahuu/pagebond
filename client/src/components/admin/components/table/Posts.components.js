@@ -5,6 +5,7 @@ import {Table} from "../../..";
 import {useAppContext} from "../../../../context/useContext";
 import ReactLoading from "react-loading";
 import {toast} from "react-toastify";
+import { AiOutlineDelete } from "react-icons/ai";
 
 const Posts = ({convertDate, countPosts}) => {
     const {autoFetch} = useAppContext();
@@ -88,11 +89,12 @@ const Posts = ({convertDate, countPosts}) => {
                 // @ts-ignore
                 name: v.postedBy?.name,
                 // @ts-ignore
-                content: v.content.slice(0,200),
+                content: v.text.slice(0,200),
                 // @ts-ignore
                 image: v.image?.url,
                 // @ts-ignore
-                likeCount: v.likes?.length,
+                likeCount:  <AiOutlineDelete
+                className='text-xl text-red-400 dark:text-red-800 '/>,
                 // @ts-ignore
                 commentCount: v.comments?.length,
                 // @ts-ignore

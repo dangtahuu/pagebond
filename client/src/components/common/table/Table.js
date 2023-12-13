@@ -45,14 +45,15 @@ export default function CustomizedTables({
             styled(TableCell)(({theme}) => {
                 return {
                     [`&.${tableCellClasses.head}`]: {
-                        backgroundColor: dark
-                            ? theme.palette.common.black
-                            : bgHeadColor || "#1565C0",
+                        backgroundColor: theme.palette.common.black,
+                            
                         color: theme.palette.common.white,
                         fontWeight: "bold",
                         padding: "10px 8px",
                     },
                     [`&.${tableCellClasses.body}`]: {
+                        backgroundColor: "#445566",
+                        color: "#ccd7ff",
                         padding: "5px 3px",
                         fontSize: 14,
                     },

@@ -133,11 +133,13 @@ function BookDetail() {
   };
 
   const getFirstReviews = async (sort="popularity",filter="All") => {
+    setMoreReviews(true)
     setReviewLoading(true);
     try {
       const { data } = await autoFetch.get(`/api/review/book/${id}?page=1&sort=${sort}&rating=${filter}`);
       if (data.posts) setReviews(data.posts);
       if (data.posts.length < 10) setMoreReviews(false);
+
     } catch (error) {
       console.log(error);
       setError(true);
@@ -146,7 +148,9 @@ function BookDetail() {
     }
   };
 
+
   const getNewExchange = async () => {
+
     setExchangeLoading(true);
     try {
       const { data } = await autoFetch.get(
@@ -164,6 +168,7 @@ function BookDetail() {
   };
 
   const getFirstExchange = async () => {
+    setMoreTrades(true)
     setExchangeLoading(true);
     try {
       const { data } = await autoFetch.get(`/api/trade/book/${id}?page=1`);
@@ -195,6 +200,7 @@ function BookDetail() {
   };
 
   const getFirstOfficial = async () => {
+    setMoreOfficial(true)
     setOfficialLoading(true);
     try {
       const { data } = await autoFetch.get(`/api/special/book/${id}?page=1`);
@@ -226,6 +232,8 @@ function BookDetail() {
   };
 
   const getFirstQuestion = async () => {
+    setMoreQuestion(true)
+
     setQuestionLoading(true);
     try {
       const { data } = await autoFetch.get(`/api/question/book/${id}?page=1`);
