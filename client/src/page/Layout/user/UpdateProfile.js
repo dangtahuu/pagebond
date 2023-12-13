@@ -141,9 +141,9 @@ const UpdateProfile = () => {
     };
 
     return (
-        <div className=' lg:h-screen h-auto pt-[70px] lg:grid lg:grid-cols-3 lg:px-[10%] px-[5%] overflow-x-hidden '>
+        <div className='min-h-screen bg-mainbg pt-[70px] lg:grid lg:grid-cols-3 lg:px-[10%] px-[5%] overflow-x-hidden '>
             <div className='col-span-1 flex flex-col items-center justify-center pb-10 '>
-                <label className='relative group w-40 h-40 cursor-pointer '>
+                <label className='relative group w-[120px] h-[120px] cursor-pointer '>
                     <img
                         // @ts-ignore
                         src={image?.url || user.image.url}
@@ -164,15 +164,13 @@ const UpdateProfile = () => {
                 <div className='mt-5 text-3xl font-bold text-center flex items-center gap-x-2 '>
                     {user.name}{" "}
                     {user.role === 1 && (
-                        <TiTick className='text-[22px] text-white rounded-full bg-blue-700 ' />
+                        <TiTick className='text-[22px] text-white rounded-full bg-greenBtn ' />
                     )}
                 </div>
-                {/* <span className='ml text-2xl font-normal mt-1 '>
-                    ({user.username})
-                </span> */}
+             
             </div>
-            <div className='col-span-2 my-[5%] lg:py-auto py-7 px-6 bg-gray-400/30 lg:rounded-3xl md:rounded-xl rounded-md'>
-                <div className='w-full text-center md:text-3xl text-2xl font-bold lg:my-8 md:my-5 my-4 crimson-600 '>
+            <div className='col-span-2 my-[5%] lg:py-auto py-7 px-6 bg-dialogue rounded-xl'>
+                <div className='w-full text-center md:text-3xl text-2xl font-bold lg:my-8 md:my-5 my-4 serif-display '>
                     Update profile
                 </div>
                 <form
@@ -191,7 +189,7 @@ const UpdateProfile = () => {
                             </div>
                             <input
                                 type={v.type}
-                                className={`input-login ${
+                                className={`input-register ${
                                     v.disabled ? "opacity-70" : ""
                                 } w-full `}
                                 placeholder={v.placeholder}
@@ -203,7 +201,7 @@ const UpdateProfile = () => {
                         </div>
                     ))}
                     <div className='col-span-2 flex justify-center items-center  '>
-                        <button className='w-32 h-10 flex items-center justify-center transition-50 font-bold text-xl rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 text-white '>
+                        <button className='w-32 h-10 text-xl primary-btn'>
                             {loading ? (
                                 <ReactLoading
                                     type='bubbles'

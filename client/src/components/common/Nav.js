@@ -27,24 +27,18 @@ import {
   AiOutlineDashboard,
 } from "react-icons/ai";
 import { IoIosNotificationsOutline } from "react-icons/io";
+import { BiBell } from "react-icons/bi";
 
 // components
 import { useAppContext } from "../../context/useContext.js";
 import { Dropdown } from "../";
 import io from "socket.io-client";
+import Notification from "./Notification.js";
 
 const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
   reconnection: true,
 });
 
-const notiText = {
-  1: "has followed you",
-  3: "has liked your post",
-  5: "has commented on your post",
-  7: "has sent you",
-  8: "has verified your account",
-  9: "has veried your post",
-};
 
 const getNotiText = (noti) => {
   switch (noti.type) {
@@ -197,7 +191,7 @@ const Nav = () => {
         >
           <div className="relative">
             {v.icon}
-            {v.className === "messenger" && (
+            {v.className === "messenger" && unreadMessages!==0 && (
               <div className="bg-greenBtn !text-mainText -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">
                 {unreadMessages}
               </div>
@@ -273,7 +267,7 @@ const Nav = () => {
       >
         <div className="flex items-center">
           <div className="relative mr-6">
-            <IoIosNotificationsOutline className="cursor-pointer text-xl"  onClick={()=>setNotiMenu(prev=>!prev)}/>
+            <BiBell  className="cursor-pointer text-xl"  onClick={()=>setNotiMenu(prev=>!prev)}/>
             <div className=" bg-greenBtn -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute"
           
             >
@@ -282,29 +276,9 @@ const Nav = () => {
             </div>
             {notiMenu && <div
                 // ref={filterRef}
-                className="absolute p-3 rounded-lg right-0 top-[47px] w-[400px] bg-dialogue"
+                className="absolute p-3 rounded-lg right-0 top-[47px] w-[400px]   bg-dialogue"
               >
-                <div className="text-sm font-bold mb-2">Notifications</div>
-                
-                {!notificationsLoading && notifications?.map((noti) => (
-                  <div className="text-sm flex justify-between items-center border-b-[1px] p-2 border-b-smallText" 
-                  // onClick={()=>handleClickNotification(noti)}
-                  >
-                    <div>
-                    <span className="font-semibold">{noti?.fromUser?.name}</span>{" "}
-                    {notiText[noti.type]}{" "}
-                    <span className="font-semibold">
-                      {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
-                        noti?.linkTo?.text}
-                    </span>
-                    <span className="font-semibold">
-                      {(noti.type === 7) &&
-                        noti?.points}
-                    </span>
-                    </div>
-                  {!noti.isRead && <div className="rounded-full bg-greenBtn w-[10px] h-[10px]"></div>}
-                  </div>
-                ))}
+                <Notification notificationsLoading={notificationsLoading} notifications={notifications}/>
               </div>}
           </div>
 

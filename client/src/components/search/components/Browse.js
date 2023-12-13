@@ -112,7 +112,7 @@ function Browse() {
           {popularUsers.map((person) => {
             return (
               <div
-                className="flex flex-col gap-y-2 bg-dialogue rounded-lg items-center p-3"
+                className="flex flex-col gap-y-2 bg-dialogue rounded-lg items-center p-3 cursor-pointer"
                 onClick={()=>{navigate(`/profile/${person._id}`)}}
                 key={person._id}
               >

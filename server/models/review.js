@@ -72,11 +72,6 @@ const reviewSchema = new mongoose.Schema(
         },
       },
     ],
-    popularity: {
-      type: Number,
-      required: true,
-      default:0,
-    },
     title: {
       type: String,
       required: true,

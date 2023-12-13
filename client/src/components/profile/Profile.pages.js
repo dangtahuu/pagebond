@@ -188,18 +188,7 @@ const Profile = () => {
 
         return (
             <div className='w-full sm:grid grid-cols-5 gap-x-4 '>
-                <div className='col-span-2 sticky top-20 self-start'>
-                    <Details
-                        user={user}
-                        own={own}
-                        images={images}
-                        navigate={navigate}
-                        autoFetch={autoFetch}
-                        dark={dark}
-                        profileLoading={loading}
-                        postLoading={postLoading}
-                    />
-                </div>
+                
                 <div className='col-span-3 '>
                     <Main
                         autoFetch={autoFetch}
@@ -213,12 +202,25 @@ const Profile = () => {
                         getDeletePostId={getDeletePostId}
                     />
                 </div>
+                <div className='col-span-2 sticky top-20 self-start'>
+                    <Details
+                        user={user}
+                        own={own}
+                        images={images}
+                        navigate={navigate}
+                        autoFetch={autoFetch}
+                        dark={dark}
+                        profileLoading={loading}
+                        postLoading={postLoading}
+                    />
+                </div>
             </div>
         );
     };
 
     return (
-        <div className='min-h-screen w-[99.5vw] bg-mainbg pb-7 '>
+        <div className='min-h-screen w-screen bg-mainbg pb-7 '>
+            <div className="flex justify-center w-full">
             {!loading ? (
                 <Header
                     user={user}
@@ -234,6 +236,8 @@ const Profile = () => {
             ) : (
                 <LoadingProfile />
             )}
+            </div>
+          
 
             <div className='mx-4 sm:mx-[5%] md:mx-[15%] mt-4 '>
                 {main()}

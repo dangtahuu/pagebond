@@ -139,7 +139,7 @@ export function People({
                         className='ml-auto font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md '
                         onClick={() => {
                             if (
-                                window.confirm("Do u want unfollow this user?")
+                                window.confirm("Do you want to unfollow this user?")
                             ) {
                                 handleUnFollow(p);
                             }

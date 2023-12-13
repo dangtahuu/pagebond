@@ -191,7 +191,6 @@ const Details = ({
     return (
         <div className='mb-4'>
             {/* Intro */}
-            {intro()}
             {/* image */}
             <div className='mt-4'>{photo()}</div>
         </div>
