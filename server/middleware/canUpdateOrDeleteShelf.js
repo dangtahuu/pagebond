@@ -10,7 +10,7 @@ const canUpdateOrDeleteShelf = async (req, res, next) => {
         if (!shelf) {
             return res.status(400).json({ msg: "No shelf found!" })
         }
-        if (userId !== shelf.shelfOf.toString()) {
+        if (userId !== shelf.owner.toString()) {
             return res.status(401).json({ msg: "Authentication invalid!" })
         }
         next();

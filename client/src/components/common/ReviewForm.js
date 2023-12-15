@@ -10,7 +10,6 @@ import Tooltip from "@mui/material/Tooltip";
 import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 
-const toolTipText = {};
 
 const ReviewForm = ({
   input = "",
@@ -28,6 +27,8 @@ const ReviewForm = ({
   const [image, setImage] = useState(imageEdit);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
+
+  const pacingList = ["Slow","Medium","Fast"]
 
   const handleImage = async (e) => {
     setLoading(true);
@@ -190,10 +191,35 @@ const ReviewForm = ({
           <div className="mt-3 grid grid-cols-3 ">
             <RatingBox criteria={"content"} />
             <RatingBox criteria={"development"} />
-            <RatingBox criteria={"pacing"} />
+            {/* <RatingBox criteria={"pacing"} /> */}
             <RatingBox criteria={"writing"} />
             <RatingBox criteria={"insights"} />
             <RatingBox criteria={"rating"} />
+          </div>
+
+          <label className="form-label" for="">
+            Pacing
+          </label>
+
+          <div className="grid grid-cols-3 text-xs mt-2">
+            {pacingList.map((each) => (
+              <div className="flex items-center">
+                <input
+                  className="radio-box"
+                  checked={input.pacing === each}
+                  type="radio"
+                  id={each}
+                  value={each}
+                  name="pacing"
+                  onChange={(e) =>
+                    setInput((prev) => ({ ...prev, pacing: e.target.value }))
+                  }
+                />
+                <label className="ml-2" for={each}>
+                  {each}
+                </label>
+              </div>
+            ))}
           </div>
 
           <label className="form-label" for="title">
@@ -208,6 +234,7 @@ const ReviewForm = ({
               setInput((prev) => ({ ...prev, title: e.target.value }));
             }}
           />
+
 
           <label className="form-label" for="text">
             Write your thoughts *

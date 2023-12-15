@@ -18,7 +18,9 @@ import {
   getOfficial,
   report,
   dismissReport,
-  getAllReported
+  getAllReported,
+  verify,
+  getAllPending
 } from "../controllers/specialPost.js";
 import formidable from "express-formidable";
 import { canUpdateOrDeleteSpecialPost } from "../middleware/canUpdateOrDelete.js";
@@ -34,6 +36,8 @@ router.route("/create").post(create);
 router.route("/all").get(isAdmin, getAll);
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 router.route("/all-reported").get(isAdmin, getAllReported);
+router.route("/all-pending").get(isAdmin, getAllPending);
+
 
 router.route("/following").get(getFollowing);
 // router.route("/get-nearby/:long/:lat/:item").get(getNearby);
@@ -67,6 +71,8 @@ router.route("/official").get(getOfficial);
 
 router.route("/report").patch(report);
 router.route("/unreport").patch(isAdmin,dismissReport);
+router.route("/verify").patch(isAdmin,verify);
+
 
 router.route("/admin/delete/:id").delete(isAdmin, deleteOne);
 

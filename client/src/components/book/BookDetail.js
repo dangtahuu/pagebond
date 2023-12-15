@@ -104,13 +104,13 @@ function BookDetail() {
         "https://d827xgdhgqbnd.cloudfront.net/wp-content/uploads/2016/04/09121712/book-cover-placeholder.png",
       previewLink: book.previewLink || "",
       genres: book.genres || [],
-      postsCount: data.postsCount || "",
-      ratingAvg: data.ratingAvg || "",
-      contentAvg: data.contentAvg || "",
-      developmentAvg: data.developmentAvg || "",
-      pacingAvg: data.pacingAvg || "",
-      writingAvg: data.writingAvg || "",
-      insightsAvg: data.insightsAvg || "",
+      postsCount: book.numberOfRating || "",
+      rating: book.rating || "",
+      content: book.content|| "",
+      developement: book.development || "",
+      pacing: book.pacing || "",
+      writing: book.writing || "",
+      insights: book.insights || "",
     });
   };
 
@@ -299,7 +299,7 @@ function BookDetail() {
       const { data } = await autoFetch.get(
         `/api/shelf/get-selected-shelves/${id}`
       );
-      setSelectedShelves(data.shelves);
+      setSelectedShelves(data.ids);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -506,7 +506,7 @@ function BookDetail() {
           />
           {/* <p className="text-lg">{book.description}</p> */}
           <div className="text-sm  text-smallText mt-3">
-            <div>{book.pageCount} pages</div>
+            <div>{book.pageCount}</div>
             <div>
               {book.publishedDate} by {book.publisher}
             </div>
@@ -536,12 +536,12 @@ function BookDetail() {
             <div className="serif-display mb-2">
               From {book.postsCount} reviews
             </div>
-            <RatingDisplay value={book.ratingAvg} label="Rating" />
-            <RatingDisplay value={book.contentAvg} label="Content" />
-            <RatingDisplay value={book.developmentAvg} label="Development" />
-            <RatingDisplay value={book.pacingAvg} label="Pacing" />
-            <RatingDisplay value={book.writingAvg} label="Writing" />
-            <RatingDisplay value={book.insightsAvg} label="Insights" />
+            <RatingDisplay value={book.rating} label="Rating" />
+            <RatingDisplay value={book.content} label="Content" />
+            <RatingDisplay value={book.developement} label="Development" />
+            {/* <RatingDisplay value={book.pacingAvg} label="Pacing" /> */}
+            <RatingDisplay value={book.writing} label="Writing" />
+            <RatingDisplay value={book.insights} label="Insights" />
           </div>
 
           {book.genres && (

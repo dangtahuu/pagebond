@@ -116,17 +116,30 @@ app.use("/", (req, res) => {
 // });
 
 io.on("connect", (socket) => {
-    // socket.on("new-post", (newPost) => {
-    //     console.log("new-post", newPost);
-    //     socket.broadcast.emit("new-post", newPost);
-    // });
-    // socket.on("new-comment", (newComment) => {
-    //     //console.log("new-post", newPost);
-    //     socket.broadcast.emit("new-comment", newComment);
-    // });
     socket.on("new-message", (newMessage) => {
         socket.broadcast.emit("new-message", newMessage);
     });
+
+    socket.on("new-follower", (data) => {
+        socket.broadcast.emit("new-follower", data);
+    });
+
+    socket.on("new-comment", (newComment) => {
+        socket.broadcast.emit("new-comment", newComment);
+    });
+
+    socket.on("new-points", (newPoints) => {
+        socket.broadcast.emit("new-points", newPoints);
+    });
+
+    socket.on("verify-user", (verifyUser) => {
+        socket.broadcast.emit("verify-user", verifyUser);
+    });
+
+    socket.on("verify-post", (verifyPost) => {
+        socket.broadcast.emit("verify-post", verifyPost);
+    });
+
 });
 
 const port = process.env.PORT || 8000;

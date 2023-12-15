@@ -10,12 +10,12 @@ import { MdBlock } from "react-icons/md";
 import { toast } from "react-toastify";
 import { AiOutlineCheck } from "react-icons/ai";
 import { FiTrash } from "react-icons/fi";
+import { TbLockOpen } from "react-icons/tb";
 
 const bigMenuToType = {
     "Posts": "post",
     "Reviews": "review",
     "Trades": "trade",
-    "Special Posts": "special",
     "Questions": "question"
 }
 
@@ -64,39 +64,39 @@ const PostGrid = ({ menu, option }) => {
   };
 
   const columns = [
-    { field: "no", headerName: "No.", width: 20, flex: 1 },
+    { field: "no", headerName: "No.", width: 20},
     { field: "id", headerName: "ID", width: 90, flex: 1 },
     {
-      field: "avatar",
-      headerName: "Avatar",
+      field: "info",
+      headerName: "Info",
       width: 90,
       flex: 1,
       renderCell: (params) => (
+        <div className="flex items-center gap-x-2">
         <img className="rounded-full w-6 h-6" src={params.row.avatar} />
+<div>{params.row.name}</div>
+        </div>
       ),
     },
-    { field: "name", headerName: "Name", width: 90, flex: 1 },
     { field: "title", headerName: "Title", width: 90, flex: 1 },
     { field: "text", headerName: "Text", width: 90, flex: 1 },
-    { field: "likes", headerName: "Likes", width: 90, flex: 1 },
-    { field: "comments", headerName: "Comments", width: 90, flex: 1 },
+    { field: "likes", headerName: "Likes", width: 20},
+    { field: "comments", headerName: "Comments", width: 20 },
 
     { field: "date", headerName: "Date", width: 90, flex: 1 },
-    { field: "status", headerName: "Status", width: 90, flex: 1,  renderCell: (params) => (
+    { field: "status", headerName: "Reported status", width: 20,  renderCell: (params) => (
         <span className={params.row.status===true? `text-yellow-900`:``}>{params.row.status===true? `True`:`False`}</span>
       ) },
     {
         field: "dismiss",
         headerName: "Dismiss report",
-        width: 90,
-        flex: 1,
-        renderCell: () => <AiOutlineCheck />,
+        width: 20,
+        renderCell: () => <TbLockOpen />,
       },
     {
       field: "delete",
       headerName: "Delete",
-      width: 90,
-      flex: 1,
+      width: 20,
       renderCell: () => <FiTrash />,
     },
   ];
@@ -125,6 +125,8 @@ const PostGrid = ({ menu, option }) => {
   });
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Do you want to delete this post?")) return;
+
     try {
       const { data } = await autoFetch.delete(`/api/${bigMenuToType[menu]}/admin/delete/${id}`);
       toast("Delete successfully!");
@@ -136,6 +138,7 @@ const PostGrid = ({ menu, option }) => {
   };
 
   const handleDismiss= async (id) => {
+    
     try {
       const { data } = await autoFetch.patch(`/api/${bigMenuToType[menu]}/unreport`, {
         postId: id,
@@ -152,7 +155,6 @@ const PostGrid = ({ menu, option }) => {
     if (params.field === "dismiss") return handleDismiss(params.row.id);
     if (params.field === "delete")return handleDelete(params.row.id);
    return console.log(params.row)
-//    navigate(`/profile/${params.row.id}`);
   };
 
   if(loading)

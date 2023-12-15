@@ -28,15 +28,13 @@ import QuestionForm from "./QuestionForm";
 
 const Post = ({
   currentPost,
-  user_img,
-  userId,
   className = "",
-  userRole,
   book,
+  border=true,
   getDeletePostId = (postId) => {},
 }) => {
   // const navigate = useNavigate();
-  const { autoFetch } = useAppContext();
+  const { autoFetch, socket, user } = useAppContext();
   // const [formOpen, setFormOpen] = useState(false)
   const [showOption, setShowOption] = useState(false);
   const [showComment, setShowComment] = useState(false);
@@ -149,6 +147,7 @@ const Post = ({
       setShowComment(true);
       setTextComment("");
       setImageComment(null);
+      socket.emit("new-comment",{senderName: user.name, senderId: user._id, receivedId: post.postedBy._id })
     } catch (error) {
       console.log(error);
     }
@@ -346,7 +345,7 @@ const Post = ({
   }
 
   return (
-    <div className={` mb-3 pt-3 pb-2.5  border-t-[1px] border-t-dialogue`}>
+    <div className={` mb-3 pt-3 pb-2.5 ${border?`border-t-[1px] border-t-dialogue`:``} `}>
       {openModal && type === "post" && (
         <PostForm
           setOpenModal={setOpenModal}
@@ -449,7 +448,12 @@ const Post = ({
             )}
           </div>
 
-          <div className="text-[10px] flex items-center gap-x-1 ">
+          <div className="text-[10px] flex items-center gap-x-1 cursor-pointer hover:underline" 
+          // style={{"text-decoration": "underline"}}
+           onClick={() => {
+            navigate(`/detail/${type}/${post._id}`);
+          }}
+          >
             {moment(post.createdAt).fromNow()}
           </div>
         </div>
@@ -470,7 +474,7 @@ const Post = ({
                 setShowOption(false);
               }}
             >
-              {(userId === post.postedBy._id)&& <>
+              {(user._id === post.postedBy._id)&& <>
                 <li
                 className="px-3 py-1 bg-navBar rounded-md"
                 onClick={() => {
@@ -490,7 +494,7 @@ const Post = ({
                 Delete
               </li></>}
             
-                {(userId !== post.postedBy._id && post.postedBy.type !== 1) && <li
+                {(user._id !== post.postedBy._id && post.postedBy.type !== 1) && <li
                 className="mt-1 px-3 py-1 bg-navBar rounded-md"
                 onClick={() => {
                   if (window.confirm("Do you want to report this post?")) {
@@ -592,7 +596,7 @@ const Post = ({
             alt="img_content"
             className="w-full rounded-lg h-auto max-h-[300px] sm:max-h-[350px] object-contain bg-[#F0F2F5] dark:bg-[#18191A]"
             onClick={() => {
-              navigate(`/post/information/${post._id}`);
+              navigate(`/detail/${type}/${post._id}`);
             }}
           />
         </div>
@@ -603,7 +607,7 @@ const Post = ({
         {/* like quantity */}
 
         <>
-          {!post.likes.includes(userId) ? (
+          {!post.likes.includes(user._id) ? (
             <>
               <AiOutlineHeart
                 onClick={() => like(post._id)}
@@ -650,12 +654,12 @@ const Post = ({
             <Comment
               key={comment._id}
               currentComment={comment}
-              userId={userId}
+              userId={user._id}
               deleteComment={deleteComment}
               autoFetch={autoFetch}
               postId={post._id}
               navigate={navigate}
-              user_img={user_img}
+              user_img={user.image?.url || "/images/avatar.png"}
             />
           ))}
         </div>
@@ -664,7 +668,7 @@ const Post = ({
       {/* form add comment */}
       <div className="flex gap-x-1.5 px-2 sm:px-3 md:px-4 py-1 mt-1 items-center ">
         <img
-          src={user_img}
+          src={user.image?.url || "/images/avatar.png"}
           alt="user_avatar"
           className="w-7 h-7 object-cover shrink-0 rounded-full "
         />

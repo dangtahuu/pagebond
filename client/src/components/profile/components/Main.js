@@ -68,11 +68,7 @@ const Main = ({
                 <Post
                     key={p._id}
                     currentPost={p}
-                    userId={own._id}
-                    user_img={own.image.url}
                     getDeletePostId={getDeletePostId}
-                    className={!dark ? "shadow-post" : ""}
-                    userRole={own.role}
                 />
             ));
         }

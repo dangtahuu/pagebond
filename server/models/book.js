@@ -33,6 +33,37 @@ const bookSchema = new mongoose.Schema(
         pageCount: {
             type: Number,
         },
+        rating:{
+            type: Number,
+            default:0
+        },
+        content: {
+            type: Number,
+            default:0
+          },
+          development: {
+            type: Number,
+            default:0
+          },
+          pacing: {
+            type: String,
+            enum: ["Slow","Medium","Fast"]
+          },
+          writing: {
+            type: Number,
+            default:0
+          },
+          insights: {
+            type: Number,
+            default:0
+          },
+        numberOfRating:{
+            type: Number,
+            default:0
+        },
+        topShelves:{
+            type: [String]
+        }
 
     },
     {timestamps: true}

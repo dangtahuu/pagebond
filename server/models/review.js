@@ -19,7 +19,8 @@ const reviewSchema = new mongoose.Schema(
       required: true,
     },
     pacing: {
-      type: Number,
+      type: String,
+      enum: ["Slow","Medium","Fast"],
       required: true,
     },
     writing: {

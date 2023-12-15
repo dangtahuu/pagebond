@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useReducer, useState } from "react";
 import { AiOutlineCamera, AiOutlineSend } from "react-icons/ai";
 import ReactLoading from "react-loading";
 import { toast } from "react-toastify";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 
 import { useNavigate, useLocation } from "react-router-dom";
 //components
@@ -13,10 +13,10 @@ import { LoadingMessenger } from "../";
 import "./messenger.css";
 import { MdCancel } from "react-icons/md";
 
-// @ts-ignore
-const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
-  reconnection: true,
-});
+// // @ts-ignore
+// const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
+//   reconnection: true,
+// });
 
 const CHANGE_ALL_MESSAGES = "CHANGE_ALL_MESSAGES";
 const GET_DATA_SUCCESS = "GET_DATA_SUCCESS";
@@ -164,7 +164,7 @@ const reducer = (state, action) => {
 const initImage = { url: "", public_id: "" };
 
 const Message = () => {
-  const { user, unreadMessages, autoFetch, setOneState} = useAppContext();
+  const { user, unreadMessages, autoFetch, setOneState, socket} = useAppContext();
     
   const navigate = useNavigate();
   const location = useLocation();

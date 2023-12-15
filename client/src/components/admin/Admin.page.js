@@ -6,6 +6,7 @@ import { useAppContext } from "../../context/useContext";
 import UserGrid from "./components/UserGrid";
 import PostGrid from "./components/PostGrid";
 import HeaderMenu from "../common/HeaderMenu";
+import SpecialGrid from "./components/SpecialGrid";
 const Admin = () => {
   const { autoFetch, user, token, dark, setOneState } = useAppContext();
 
@@ -27,8 +28,9 @@ const Admin = () => {
   const [bigMenu,setBigMenu] = useState("Users")
   const bigList = ["Users", "Posts", "Reviews","Trades", "Questions", "Special Posts"]
 
-  const userList = ["All", "Reported", "Blocked"]
-  const postList = ["All", "Reported"]
+  const userList = ["All", "Pending","Reported", "Blocked"]
+  const postList = ["All","Reported"]
+  const specialList = ["All","Pending","Reported"]
   const [menu,setMenu] = useState("All")
 
 
@@ -54,10 +56,13 @@ const Admin = () => {
            </ul>
          </div>
         {bigMenu==="Users" && <HeaderMenu list={userList} menu={menu} handler={setMenu}/>}
-        {bigMenu!=="Users" && <HeaderMenu list={postList} menu={menu} handler={setMenu}/>}
+        {bigMenu==="Special Posts" && <HeaderMenu list={specialList} menu={menu} handler={setMenu}/>}
+        {(bigMenu!=="Users"&&bigMenu!=="Special Posts") && <HeaderMenu list={postList} menu={menu} handler={setMenu}/>}
 
 {bigMenu==="Users" && <UserGrid option={menu}/>}
-{bigMenu!=="Users" && <PostGrid option={menu} menu={bigMenu}/>}
+{bigMenu==="Special Posts" && <SpecialGrid option={menu}/>}
+
+{(bigMenu!=="Users"&&bigMenu!=="Special Posts") && <PostGrid option={menu} menu={bigMenu}/>}
 
       </div>
     </div>

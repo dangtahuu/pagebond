@@ -1,6 +1,6 @@
 import express from "express";
 
-import {getLogs, getNotifications
+import {getLogs, getNotifications, markRead,markReadAll
 } from "../controllers/log.js"
 import formidable from "express-formidable";
 import canUpdateOrDeleteShelf from "../middleware/canUpdateOrDeleteShelf.js";
@@ -13,6 +13,9 @@ router.route("/").get(async (req, res) => {
 });
 
 router.route("/noti").get(getNotifications);
+router.route("/noti/mark-read").patch(markRead)
+router.route("/noti/mark-read-all").patch(markReadAll)
+
 router.route("/logs").get(getLogs);
 
 

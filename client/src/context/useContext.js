@@ -1,6 +1,7 @@
 import {createContext, useContext, useState} from "react";
 import axios from "axios";
 import {toast} from "react-toastify";
+import io from "socket.io-client";
 
 const user = JSON.parse(localStorage.getItem("user"));
 // const token = localStorage.getItem("token") ||null;
@@ -23,14 +24,17 @@ const AppProvider = ({children}) => {
     } else {
         document.documentElement.classList.remove("dark");
     }
-    if (state.openModal) {
-        document.body.classList.add("modal-open");
-    } else {
-        document.body.classList.toggle("modal-open", false);
-        document.body.classList.add("style-3");
-    }
+    // if (state.openModal) {
+    //     document.body.classList.add("modal-open");
+    // } else {
+    //     document.body.classList.toggle("modal-open", false);
+    //     document.body.classList.add("style-3");
+    // }
     axios.defaults.headers.common["Authorization"] = `Bearer ${state.token}`;
 
+    const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
+        reconnection: true,
+      });
 
     const autoFetch = axios.create({
         // @ts-ignore
@@ -109,6 +113,7 @@ const AppProvider = ({children}) => {
                 logOut,
                 setNameAndToken,
                 addToLocalStorage,
+                socket
             }}>
             {children}
         </AppContext.Provider>

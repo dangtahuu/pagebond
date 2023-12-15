@@ -18,6 +18,7 @@ const Header = ({
   setNameAndToken,
   token,
   tabView,
+  socket
 }) => {
   const [loading, setLoading] = useState(false);
 
@@ -39,6 +40,7 @@ const Header = ({
       });
       setNameAndToken(data.user, token);
       toast.success(`Follow ${user.name} successfully`);
+      socket.emit("new-follower", {newFollower: data.user, receivedId: user._id});
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");

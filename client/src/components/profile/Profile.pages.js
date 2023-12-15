@@ -32,6 +32,7 @@ const Profile = () => {
         user: own,
         setNameAndToken,
         token,
+        socket
     } = useAppContext();
     const [postLoading, setPostLoading] = useState(false);
     const [posts, setPosts] = useState([]);
@@ -232,6 +233,7 @@ const Profile = () => {
                     setNameAndToken={setNameAndToken}
                     token={token}
                     tabView={tabView}
+                    socket={socket}
                 />
             ) : (
                 <LoadingProfile />

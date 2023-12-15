@@ -4,21 +4,23 @@ import User from "../models/user.js";
 const getNotifications = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
-    const perPage = Number(req.query.perPage) || 20;
+    const perPage = Number(req.query.perPage) || 10;
 
     const unread = await Log.find({
         $and: [
           { toUser: req.user.userId },
-          { type: { $in: [1, 3, 5, 7, 8, 9] } },
+          { type: { $in: [1, 5, 7, 8, 9] } },
           { isRead: false}
         ],
-      }).estimatedDocumentCount()
+      })
+
+    const unreadCount = unread.length
       
 
     const notifications = await Log.find({
       $and: [
         { toUser: req.user.userId },
-        { type: { $in: [1, 3, 5, 7, 8, 9] } },
+        { type: { $in: [1, 5, 7, 8, 9] } },
       ],
     })
       .populate({
@@ -49,7 +51,6 @@ const getNotifications = async (req, res) => {
       path: "linkTo",
       model: "Review",
     });
-    console.log(reviewDetailLogs.length)
 
     const tradeLogs = notifications.filter((one) => one.typeOfLink === "Trade");
 
@@ -68,18 +69,62 @@ const getNotifications = async (req, res) => {
       model: "SpecialPost",
     });
 
+    const questionLogs = notifications.filter(
+      (one) => one.typeOfLink === "Question"
+    );
+
+    const questionDetailLogs = await Log.populate(questionLogs, {
+      path: "linkTo",
+      model: "Question",
+    });
+
     let allNoti = [
       ...userLogs,
       ...postDetailLogs,
       ...reviewDetailLogs,
       ...tradeDetailLogs,
       ...specialPostDetailLogs,
+      ...questionDetailLogs
     ];
 
-    console.log(allNoti.length)
     allNoti.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    return res.status(200).json({ notifications: allNoti, unread });
+    return res.status(200).json({ notifications: allNoti, unread: unreadCount });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+
+
+const markRead = async (req, res) => {
+  try {
+    const {id} = req.body
+    const noti = await Log.findByIdAndUpdate(id,{
+        isRead: true
+      })
+
+    return res.status(200).json({ notification: noti });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const markReadAll = async (req, res) => {
+  try {
+    const notis = await Log.updateMany({
+        $and: [
+          { toUser: req.user.userId },
+          { type: { $in: [1, 5, 7, 8, 9] } },
+          { isRead: false}
+        ],
+      },{
+        isRead: true
+      })
+
+    return res.status(200).json({ notifications: notis });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ msg: err });
@@ -158,4 +203,4 @@ const getLogs = async (req, res) => {
     }
   };
 
-export { getNotifications, getLogs };
+export { getNotifications, getLogs, markRead, markReadAll };

@@ -25,6 +25,8 @@ import {
   blockUser,
   allReported,
   allBlocked,
+  verifyUser,
+  allPending,
 } from "./../controllers/auth.js";
 
 const router = express.Router();
@@ -44,6 +46,8 @@ router.route("/update-user").patch(requireSignIn, updateUser);
 router.route("/report").patch(requireSignIn, reportUser);
 router.route("/block").patch(requireSignIn, isAdmin, blockUser);
 router.route("/unblock").patch(requireSignIn, isAdmin, unblockUser);
+router.route("/verify").patch(requireSignIn, isAdmin, verifyUser);
+
 
 
 
@@ -73,6 +77,8 @@ router.route("/user-follow").put(requireSignIn, addFollower, userFollower);
 router.route("/all").get(requireSignIn, isAdmin, allUsers);
 router.route("/all-reported").get(requireSignIn, isAdmin, allReported);
 router.route("/all-blocked").get(requireSignIn, isAdmin, allBlocked);
+router.route("/all-pending").get(requireSignIn, isAdmin, allPending);
+
 
 
 router.route("/:id").get(requireSignIn, getInformationUser);

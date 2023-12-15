@@ -144,10 +144,7 @@ const Question = ({
           <Post
             key={post._id}
             currentPost={post}
-            user_img={user.image.url}
-            userId={user._id}
             className={"shadow-post"}
-            userRole={user.role}
             book={book}
           />
         ))}

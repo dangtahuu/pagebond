@@ -483,9 +483,46 @@ const dismissReport = async (req, res) => {
   }
 };
 
+
+const verify = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await SpecialPost.findByIdAndUpdate(
+      postId,
+      {
+       type: 2
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 const getAllReported = async (req, res) => {
   try {
     const posts = await SpecialPost.find({reported: true})
+      .populate("postedBy", "-password -secret")
+      .sort({ createdAt: -1 });
+    if (!posts) {
+      return res.status(400).json({ msg: "No posts found!" });
+    }
+    const postsCount = await SpecialPost.find({}).estimatedDocumentCount();
+    return res.status(200).json({ posts, postsCount });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getAllPending = async (req, res) => {
+  try {
+    const posts = await SpecialPost.find({type: 0})
       .populate("postedBy", "-password -secret")
       .sort({ createdAt: -1 });
     if (!posts) {
@@ -517,5 +554,7 @@ export {
   getOfficial,
   report,
   dismissReport,
-  getAllReported
+  getAllReported,
+  getAllPending,
+  verify
 };

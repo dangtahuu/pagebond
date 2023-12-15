@@ -69,7 +69,6 @@ router.route("/admin/delete/:id").delete(isAdmin, deletePost);
 
 // get post with userID 
 router.route("/getPostWithUser/:userId").get(getPostsWithUserId);
-router.route("/information/:postId").get(getDetailPost);
 
 router.route("/report").patch(report);
 router.route("/unreport").patch(isAdmin,dismissReport);

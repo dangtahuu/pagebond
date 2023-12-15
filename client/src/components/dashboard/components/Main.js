@@ -312,9 +312,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
           <Post
             key={post._id}
             currentPost={post}
-            user_img={user.image.url}
-            userId={user._id}
-            userRole={user.role}
           />
         ))}
       </InfiniteScroll>
@@ -343,9 +340,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
           <Post
             key={post._id}
             currentPost={post}
-            user_img={user.image.url}
-            userId={user._id}
-            userRole={user.role}
           />
         ))}
         <div>Popular posts</div>
@@ -353,9 +347,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
           <Post
             key={post._id}
             currentPost={post}
-            user_img={user.image.url}
-            userId={user._id}
-            userRole={user.role}
           />
         ))}
         <div>Nearby trades</div>
@@ -363,9 +354,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
           <Post
             key={post._id}
             currentPost={post}
-            user_img={user.image.url}
-            userId={user._id}
-            userRole={user.role}
           />
         ))}
         <div>Suggested posts</div>
@@ -373,9 +361,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
           <Post
             key={post._id}
             currentPost={post}
-            user_img={user.image.url}
-            userId={user._id}
-            userRole={user.role}
           />
         ))}
       </div>

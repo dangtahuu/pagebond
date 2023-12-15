@@ -3,6 +3,8 @@ import cloudinary from "cloudinary";
 import User from "../models/user.js";
 import mongoose, { mongo } from "mongoose";
 import Log from "../models/log.js";
+import Book from "../models/book.js";
+import book from "../models/book.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -43,11 +45,12 @@ const create = async (req, res) => {
     !writing ||
     !insights
   ) {
-    console.log("aaaa");
     return res.status(400).json({ msg: "Please provide all required values" });
   }
 
   try {
+
+
     const post = await Review.create({
       text,
       postedBy: req.user.userId,
@@ -67,6 +70,36 @@ const create = async (req, res) => {
       "postedBy",
       "-password -secret"
     );
+
+    const bookData = await Book.findById(book.id)
+
+
+    let slowCount = await Review.countDocuments({$and:[ {book: book.id},{pacing: "Slow"}] });
+    let mediumCount = await Review.countDocuments({$and:[ {book: book.id},{pacing: "Medium"}] });
+    let fastCount = await Review.countDocuments({$and:[ {book: book.id},{pacing: "Fast"}] });
+
+    const mostPacingCount = Math.max(slowCount,mediumCount,fastCount)
+    const newPacing = mostPacingCount === slowCount? "Slow":mostPacingCount==="Medium"? "Medium": "Fast"
+
+    const numberOfRating = bookData.numberOfRating
+    const newNumberOfRating = bookData.numberOfRating + 1
+    
+    const ratingAvg = ((bookData.rating*numberOfRating + rating)/ newNumberOfRating).toFixed(2);
+    const contentAvg = ((bookData.content*numberOfRating + content)/ newNumberOfRating).toFixed(2);
+    const developmentAvg = ((bookData.development*numberOfRating + development)/ newNumberOfRating).toFixed(2);
+    const writingAvg = ((bookData.writing*numberOfRating + writing)/ newNumberOfRating).toFixed(2);
+    const insightsAvg = ((bookData.insights*numberOfRating + insights)/ newNumberOfRating).toFixed(2);
+
+    const newBook = await Book.findByIdAndUpdate(book.id,{
+      rating: ratingAvg,
+      content: contentAvg,
+      development: developmentAvg,
+      pacing: newPacing,
+      writing: writingAvg,
+      insights: insightsAvg,
+      numberOfRating: newNumberOfRating
+    });
+
     return res
       .status(200)
       .json({ post: postWithUser, msg: "Create new review succesfully" });
@@ -226,15 +259,44 @@ const edit = async (req, res) => {
         insights,
         dateRead,
       },
-      {
-        new: true,
-      }
     );
-
     if (!post) {
       return res.status(400).json({ msg: "No review found!" });
     }
-    return res.status(200).json({ msg: "Updated review!", post });
+
+    const newPost = await Review.findById(postId).populate("postedBy", "-password -secret")
+    .populate("comments.postedBy", "-password -secret")
+    .populate("book");
+  
+
+    const bookData = await Book.findById(post.book)
+
+
+    let slowCount = await Review.countDocuments({$and:[ {book: post.book},{pacing: "Slow"}] });
+    let mediumCount = await Review.countDocuments({$and:[ {book: post.book},{pacing: "Medium"}] });
+    let fastCount = await Review.countDocuments({$and:[ {book: post.book},{pacing: "Fast"}] });
+
+    const mostPacingCount = Math.max(slowCount,mediumCount,fastCount)
+    const newPacing = mostPacingCount === slowCount? "Slow":mostPacingCount===mediumCount? "Medium": "Fast"
+
+    const numberOfRating = bookData.numberOfRating
+    // const newNumberOfRating = bookData.numberOfRating + 1
+    
+    const ratingAvg = ((bookData.rating*numberOfRating - post.rating + newPost.rating)/ numberOfRating).toFixed(2);
+    const contentAvg = ((bookData.content*numberOfRating - post.content+ newPost.content)/ numberOfRating).toFixed(2);
+    const developmentAvg = ((bookData.development*numberOfRating - post.development + newPost.development)/ numberOfRating).toFixed(2);
+    const writingAvg = ((bookData.writing*numberOfRating - post.writing +  newPost.writing)/ numberOfRating).toFixed(2);
+    const insightsAvg = ((bookData.insights*numberOfRating - post.insights + newPost.insights)/ numberOfRating).toFixed(2);
+
+    const newBook = await Book.findByIdAndUpdate(post.book,{
+      rating: ratingAvg,
+      content: contentAvg,
+      development: developmentAvg,
+      pacing: newPacing,
+      writing: writingAvg,
+      insights: insightsAvg,
+    });
+    return res.status(200).json({ msg: "Updated review!", post: newPost });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -243,15 +305,56 @@ const edit = async (req, res) => {
 
 const deleteOne = async (req, res) => {
   try {
-    console.log('bbbbbbb')
     const postId = req.params.id;
-    const post = await Review.findByIdAndDelete(postId);
+    const post = await Review.findByIdAndDelete(postId).populate("postedBy", "-password -secret")
+    .populate("comments.postedBy", "-password -secret")
+    .populate("book");;
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
     }
     if (post.image && post.image.public_id) {
       await cloudinary.v2.uploader.destroy(post.image.public_id);
     }
+
+    const bookData = await Book.findById(post.book._id)
+    let slowCount = await Review.countDocuments({$and:[ {book: post.book._id},{pacing: "Slow"}] });
+    let mediumCount = await Review.countDocuments({$and:[ {book: post.book._id},{pacing: "Medium"}] });
+    let fastCount = await Review.countDocuments({$and:[ {book: post.book._id},{pacing: "Fast"}] });
+
+    const mostPacingCount = Math.max(slowCount,mediumCount,fastCount)
+    const newPacing = mostPacingCount === slowCount? "Slow":mostPacingCount==="Medium"? "Medium": "Fast"
+
+    const numberOfRating = bookData.numberOfRating
+    const newNumberOfRating = bookData.numberOfRating - 1
+    if(newNumberOfRating!==0)
+    {
+      const ratingAvg = ((bookData.rating*numberOfRating - post.rating)/ newNumberOfRating).toFixed(2);
+      const contentAvg = ((bookData.content*numberOfRating - post.content)/ newNumberOfRating).toFixed(2);
+      const developmentAvg = ((bookData.development*numberOfRating - post.development)/ newNumberOfRating).toFixed(2);
+      const writingAvg = ((bookData.writing*numberOfRating -post.writing)/ newNumberOfRating).toFixed(2);
+      const insightsAvg = ((bookData.insights*numberOfRating -post.insights)/ newNumberOfRating).toFixed(2);
+  
+      const newBook = await Book.findByIdAndUpdate(post.book._id,{
+        rating: ratingAvg,
+        content: contentAvg,
+        development: developmentAvg,
+        pacing: newPacing,
+        writing: writingAvg, 
+        insights: insightsAvg,
+        numberOfRating: newNumberOfRating
+      });
+    } else {
+      const newBook = await Book.findByIdAndUpdate(post.book._id,{
+        rating: 0,
+        content: 0,
+        development: 0,
+        pacing: "",
+        writing: 0, 
+        insights: 0,
+        numberOfRating: 0
+      })
+    }
+    
     return res.status(200).json({ msg: "Deleted post!" });
   } catch (error) {
     return res.status(400).json({ msg: error });

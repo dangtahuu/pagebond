@@ -49,39 +49,8 @@ const getBook = async (req, res) => {
       return res.status(400).json({ msg: "No book found!" });
     }
 
-    const postsCount = await Review.countDocuments({ book: id });
-
-    let ratingSum = 0,
-      contentSum = 0,
-      developmentSum = 0,
-      pacingSum = 0,
-      writingSum = 0,
-      insightsSum = 0;
-    const allPosts = await Review.find({ book: id });
-    allPosts.forEach((post) => {
-      ratingSum += post.rating;
-      contentSum += post.content;
-      developmentSum += post.development;
-      pacingSum += post.pacing;
-      writingSum += post.writing;
-      insightsSum += post.insights;
-    });
-    const ratingAvg = (ratingSum / postsCount).toFixed(1);
-    const contentAvg = (contentSum / postsCount).toFixed(1);
-    const developmentAvg = (developmentSum / postsCount).toFixed(1);
-    const pacingAvg = (pacingSum / postsCount).toFixed(1);
-    const writingAvg = (writingSum / postsCount).toFixed(1);
-    const insightsAvg = (insightsSum / postsCount).toFixed(1);
-
     return res.status(200).json({
       book: result,
-      postsCount,
-      ratingAvg,
-      contentAvg,
-      developmentAvg,
-      pacingAvg,
-      writingAvg,
-      insightsAvg,
     });
   } catch (err) {
     console.log(err);
@@ -367,46 +336,125 @@ const getPopularGenres = async (req, res) => {
 
 const getPopularBooks = async (req, res) => {
   try {
-    const limit = req.query.limit;
-
+    const {
+      limit = "All",
+      genre,
+      rating = "All",
+      pacing = "All",
+      page = "All",
+      pagination = 1
+    } = req.query;
+    let pipeline;
     let allData;
-    if (limit && limit!=-1) {
+    if (limit !== "All") {
       const today = new Date();
-      const daysAgo = new Date(today);
-      daysAgo.setDate(today.getDate() - limit);
-      // const posts = await Post.find({ createdAt: { $gt: daysAgo } });
-      const reviews = await Review.find({ createdAt: { $gt: daysAgo } });
-      // const trades = await Trade.find({ createdAt: { $gt: daysAgo } });
-      allData = [...reviews];
+    const daysAgo = new Date(today);
+    daysAgo.setDate(today.getDate() - limit);
+      pipeline = [
+        {
+          $lookup: {
+            from: "reviews",
+            let: { book: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$book", "$$book"] },
+                      { $gt: ["$createdAt", daysAgo] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "reviews",
+          },
+        },
+        {
+          $addFields: {
+            reviewCount: { $size: "$reviews" },
+          },
+        },
+        {
+          $sort: {
+            reviewCount: -1,
+          },
+        },
+      ];
     } else {
-      // const posts = await Post.find({});
-      const reviews = await Review.find({});
-      // const trades = await Trade.find({});
-      allData = [...reviews];
+      pipeline = [
+        {
+          $sort: {
+            numberOfRating: -1,
+          },
+        },
+      ];
     }
 
-    const books = {};
-    for (const post of allData) {
-      books[post.book] = (books[post.book] || 0) + 1;
-    }
-
-    const sortedBooks = sortObjectDes(books);
-
-    const topBooks = Object.fromEntries(
-      Object.entries(sortedBooks).slice(0, 20)
-    );
-
-    const topBooksIds = Object.keys(topBooks);
-
-    const list = [];
-    for (const id of topBooksIds) {
-      const detailedBook = await Book.find({
-        _id: id,
+    if (rating !== "All") {
+      const [minRating, maxRating] = rating.split("-").map(parseFloat);
+      pipeline.push({
+        $match: { rating: { $gte: minRating, $lte: maxRating } },
       });
-      list.push(...detailedBook);
     }
 
-    return res.status(200).json({ books: list });
+    if (page !== "All") {
+      if (page.includes("<")) {
+        const maxPage = parseFloat(page.replace("<", ""));
+        pipeline.push({
+          $match: { pageCount: { $lte: maxPage } },
+        });
+      } else if (page.includes(">")) {
+        const minPage = parseFloat(page.replace(">", ""));
+        pipeline.push({
+          $match: { pageCount: { $gte: minPage } },
+        });
+      } else {
+        const [minPage, maxPage] = rating.split("-").map(parseFloat);
+        pipeline.push({
+          $match: { pageCount: { $gte: minPage, $lte: maxPage } },
+        });
+      }
+    }
+    // const temp = await Book.aggregate(pipeline)
+    // console.log(temp)
+    const parsedGenre = JSON.parse(decodeURIComponent(genre)) || "All";
+
+    // console.log(genre)
+    if (parsedGenre !== "All") {
+      pipeline.push({
+        $match: {
+          $or: [
+            { genres: { $in: [parsedGenre] } },
+            { topShelves: { $in: [parsedGenre] } },
+          ],
+        },
+      });
+    }
+
+    if (pacing != "All") {
+      pipeline.push({
+        $match: { pacing: pacing },
+      });
+    }
+
+    // pipeline.push({ $group: { _id: null, count: { $sum: 1 } } });
+    // const bookCount = await Book.aggregate(pipeline);
+    // console.log(bookCount[0].count);
+console.log(pagination)
+    // pipeline.pop();
+  
+    pipeline.push({
+      $skip: (pagination - 1) * 50,
+    });
+    pipeline.push({
+      $limit: 50,
+    });
+    const books = await Book.aggregate(pipeline);
+    console.log(books)
+
+// console.log(books.slice(0,5))
+    return res.status(200).json({ books });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
@@ -415,33 +463,42 @@ const getPopularBooks = async (req, res) => {
 
 const getPopularBooksWithGenre = async (req, res) => {
   try {
-    const limit = req.query.limit;
-    const genre = req.query.genre;
+    const { limit, genre, rating, pacing, page } = req.query.limit;
 
-    if(!genre) return res.status(400).json({ msg: "Genre is required!" })
+    if (!genre) return res.status(400).json({ msg: "Genre is required!" });
     let allData;
-    if (limit && limit!=-1) {
+    if (limit && limit != -1) {
       const today = new Date();
       const daysAgo = new Date(today);
       daysAgo.setDate(today.getDate() - limit);
       // const posts = await Post.find({ createdAt: { $gt: daysAgo } });
-      const reviews = await Review.find({ createdAt: { $gt: daysAgo } }).populate("book");
+      const reviews = await Review.find({
+        createdAt: { $gt: daysAgo },
+      }).populate("book");
       // const trades = await Trade.find({ createdAt: { $gt: daysAgo } });
       allData = [...reviews];
     } else {
       // const posts = await Post.find({});
-      const reviews = await Review.find({})
-      .populate("book");
-      
+      const reviews = await Review.find({}).populate("book");
+
       // console.log(reviews[0])
       // const trades = await Trade.find({});
       allData = [...reviews];
     }
     // console.log(allData[0])
     const books = {};
-    for (const post of allData) {
-      if (post.book.genres?.includes(genre))
-        books[post.book._id] = (books[post.book._id] || 0) + 1;
+    if (genre) {
+      for (const post of allData) {
+        if (
+          post.book.genres?.includes(genre) ||
+          post.book.topShelves?.includes(genre)
+        )
+          books[post.book._id] = (books[post.book._id] || 0) + 1;
+      }
+    } else {
+      for (const post of allData) {
+        books[post.book] = (books[post.book] || 0) + 1;
+      }
     }
 
     const sortedBooks = sortObjectDes(books);
@@ -478,5 +535,5 @@ export {
   getPopularGenres,
   fixGenres,
   getPopularBooks,
-  getPopularBooksWithGenre
+  getPopularBooksWithGenre,
 };

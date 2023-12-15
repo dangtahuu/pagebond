@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 // icon
@@ -20,60 +20,34 @@ import { BiSearch } from "react-icons/bi";
 import { BiBookContent } from "react-icons/bi";
 import { BiFace } from "react-icons/bi";
 
-import {
-  AiOutlineHome,
-  AiOutlineSearch,
-  AiOutlineMessage,
-  AiOutlineDashboard,
-} from "react-icons/ai";
-import { IoIosNotificationsOutline } from "react-icons/io";
 import { BiBell } from "react-icons/bi";
 
 // components
 import { useAppContext } from "../../context/useContext.js";
 import { Dropdown } from "../";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import Notification from "./Notification.js";
+import useOnClickOutside from "../../hooks/useOnClickOutside.js";
 
-const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
-  reconnection: true,
-});
-
-
-const getNotiText = (noti) => {
-  switch (noti.type) {
-    case 1:
-      return `<a className="text-bold">{noti?.fromUser?.name}</a> has followed you`;
-      break;
-    case 3:
-      return `<a className="text-bold">{noti?.fromUser?.name}</a> has liked your post <a className="text-bold">{noti?.linkTo?.text}</a>`;
-      break;
-    case 5:
-      return `<a className="text-bold">{noti?.fromUser?.name}</a> has commented on your post <a className="text-bold">{noti?.linkTo?.text}</a>`;
-      break;
-    case 7:
-      return `<a className="text-bold">{noti?.fromUser?.name}</a> has sent you <a className="text-bold">{noti?.points}</a>`;
-      break;
-    case 8:
-      return `<a className="text-bold">{noti?.fromUser?.name}</a> has verified your account`;
-      break;
-    case 9:
-      return `<a className="text-bold">{noti?.fromUser?.name}</a> has verified your post <a className="text-bold">{noti?.linkTo?.text}</a>`;
-      break;
-    default:
-      return "";
-  }
-};
+// const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
+//   reconnection: true,
+// });
 
 const Nav = () => {
-  const { user, unreadMessages, autoFetch, setOneState } = useAppContext();
+  const { user, unreadMessages, autoFetch, setOneState, socket } =
+    useAppContext();
   const [page, setPage] = useState(1);
-  const [notifications, setNotifications] = useState(1);
-  const [notificationsLoading, setNotificationsLoading] = useState(true)
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [unreadNoti, setUnreadNoti] = useState(0);
   const [notiMenu, setNotiMenu] = useState(false);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+  const notiRef = useRef();
+  const exceptionRef = useRef();
+  useOnClickOutside(notiRef, () => setNotiMenu(false), exceptionRef);
+
   const getUnreadMessages = async () => {
     try {
       const { data } = await autoFetch.get("api/message/unread");
@@ -84,27 +58,32 @@ const Nav = () => {
   };
 
   const getNotifications = async () => {
-    // setNotificationsLoading(true)
-    try {
 
-      const { data } = await autoFetch.get("api/log/noti");
-      console.log(data.notifications);
+    try {
+      const { data } = await autoFetch.get(`api/log/noti`);
       setNotifications(data.notifications);
+      setPage((prev) => prev++);
       // console.log(data.notifications)
       setUnreadNoti(data.unread);
     } catch (e) {
       console.log(e);
     }
-    setNotificationsLoading(false)
-
+    setNotificationsLoading(false);
   };
 
-  // const handleClickNotification = (noti) => {
-  //   if(noti.type===)
-  // }
+  const getMoreNotifications = async () => {
+    try {
+      const { data } = await autoFetch.get(`api/log/noti?page=${page + 1}`);
+      setNotifications((prev) => [...prev, ...data.notifications]);
+      setPage((prev) => prev++);
+      if (data.notifications.length < 20) setHasMoreNotifications(false);
+    } catch (e) {
+      console.log(e);
+    }
+    setNotificationsLoading(false);
+  };
 
   useEffect(() => {
-  
     // socket
     if (user) {
       getUnreadMessages();
@@ -116,7 +95,6 @@ const Nav = () => {
         if (!index) {
           return;
         }
-        // console.log('last message', newMessage.content[newMessage.content.length-1].sentBy)
         if (
           newMessage.content[
             newMessage.content.length - 1
@@ -125,15 +103,28 @@ const Nav = () => {
           return;
         getUnreadMessages();
         toast.success("You have a new message");
+      });
 
-        // when user open more 2 tabs
+      socket.on("new-follower", (data) => {
+        const { newFollower, receivedId } = data;
+
+        if (receivedId !== user._id) return;
+        toast.success(`${newFollower.name} have followed you`);
+        getNotifications();
+      });
+
+      socket.on("new-comment", (data) => {
+        const { senderName, senderId, receivedId } = data;
+
+        if (receivedId !== user._id || senderId === receivedId) return;
+        toast.success(`${senderName} have commented on your post`);
       });
     }
 
     return () => {
       socket.off("new-message");
     };
-  }, [user]);
+  }, []);
 
   const menuListLogged = useMemo(() => {
     const list = [
@@ -155,15 +146,9 @@ const Nav = () => {
       },
       {
         link: `/profile/${user._id}`,
-        icon: <BiFace />        ,
+        icon: <BiFace />,
         className: "profile",
       },
-
-      // {
-      //   link: "/browse",
-      //   icon: <BsCollectionFill />,
-      //   className: "browse",
-      // },
     ];
     if (user.role === 1) {
       list.push({
@@ -191,7 +176,7 @@ const Nav = () => {
         >
           <div className="relative">
             {v.icon}
-            {v.className === "messenger" && unreadMessages!==0 && (
+            {v.className === "messenger" && unreadMessages !== 0 && (
               <div className="bg-greenBtn !text-mainText -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">
                 {unreadMessages}
               </div>
@@ -267,19 +252,37 @@ const Nav = () => {
       >
         <div className="flex items-center">
           <div className="relative mr-6">
-            <BiBell  className="cursor-pointer text-xl"  onClick={()=>setNotiMenu(prev=>!prev)}/>
-            <div className=" bg-greenBtn -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute"
-          
-            >
-              {unreadNoti}
-             
+            <div ref={exceptionRef}>
+              <BiBell
+                className="cursor-pointer text-xl"
+                onClick={() => setNotiMenu((prev) => !prev)}
+              />
             </div>
-            {notiMenu && <div
+            {unreadNoti > 0 && (
+              <div className=" bg-greenBtn -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">
+                {unreadNoti}
+              </div>
+            )}
+            {notiMenu && (
+              <div
+                ref={notiRef}
                 // ref={filterRef}
-                className="absolute p-3 rounded-lg right-0 top-[47px] w-[400px]   bg-dialogue"
+                className="absolute p-3 rounded-lg right-0 top-[47px] w-[350px]   bg-navBar"
               >
-                <Notification notificationsLoading={notificationsLoading} notifications={notifications}/>
-              </div>}
+                <Notification
+                  hasMoreNotifications={hasMoreNotifications}
+                  setHasMoreNotifications={setHasMoreNotifications}
+                  setPage={setPage}
+                  getNotifications={getNotifications}
+                  getMoreNotifications={getMoreNotifications}
+                  navigate={navigate}
+                  setNotiMenu={setNotiMenu}
+                  autoFetch={autoFetch}
+                  notificationsLoading={notificationsLoading}
+                  notifications={notifications}
+                />
+              </div>
+            )}
           </div>
 
           {user && (

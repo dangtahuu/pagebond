@@ -9,23 +9,15 @@ import { useNavigate } from "react-router-dom";
 import { MdBlock } from "react-icons/md";
 import { toast } from "react-toastify";
 import { AiOutlineCheck } from "react-icons/ai";
+import { FiTrash } from "react-icons/fi";
+import { TbLockOpen, TbUserCheck } from "react-icons/tb";
 import { TiTick } from "react-icons/ti";
-import { TbUserCheck } from "react-icons/tb";
-import { TbLockOpen } from "react-icons/tb";
-import { TbLock } from "react-icons/tb";
 
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
   },
 });
-
-const apis = {
-  All: `/api/auth/all`,
-  Reported: `/api/auth/all-reported`,
-  Blocked: `/api/auth/all-blocked`,
-  Pending: `/api/auth/all-pending`
-};
 
 const convertDate = (time) => {
   const date = new Date(time);
@@ -35,46 +27,28 @@ const convertDate = (time) => {
   return `${yyyy}-${mm >= 10 ? mm : "0" + mm}-${dd >= 10 ? dd : "0" + dd}`;
 };
 
-const UserGrid = ({ option }) => {
+const SpecialGrid = ({ menu, option }) => {
+  const apis = {
+    All: `/api/special/all`,
+    Pending: `/api/special/all-pending`,
+    Reported: `/api/special/all-reported`,
+  };
+
   const { autoFetch } = useAppContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
-  const [listUser, setListUser] = useState([]);
-  const [totalUser, setTotalUser] = useState(0);
+  const [listPost, setListPost] = useState([]);
+  // numbers of all users
 
   useEffect(() => {
-    getAllUsers();
-  }, [option]);
+    getAllPosts();
+  }, [menu, option]);
 
-  const getAllUsers = async () => {
+  const getAllPosts = async () => {
     try {
       const { data } = await autoFetch.get(apis[option]);
-      setTotalUser(data.numberUsers);
-      //   setListUser(data.users);
-      const array = data.users.map((v, index) => {
-        return {
-          // @ts-ignore
-          id: v._id,
-          no: index + 1,
-          // @ts-ignore
-          avatar: v.image?.url,
-          // @ts-ignore
-          name: v.name,
-          // @ts-ignore
-          email: v.email,
-          // postNumber: "n/a",
-          // @ts-ignore
-          follower: v.follower?.length,
-          // @ts-ignore
-          role: v.role,
-          // @ts-ignore
-          date: convertDate(v.createdAt),
-          status: v.blocked,
-          // block: ()=> (<MdBlock onClick={handleSuspend}/>)
-        };
-      });
-      setListUser(array);
+      setListPost(data.posts);
     } catch (error) {
       console.log(error);
     }
@@ -85,25 +59,35 @@ const UserGrid = ({ option }) => {
     { field: "no", headerName: "No.", width: 20 },
     { field: "id", headerName: "ID", width: 90, flex: 1 },
     {
-      field: "info",
-      headerName: "Info",
-      width: 90,
-      flex: 1,
-      renderCell: (params) => (
-        <div className="flex items-center gap-x-2">
-        <img className="rounded-full w-6 h-6" src={params.row.avatar} />
-<div>{params.row.name}</div>
-        </div>
-      ),
-    },
-    { field: "email", headerName: "Email", width: 90, flex: 1 },
-    { field: "follower", headerName: "Follower", width: 20 },
+        field: "info",
+        headerName: "Info",
+        width: 90,
+        flex: 1,
+        renderCell: (params) => (
+          <div className="flex items-center gap-x-2">
+          <img className="rounded-full w-6 h-6" src={params.row.avatar} />
+  <div>{params.row.name}</div>
+          </div>
+        ),
+      },
+    { field: "title", headerName: "Title", width: 90, flex: 1 },
+    { field: "text", headerName: "Text", width: 90, flex: 1 },
+    { field: "likes", headerName: "Likes", width: 20},
+    { field: "comments", headerName: "Comments", width: 20},
     {
-      field: "role",
-      headerName: "Role",
+      field: "type",
+      headerName: "Verified?",
       width: 20,
       renderCell: (params) => (
-        <TiTick className={`text-lg rounded-full text-white ${params.row.role===1? `bg-greenBtn`: params.row.role===2? `bg-sky-900`: params.row.role===0? `bg-yellow-900`:`hidden`}`}/>
+        <TiTick
+          className={`text-lg rounded-full text-white ${
+            params.row.type === 1
+              ? `bg-greenBtn`
+              : params.row.type === 2
+              ? `bg-sky-900`
+              : `hidden`
+          }`}
+        />
       ),
     },
     {
@@ -115,59 +99,74 @@ const UserGrid = ({ option }) => {
     { field: "date", headerName: "Date", width: 90, flex: 1 },
     {
       field: "status",
-      headerName: "Blocked status",
-      width: 90,
+      headerName: "Reported status",
+      width: 20,
       renderCell: (params) => (
-        <span
-          className={
-            params.row.status === "Blocked"
-              ? `text-red-900`
-              : params.row.status === "Reported"
-              ? `text-yellow-900`
-              : ``
-          }
-        >
-          {params.row.status}
+        <span className={params.row.status === true ? `text-yellow-900` : ``}>
+          {params.row.status === true ? `True` : `False`}
         </span>
       ),
     },
     {
-      field: "unblock",
-      headerName: "Unblock",
+      field: "dismiss",
+      headerName: "Dismiss report",
       width: 20,
       renderCell: () => <TbLockOpen />,
     },
     {
-      field: "block",
-      headerName: "Block",
+      field: "delete",
+      headerName: "Delete",
       width: 20,
-      renderCell: () => <TbLock />,
+      renderCell: () => <FiTrash />,
     },
   ];
 
-  const handleBlock = async (id) => {
-    if (!window.confirm("Do you want to block this user")) return;
+  const data = listPost.map((v, index) => {
+    return {
+      // @ts-ignore
+      id: v._id,
+      no: index,
+      // @ts-ignore
+      avatar: v.postedBy.image?.url,
+      // @ts-ignore
+      name: v.postedBy.name,
+      // @ts-ignore
+      title: v.title,
+      type: v.type,
+      // postNumber: "n/a",
+      // @ts-ignore
+      text: v.text,
+      // @ts-ignore
+      likes: v.likes.length,
+      // @ts-ignore
+      comments: v.comments.length,
+      date: v.createdAt,
+      status: v.reported,
+    };
+  });
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Do you want to delete this post")) return;
 
     try {
-      const { data } = await autoFetch.patch(`/api/auth/block/`, {
-        userId: id,
-      });
-      toast("Block user successfully!");
-      getAllUsers();
+      const { data } = await autoFetch.delete(
+        `/api/special/admin/delete/${id}`
+      );
+      toast("Delete successfully!");
+      getAllPosts();
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
     }
   };
 
-  const handleUnblock = async (id) => {
-    if (!window.confirm("Do you want to unlock this user")) return;
+  const handleDismiss = async (id) => {
     try {
-      const { data } = await autoFetch.patch(`/api/auth/unblock/`, {
-        userId: id,
+      const { data } = await autoFetch.patch(`/api/special/unreport`, {
+        postId: id,
       });
-      toast("Unblock user successfully!");
-      getAllUsers();
+      toast("Dismiss report successfully!");
+      getAllPosts();
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
@@ -175,14 +174,12 @@ const UserGrid = ({ option }) => {
   };
 
   const handleVerify = async (id) => {
-    if (!window.confirm("Do you want to verify this user")) return;
-
     try {
-      const { data } = await autoFetch.patch(`/api/auth/verify`, {
-        userId: id,
+      const { data } = await autoFetch.patch(`/api/special/verify`, {
+        postId: id,
       });
-      toast("Verify user successfully!");
-      getAllUsers();
+      toast("Verify successfully!");
+      getAllPosts();
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
@@ -190,11 +187,11 @@ const UserGrid = ({ option }) => {
   };
 
   const handleCellClick = (params) => {
-    if (params.field === "block") return handleBlock(params.row.id);
-    if (params.field === "unblock") return handleUnblock(params.row.id);
+    if (params.field === "dismiss") return handleDismiss(params.row.id);
+    if (params.field === "delete") return handleDelete(params.row.id);
     if (params.field === "verify") return handleVerify(params.row.id);
 
-    return navigate(`/profile/${params.row.id}`);
+    return console.log(params.row);
   };
 
   if (loading)
@@ -208,11 +205,11 @@ const UserGrid = ({ option }) => {
     <ThemeProvider theme={darkTheme}>
       <DataGrid
         //    className="!bg-dialogue !text-mainText"
-        rows={listUser}
+        rows={data}
         columns={columns}
         //   pageSize={25}
         // autoPageSize={true}
-        //   pageSizeOptions=	{[5,10,100]}
+        //   pageSizeOptions=	{[5,10,20]}
         sx={{
           "& .MuiDataGrid-columnHeader, & .MuiDataGrid-cell,": {
             backgroundColor: "#445566",
@@ -237,4 +234,4 @@ const UserGrid = ({ option }) => {
   );
 };
 
-export default UserGrid;
+export default SpecialGrid;
