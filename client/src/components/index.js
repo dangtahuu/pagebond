@@ -7,7 +7,6 @@ import Dropdown from "./common/Dropdown";
 import FormCreatePost from "./common/FormCreatePost";
 import ItemsList from "./common/ItemsList";
 import GroupAvatars from "./common/GroupAvatars";
-import Table from "./common/table/Table";
 import ReviewForm from "./common/ReviewForm";
 
 // loading component
@@ -50,7 +49,6 @@ export {
   ItemsList,
   GroupAvatars,
   FormCreatePost,
-  Table,
   LoadingPost,
   LoadingSuggestion,
   LoadingForm,

@@ -122,37 +122,43 @@ const sendMessage = async (req, res) => {
           "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
         );
     }
-    console.log(message);
-    let ai_res;
-    if (receivedId === "6561e80e6dfae0a11ba298b6") {
-      // const response = await openai.chat.completions.create({
-      //     model: 'gpt-3.5-turbo',
-      //     // prompt: text,
-      //     messages: [{"role": "user", "content": text}],
-      // });
+   
 
-      const res = await api.sendMessage(text);
-      console.log(res);
-      // let response = await bingAIClient.sendMessage(text, {
-      //     // (Optional) Set a conversation style for this message (default: 'balanced')
-      //     toneStyle: 'balanced', // or creative, precise, fast
-      //     // onProgress: (token) => {
-      //     //     process.stdout.write(token);
-      //     // },
-      // });
-      // const chatCompletion = await openai.chat.completions.create({
-      //     model: "gpt-3.5-turbo",
-      //     messages: [{"role": "user", "content": "Hello!"}],
-      //   });
-      // console.log(JSON.stringify(response, null, 2))
+    const contentExcludeDelete = message.content.filter(
+      (each) => !each.deleteBy.includes(mongoose.Types.ObjectId(userId))
+    );
+
+    // console.log(contentExcludeDelete)
+
+    message.content = contentExcludeDelete;
+    // if(!ai_res) return res.status(200).json({ message: message });
+    return res.status(200).json({ message: message });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong!Try again!" });
+  }
+};
+
+const getAIRes = async(req,res)=> {
+  try{    const userId = req.user.userId;
+    const {  text } = req.body;
+  
+
+    if (!text) {
+      return res.status(400).json({ msg: "Text  is required!" });
+    }
+
+      const reply = await api.sendMessage(text);
+
       const botReponse = {
-        text: res.text,
-        sentBy: "6561e80e6dfae0a11ba298b6",
+        text: reply.text,
+        sentBy: process.env.AI_ID,
+        readBy:[process.env.AI_ID]
       };
 
-      message = await Message.findOneAndUpdate(
+      let message = await Message.findOneAndUpdate(
         {
-          members: [receivedId, userId].sort(),
+          members: [process.env.AI_ID, userId].sort(),
         },
         {
           $addToSet: { content: botReponse },
@@ -168,23 +174,20 @@ const sendMessage = async (req, res) => {
           "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
         );
 
-      ai_res = 1;
-    }
 
     const contentExcludeDelete = message.content.filter(
       (each) => !each.deleteBy.includes(mongoose.Types.ObjectId(userId))
     );
 
-    // console.log(contentExcludeDelete)
 
     message.content = contentExcludeDelete;
-    // if(!ai_res) return res.status(200).json({ message: message });
-    return res.status(200).json({ message: message, ai_res });
+
+    return res.status(200).json({ message: message});
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: "Something went wrong!Try again!" });
   }
-};
+}
 
 const deleteMessage = async (req, res) => {
   try {
@@ -274,4 +277,4 @@ const markRead = async (req, res) => {
     }
   };
 
-export { getAllMessages, sendMessage, deleteMessage, getUnread, markRead };
+export { getAllMessages, sendMessage, deleteMessage, getUnread, markRead, getAIRes };

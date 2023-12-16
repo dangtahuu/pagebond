@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import Users from "./components/table/Users.components";
-import Posts from "./components/table/Posts.components";
 // import AdminPost from "./components/AdminPost";
 import { useAppContext } from "../../context/useContext";
 import UserGrid from "./components/UserGrid";

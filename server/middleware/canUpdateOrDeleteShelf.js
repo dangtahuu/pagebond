@@ -4,12 +4,17 @@ const canUpdateOrDeleteShelf = async (req, res, next) => {
 
     try {
         // const shelf_id = req.params.id;
-        const { shelfId } = req.body
+        const { id } = req.body
         const { userId } = req.user;
-        const shelf = await Shelf.findById(shelfId)
+        const shelf = await Shelf.findById(id)
         if (!shelf) {
             return res.status(400).json({ msg: "No shelf found!" })
         }
+
+        console.log('hello')
+
+        console.log(userId)
+        console.log(shelf.owner.toString())
         if (userId !== shelf.owner.toString()) {
             return res.status(401).json({ msg: "Authentication invalid!" })
         }

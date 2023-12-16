@@ -58,6 +58,31 @@ const getBook = async (req, res) => {
   }
 };
 
+const getBookBySameAuthor = async (req, res) => {
+  const id = req.params.id;
+  if (!id) {
+    return res.status(400).json({ msg: "Book Id is required!" });
+  }
+
+  try {
+
+    const originalBook = await Book.findById(id);
+
+    const books = await Book.find({author: originalBook.author});
+
+    if (!books) {
+      return res.status(400).json({ msg: "No book found!" });
+    }
+
+    return res.status(200).json({
+      books
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
 async function deleteAll(req, res) {
   // return('aaa')
 
@@ -437,23 +462,15 @@ const getPopularBooks = async (req, res) => {
         $match: { pacing: pacing },
       });
     }
-
-    // pipeline.push({ $group: { _id: null, count: { $sum: 1 } } });
-    // const bookCount = await Book.aggregate(pipeline);
-    // console.log(bookCount[0].count);
-console.log(pagination)
-    // pipeline.pop();
   
     pipeline.push({
-      $skip: (pagination - 1) * 50,
+      $skip: (pagination - 1) * 48,
     });
     pipeline.push({
-      $limit: 50,
+      $limit: 48,
     });
     const books = await Book.aggregate(pipeline);
-    console.log(books)
 
-// console.log(books.slice(0,5))
     return res.status(200).json({ books });
   } catch (error) {
     console.log(error);
@@ -461,72 +478,11 @@ console.log(pagination)
   }
 };
 
-const getPopularBooksWithGenre = async (req, res) => {
-  try {
-    const { limit, genre, rating, pacing, page } = req.query.limit;
-
-    if (!genre) return res.status(400).json({ msg: "Genre is required!" });
-    let allData;
-    if (limit && limit != -1) {
-      const today = new Date();
-      const daysAgo = new Date(today);
-      daysAgo.setDate(today.getDate() - limit);
-      // const posts = await Post.find({ createdAt: { $gt: daysAgo } });
-      const reviews = await Review.find({
-        createdAt: { $gt: daysAgo },
-      }).populate("book");
-      // const trades = await Trade.find({ createdAt: { $gt: daysAgo } });
-      allData = [...reviews];
-    } else {
-      // const posts = await Post.find({});
-      const reviews = await Review.find({}).populate("book");
-
-      // console.log(reviews[0])
-      // const trades = await Trade.find({});
-      allData = [...reviews];
-    }
-    // console.log(allData[0])
-    const books = {};
-    if (genre) {
-      for (const post of allData) {
-        if (
-          post.book.genres?.includes(genre) ||
-          post.book.topShelves?.includes(genre)
-        )
-          books[post.book._id] = (books[post.book._id] || 0) + 1;
-      }
-    } else {
-      for (const post of allData) {
-        books[post.book] = (books[post.book] || 0) + 1;
-      }
-    }
-
-    const sortedBooks = sortObjectDes(books);
-
-    const topBooks = Object.fromEntries(
-      Object.entries(sortedBooks).slice(0, 20)
-    );
-
-    const topBooksIds = Object.keys(topBooks);
-
-    const list = [];
-    for (const id of topBooksIds) {
-      const detailedBook = await Book.find({
-        _id: id,
-      });
-      list.push(...detailedBook);
-    }
-
-    return res.status(200).json({ books: list });
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json({ msg: "Something went wrong. Try again!" });
-  }
-};
 
 export {
   searchBook,
   getBook,
+  getBookBySameAuthor,
   deleteAll,
   editAll,
   getSimilarBooks,
@@ -535,5 +491,4 @@ export {
   getPopularGenres,
   fixGenres,
   getPopularBooks,
-  getPopularBooksWithGenre,
 };

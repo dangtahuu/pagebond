@@ -19,7 +19,7 @@ def recommend_books(id):
     similar_books['similarity'] = similarity_scores
     similar_books = similar_books.sort_values(by='similarity', ascending=False)
     
-    result = similar_books.head(11)
+    result = similar_books.head(30)
     id_array = result['_id'].values.tolist()
     return id_array
 

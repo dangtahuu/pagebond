@@ -16,12 +16,21 @@ import { MdCancel } from "react-icons/md";
 // // @ts-ignore
 // const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
 //   reconnection: true,
+
+
 // });
+const AI_ID = process.env.REACT_APP_AI_ID;
+
+function hasObjectWithFieldAndValue(arr, field, value) {
+  return arr.some(obj => obj.hasOwnProperty(field) && obj[field] === value);
+}
 
 const CHANGE_ALL_MESSAGES = "CHANGE_ALL_MESSAGES";
 const GET_DATA_SUCCESS = "GET_DATA_SUCCESS";
 const CLEAR_IN_NEW_MESSAGE = "CLEAR_IN_NEW_MESSAGE";
 const SET_LOADING = "SET_LOADING";
+const SET_AI_LOADING = "SET_AI_LOADING";
+
 const SET_ONE_STATE = "SET_ONE_STATE";
 const HANDLE_SEND_MESSAGE = "HANDLE_SEND_MESSAGE";
 const HANDLE_DELETE_MESSAGE = "HANDLE_DELETE_MESSAGE";
@@ -74,6 +83,12 @@ const reducer = (state, action) => {
       return {
         ...state,
         loading: action.payload.data,
+      };
+    }
+    case SET_AI_LOADING: {
+      return {
+        ...state,
+        AILoading: action.payload.data,
       };
     }
     case SET_ONE_STATE: {
@@ -185,6 +200,7 @@ const Message = () => {
     text: "", /// text in input send new message
     // textSearch: "",
     loading: false, // loading
+    AILoading: false,
     isNewMessage: false, // Mode new message
     // textSearchNewMessage: "", // Text for search input to add people
     // listPeopleToNewMessage: [],
@@ -229,6 +245,17 @@ const Message = () => {
       },
     });
   };
+
+  const setAILoading = (value) => {
+    // @ts-ignore
+    dispatch({
+      type: SET_AI_LOADING,
+      payload: {
+        data: value,
+      },
+    });
+  };
+
   const setPageState = (name, value) => {
     // @ts-ignore
     dispatch({
@@ -413,12 +440,11 @@ const Message = () => {
   };
 
   const handleSendMess = async (receivedId) => {
-    // console.log('bbbbb')
-    // console.log(receivedId)
     setLoading(true);
+    const { text } = state;
     try {
-      let dt;
-      const { text } = state;
+    console.log('yeah')
+
       let imageUrl = image;
       if (imageUrl.url) {
         imageUrl = await handleUpImageToCloud();
@@ -428,64 +454,87 @@ const Message = () => {
           return;
         }
       }
-      dt = await autoFetch.put("/api/message/send-message", {
+      const {data} = await autoFetch.put("/api/message/send-message", {
         text,
         receivedId: receivedId,
         image: imageUrl,
       });
-      // }
 
       let id = "";
       let newSourceData = state.sourceMessage.filter((d) => {
-        if (d._id === dt.data.message._id) {
+        if (d._id === data.message._id) {
           id = d._id;
-          d.content = dt.data.message.content;
+          d.content = data.message.content;
         }
         return d;
       });
 
       let mainData;
-      mainData = id ? newSourceData : [dt.data.message, ...state.sourceMessage];
+      mainData = id ? newSourceData : [data.message, ...state.sourceMessage];
 
       dispatch({
         type: HANDLE_SEND_MESSAGE,
         payload: {
           allMessages: mainData,
           sourceMessage: mainData,
-          index: dt.data.message._id,
+          index: data.message._id,
         },
       });
       setImage(initImage);
 
-      if (!dt.data.ai_res) socket.emit("new-message", dt.data.message);
+      socket.emit("new-message", data.message);
     } catch (error) {
       console.log(error);
       if (error.response && error.response.data.msg) {
         toast.error(error.response.data.msg);
       }
     }
-    setLoading(false);
+    console.log('aaaaa')
+    setLoading(false) ;
+    console.log(AI_ID)
+    console.log(receivedId)
+      if(AI_ID === receivedId) {
+        handleAIRes(text)
+      }
   };
 
-  // const searchPeopleToNewMessage = async (textSearchNewMessage) => {
-  //     if (!textSearchNewMessage) {
-  //         return;
-  //     }
-  //     try {
-  //         const {data} = await autoFetch.get(
-  //             `/api/auth/search-user/${textSearchNewMessage}`
-  //         );
-  //         // @ts-ignore
-  //         dispatch({
-  //             type: SEARCH_USER_TO_NEW_MESSAGE,
-  //             payload: {
-  //                 listPeopleToNewMessage: data.search,
-  //             },
-  //         });
-  //     } catch (error) {
-  //         console.log(error);
-  //     }
-  // };
+
+  const handleAIRes = async(text)=>{
+    console.log('ai is repl')
+    setAILoading(true)
+    try{
+      const {data} = await autoFetch.put("/api/message/get-ai-res", {
+        text,
+        // receivedId: receivedId,
+        // image: imageUrl,
+      });
+      console.log(data)
+      let id = "";
+      let newSourceData = state.sourceMessage.filter((d) => {
+        if (d._id === data.message._id) {
+          id = d._id;
+          d.content = data.message.content;
+        }
+        return d;
+      });
+
+      let mainData;
+      mainData = id ? newSourceData : [data.message, ...state.sourceMessage];
+
+      dispatch({
+        type: HANDLE_SEND_MESSAGE,
+        payload: {
+          allMessages: mainData,
+          sourceMessage: mainData,
+          index: data.message._id,
+        },
+      });
+    }catch(error){
+      console.log(error)
+    }
+    setAILoading(false)
+
+  }
 
   // set image to show in form
   const handleImage = (e) => {
@@ -529,6 +578,7 @@ const Message = () => {
             user={user}
             handleDeleteMess={handleDeleteMess}
             navigateToProfile={navigateToProfile}
+            AI_ID={AI_ID}
           />
 
           {/* form add new message */}
@@ -539,28 +589,8 @@ const Message = () => {
               className="flex-grow-0 py-3 px-4"
               onSubmit={(e) => {
                 e.preventDefault();
-                console.log(state.isNewMessage);
-                // if (state.isNewMessage) {
-                //     if (
-                //         state.listResultByPeopleSearch
-                //             .length === 1
-                //     ) {
-                //         console.log(state.listResultByPeopleSearch[0])
-                //         // setPageState(
-                //         //     "receiveUser",
-                //         //     state.listResultByPeopleSearch[0]
-                //         // );
-                //         console.log(state.receiveUser)
-                //     } else {
-                //         setPageState("isGroup", true);
-                //     }
-                //     handleSendMess(state.receiveUser._id);
-                // } else {
-                //     if (!state.text || !state.receiveUser) {
-                //         return;
-                //     }
+           
                 handleSendMess(state.receiveUser._id);
-                // }
               }}
             >
               <div className="w-full rounded-full flex gap-x-2 items-center relative ">
@@ -599,14 +629,11 @@ const Message = () => {
                   onChange={(e) => setPageState("text", e.target.value)}
                   disabled={
                     !state.receiveUser || state.loading
-                    // ||
-                    // (state.isNewMessage &&
-                    //     !state.listResultByPeopleSearch
-                    //         .length)
                   }
                   ref={emailInputRef}
                 />
-                <label>
+                {state.receiveUser._id !== AI_ID &&
+                  <label>
                   <AiOutlineCamera className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 dark:text-[#b0b3b8] cursor-pointer " />
                   <input
                     onChange={handleImage}
@@ -615,16 +642,13 @@ const Message = () => {
                     name="avatar"
                     hidden
                   />
-                </label>
+                </label>}
+              
                 <button
                   className="shrink-0 text-xl opacity-50 hover:opacity-80 cursor-pointer  "
                   type="submit"
                   disabled={
                     !state.receiveUser || state.loading || !state.text
-                    // ||
-                    // (state.isNewMessage &&
-                    //     state.listResultByPeopleSearch
-                    //         .length === 0)
                   }
                 >
                   {state.loading ? (

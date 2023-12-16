@@ -167,7 +167,7 @@ const Review = ({
         {filterBox && (
           <div
             ref={filterRef}
-            className="absolute p-3 rounded-lg right-0 top-[32px] w-[400px] bg-dialogue"
+            className="absolute p-3 z-[150] rounded-lg right-0 top-[32px] w-[400px] bg-dialogue"
           >
             <div className="text-sm font-bold mb-2">Sort reviews</div>
             <div>

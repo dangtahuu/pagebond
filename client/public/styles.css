@@ -1266,6 +1266,10 @@ body,
   z-index: 99;
 }
 
+.z-\[150\] {
+  z-index: 150;
+}
+
 .order-1 {
   order: 1;
 }
@@ -1516,6 +1520,10 @@ body,
   margin-top: 60px;
 }
 
+.mb-5 {
+  margin-bottom: 1.25rem;
+}
+
 .block {
   display: block;
 }
@@ -1729,6 +1737,10 @@ body,
 }
 
 .min-h-screen {
+  min-height: 100vh;
+}
+
+.min-h-\[100vh\] {
   min-height: 100vh;
 }
 
@@ -2487,10 +2499,6 @@ body,
 .border-t-dialogue {
   --tw-border-opacity: 1;
   border-top-color: rgb(68 85 102 / var(--tw-border-opacity));
-}
-
-.border-opacity-10 {
-  --tw-border-opacity: 0.1;
 }
 
 .border-opacity-50 {

@@ -52,7 +52,7 @@ function Similar({books, name}) {
         {books.map((v) => (
           <div className="max-w-sm mr-5 cursor-pointer  rounded-lg overflow-hidden shadow-md hover:shadow-xl"
           onClick={()=>{
-            navigate(`book/${v.id}`)
+            navigate(`/book/${v._id}`)
           }}>
             <div className="w-full h-[224px] overflow-hidden">
               <img

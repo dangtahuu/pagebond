@@ -61,7 +61,12 @@ const bookToShelf = async (req, res) => {
     }
 
     const shelves = await Shelf.find({
-    $and:[{  books: { $in: [book.id] } },{type: 1},{name: {$ne: "to read"}}]
+      $and: [
+        { books: { $in: [book.id] } },
+        { type: 1 },
+        { name: { $ne: "to read" } },
+        { name: { $ne: "favorites" } }
+      ]
     });
 
     const shelfNameCount = {};
@@ -79,6 +84,49 @@ const bookToShelf = async (req, res) => {
     }) 
 
     return res.status(200).json({ selected });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+
+const addToTBR = async (req, res) => {
+  const { id } = req.body;
+  const { userId } = req.user;
+
+  if (!id) {
+    return res.status(400).json({ msg: "Book Id is required!" });
+  }
+
+  try {
+        const shelf = await Shelf.findOneAndUpdate({$and: [{name: "to read"},{owner: userId}]}, {
+          $addToSet: {
+            books: id,
+          },
+        });
+    return res.status(200).json({ shelf });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const removeFromTBR = async (req, res) => {
+  const { id } = req.body;
+  const { userId } = req.user;
+
+  if (!id) {
+    return res.status(400).json({ msg: "Book Id is required!" });
+  }
+
+  try {
+        const shelf = await Shelf.findOneAndUpdate({$and: [{name: "to read"},{owner: userId}]}, {
+          $pull: {
+            books: id,
+          },
+        });
+    return res.status(200).json({ shelf });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ msg: err });
@@ -104,7 +152,9 @@ const getSelectedShelves = async (req, res) => {
       $and: [{ owner: req.user.userId }, { books: { $in: [book] } }],
     });
     const ids = shelves.map((x) => x._id);
-    return res.status(200).json({ ids });
+    const names = shelves.map((x) => x.name);
+
+    return res.status(200).json({ ids, names });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -217,4 +267,6 @@ export {
   deleteShelf,
   getTopShelvesOfBook,
   massAdd,
+  addToTBR,
+  removeFromTBR,
 };

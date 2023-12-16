@@ -4,6 +4,7 @@ import {
     deleteAll,
     editAll,
     getBook,
+    getBookBySameAuthor,
    searchBook,
    getSimilarBooks,
    getSimilarBooksForMultipleBooks,
@@ -11,7 +12,6 @@ import {
    getPopularGenres,
    fixGenres,
    getPopularBooks,
-   getPopularBooksWithGenre
 } from "../controllers/book.js";
 import formidable from "express-formidable";
 import isAdmin from "../middleware/isAdmin.js";
@@ -24,6 +24,8 @@ router.route("/").get(async (req, res) => {
 
 router.route("/search-book").get(searchBook);
 router.route("/get-book/:id").get(getBook);
+router.route("/get-book-author/:id").get(getBookBySameAuthor);
+
 router.route("/delete-book").delete(deleteAll);
 router.route("/edit-book").put(editAll);
 router.route("/get-similar-books/:id").get(getSimilarBooks);
@@ -35,7 +37,6 @@ router.route("/fix-genres").patch(fixGenres)
 
 router.route("/get-popular-genres").get(getPopularGenres)
 router.route("/popular-books").get(getPopularBooks)
-router.route("/popular-books-with-genre").get(getPopularBooksWithGenre)
 
 
 

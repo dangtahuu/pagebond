@@ -8,10 +8,14 @@ import { useLocation } from "react-router-dom";
 import HeaderMenu from "../../common/HeaderMenu";
 import { IoFilterOutline } from "react-icons/io5";
 import useOnClickOutside from "../../../hooks/useOnClickOutside";
+import ReactLoading from "react-loading";
+
 function Browse() {
   const navigate = useNavigate();
-  const { id } = useParams();
   const { autoFetch } = useAppContext();
+  const [userLoading, setUserLoading] = useState(false);
+  const [bookLoading, setBookLoading] = useState(false);
+
   const list = {
     "Last week": 7,
     "Last month": 30,
@@ -91,7 +95,6 @@ function Browse() {
   useOnClickOutside(filterRef, () => setFilterBox(false), exceptionRef);
 
   useEffect(() => {
-    console.log("aaaa");
     getPopularBooks();
   }, [limit, genre, rating, page, pacing, pagination]);
 
@@ -100,6 +103,7 @@ function Browse() {
   }, [limit]);
 
   const getPopularUsers = async () => {
+    setUserLoading(true);
     try {
       const limitDate = limit || 7;
       const { data } = await autoFetch.get(
@@ -110,9 +114,11 @@ function Browse() {
     } catch (e) {
       console.log(e);
     }
+    setUserLoading(false);
   };
 
   const getPopularBooks = async () => {
+    setBookLoading(true);
     try {
       const { data } = await autoFetch.get(
         `api/book/popular-books?limit=${limit}&genre=${encodeURIComponent(
@@ -124,20 +130,7 @@ function Browse() {
     } catch (e) {
       console.log(e);
     }
-  };
-
-  const getMorePopularBooks = async () => {
-    try {
-      const { data } = await autoFetch.get(
-        `api/book/popular-books?limit=${limit}&genre=${encodeURIComponent(
-          JSON.stringify(genre)
-        )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=${pagination}`
-      );
-      setPopularBooks(data.books);
-      if (data.books.length < 50) setHasMoreBooks(false);
-    } catch (e) {
-      console.log(e);
-    }
+    setBookLoading(false);
   };
 
   const menuHandler = (value) => {
@@ -149,8 +142,120 @@ function Browse() {
     );
   };
 
+  const UserSection = () => {
+    if (userLoading)
+      return (
+        <div className="w-full flex justify-center">
+          <ReactLoading type="spin" width={30} height={30} color="#7d838c" />
+        </div>
+      );
+
+    return (
+      <div className="grid grid-cols-5 gap-x-3">
+        {popularUsers.map((person) => {
+          return (
+            <div
+              className="flex flex-col gap-y-2 bg-dialogue rounded-lg items-center p-3 cursor-pointer"
+              onClick={() => {
+                navigate(`/profile/${person._id}`);
+              }}
+              key={person._id}
+            >
+              <img
+                className="rounded-full w-[40%]"
+                src={person.image.url}
+                alt=""
+              />
+              <div className="font-bold">{person.name}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const BookSection = () => {
+    if(bookLoading) 
+    return <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+
+    return (
+      <div>
+           
+
+            <div className="grid grid-cols-8 gap-x-1">
+              {popularBooks.map((v) => {
+                return (
+                  <div
+                    className="max-w-sm mr-5 cursor-pointer  rounded-lg overflow-hidden shadow-md hover:shadow-xl"
+                    onClick={() => {
+                      navigate(`/book/${v._id}`);
+                    }}
+                  >
+                    <div className="w-full h-[140px] overflow-hidden">
+                      <img
+                        className="w-full h-full object-fill hover:scale-110 transition-transform duration-500 overflow-hidden"
+                        src={
+                          v.thumbnail ||
+                          "https://sciendo.com/product-not-found.png"
+                        }
+                        alt=""
+                      />
+                    </div>
+                    <div className="px-4 py-2">
+                      <div className="font-bold text-xs mb-2">
+                        {v.title.slice(0, 30)}
+                      </div>
+                      <p className="text-gray-700 text-xs">
+                        {v.author ? v.author.slice(0, 20) : "Unknown author"}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-between mt-10">
+              <div>
+                {pagination > 1 && (
+                  <button
+                    className="bg-altDialogue w-[80px] px-2 py-1 rounded-md text-sm"
+                    onClick={() => {
+                      navigate(
+                        `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                          JSON.stringify(genre)
+                        )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=${
+                          pagination - 1
+                        }`
+                      );
+                    }}
+                  >
+                    Previous
+                  </button>
+                )}
+              </div>
+              {hasMoreBooks && (
+                <button
+                  className="bg-altDialogue w-[80px] px-2 py-1 rounded-md text-sm"
+                  onClick={() => {
+                    navigate(
+                      `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                        JSON.stringify(genre)
+                      )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=${
+                        pagination + 1
+                      }`
+                    );
+                  }}
+                >
+                  Next
+                </button>
+              )}
+            </div>
+          </div>
+    )
+  };
+
   return (
-    <div className="min-h-[150vh]">
+    <div className="min-h-[100vh]">
       <div className="flex justify-center mt-4 ">
         <HeaderMenu
           list={Object.keys(list)}
@@ -161,221 +266,137 @@ function Browse() {
 
       <div>
         <div className="serif-display text-2xl my-2">Popular members</div>
-        <div className="grid grid-cols-5 gap-x-3">
-          {popularUsers.map((person) => {
-            return (
-              <div
-                className="flex flex-col gap-y-2 bg-dialogue rounded-lg items-center p-3 cursor-pointer"
-                onClick={() => {
-                  navigate(`/profile/${person._id}`);
-                }}
-                key={person._id}
-              >
-                <img
-                  className="rounded-full w-[40%]"
-                  src={person.image.url}
-                  alt=""
-                />
-                <div className="font-bold">{person.name}</div>
-              </div>
-            );
-          })}
-        </div>
+        <UserSection />
       </div>
 
       <div>
         <div className="flex justify-between items-center mt-8 mb-4">
           <div className="serif-display text-2xl ">Popular books</div>
           <div className="relative">
-            <div ref={exceptionRef}>
-              <IoFilterOutline
-                onClick={() => {
-                  setFilterBox((prev) => !prev);
-                }}
-                className="text-xl cursor-pointer"
-              />
-            </div>
-
-            {filterBox && (
-              <div
-                ref={filterRef}
-                className="absolute p-3 rounded-lg right-0 top-[32px] w-[400px] bg-dialogue"
-              >
-                <div className="text-sm font-bold mb-2">
-                  Filter by genres or moods
-                </div>
-                <div className="border-smallText border-b-[1px] border-opacity-50 pb-1">
-                  {genres.map((one) => (
-                    <div
-                      onClick={() => {
-                        navigate(
-                          `/browse/?limit=${limit}&genre=${encodeURIComponent(
-                            JSON.stringify(one)
-                          )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=1`
-                        );
-                      }}
-                      key={one}
-                      className={`cursor-pointer text-xs inline-block rounded-full ${
-                        genre === one ? "bg-greenBtn" : "bg-mainbg"
-                      } px-2 py-1 my-1 mr-1`}
-                    >
-                      {one}
-                    </div>
-                  ))}
-                </div>
-                <div className="pt-1">
-                  {moods.map((one) => (
-                    <div
-                      onClick={() => {
-                        navigate(
-                          `/browse/?limit=${limit}&genre=${encodeURIComponent(
-                            JSON.stringify(one)
-                          )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=1`
-                        );
-                      }}
-                      key={one}
-                      className={`cursor-pointer text-xs inline-block rounded-full ${
-                        genre === one ? "bg-greenBtn" : "bg-mainbg"
-                      } px-2 py-1 my-1 mr-1`}
-                    >
-                      {one}
-                    </div>
-                  ))}
-                </div>
-                <div className="text-sm font-bold my-1">Rating</div>
-
-                <div className="">
-                  {ratingList.map((one) => (
-                    <div
-                      onClick={() => {
-                        navigate(
-                          `/browse/?limit=${limit}&genre=${encodeURIComponent(
-                            JSON.stringify(genre)
-                          )}&rating=${one}&pacing=${pacing}&page=${page}&pagination=1`
-                        );
-                      }}
-                      key={one}
-                      className={`cursor-pointer text-xs inline-block rounded-full ${
-                        rating === one ? "bg-greenBtn" : "bg-mainbg"
-                      } px-2 py-1 my-1 mr-1`}
-                    >
-                      {one}
-                    </div>
-                  ))}
-                </div>
-                <div className="text-sm font-bold my-1">Page count</div>
-
-                <div className="">
-                  {pageCountList.map((one) => (
-                    <div
-                      onClick={() => {
-                        navigate(
-                          `/browse/?limit=${limit}&genre=${encodeURIComponent(
-                            JSON.stringify(genre)
-                          )}&rating=${rating}&pacing=${pacing}&page=${one}&pagination=1`
-                        );
-                      }}
-                      key={one}
-                      className={`cursor-pointer text-xs inline-block rounded-full ${
-                        page === one ? "bg-greenBtn" : "bg-mainbg"
-                      } px-2 py-1 my-1 mr-1`}
-                    >
-                      {one}
-                    </div>
-                  ))}
-                </div>
-                <div className="text-sm font-bold my-1">Pacing</div>
-
-                <div className="">
-                  {pacingList.map((one) => (
-                    <div
-                      onClick={() => {
-                        navigate(
-                          `/browse/?limit=${limit}&genre=${encodeURIComponent(
-                            JSON.stringify(genre)
-                          )}&rating=${rating}&pacing=${one}&page=${page}&pagination=1`
-                        );
-                      }}
-                      key={one}
-                      className={`cursor-pointer text-xs inline-block rounded-full ${
-                        pacing === one ? "bg-greenBtn" : "bg-mainbg"
-                      } px-2 py-1 my-1 mr-1`}
-                    >
-                      {one}
-                    </div>
-                  ))}
-                </div>
+              <div ref={exceptionRef}>
+                <IoFilterOutline
+                  onClick={() => {
+                    setFilterBox((prev) => !prev);
+                  }}
+                  className="text-xl cursor-pointer"
+                />
               </div>
-            )}
-          </div>
-        </div>
-        <div className="grid grid-cols-8 gap-x-1">
-          {popularBooks.map((v) => {
-            return (
-              <div
-                className="max-w-sm mr-5 cursor-pointer  rounded-lg overflow-hidden shadow-md hover:shadow-xl"
-                onClick={() => {
-                  navigate(`/book/${v._id}`);
-                }}
-              >
-                <div className="w-full h-[140px] overflow-hidden">
-                  <img
-                    className="w-full h-full object-fill hover:scale-110 transition-transform duration-500 overflow-hidden"
-                    src={
-                      v.thumbnail || "https://sciendo.com/product-not-found.png"
-                    }
-                    alt=""
-                  />
-                </div>
-                <div className="px-4 py-2">
-                  <div className="font-bold text-xs mb-2">
-                    {v.title.slice(0, 30)}
+
+              {filterBox && (
+                <div
+                  ref={filterRef}
+                  className="absolute p-3 rounded-lg right-0 top-[32px] w-[400px] bg-dialogue"
+                >
+                  <div className="text-sm font-bold mb-2">
+                    Filter by genres or moods
                   </div>
-                  <p className="text-gray-700 text-xs">
-                    {v.author ? v.author.slice(0, 20) : "Unknown author"}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                  <div className="border-smallText border-b-[1px] border-opacity-50 pb-1">
+                    {genres.map((one) => (
+                      <div
+                        onClick={() => {
+                          navigate(
+                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                              JSON.stringify(one)
+                            )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=1`
+                          );
+                        }}
+                        key={one}
+                        className={`cursor-pointer text-xs inline-block rounded-full ${
+                          genre === one ? "bg-greenBtn" : "bg-mainbg"
+                        } px-2 py-1 my-1 mr-1`}
+                      >
+                        {one}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pt-1">
+                    {moods.map((one) => (
+                      <div
+                        onClick={() => {
+                          navigate(
+                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                              JSON.stringify(one)
+                            )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=1`
+                          );
+                        }}
+                        key={one}
+                        className={`cursor-pointer text-xs inline-block rounded-full ${
+                          genre === one ? "bg-greenBtn" : "bg-mainbg"
+                        } px-2 py-1 my-1 mr-1`}
+                      >
+                        {one}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-sm font-bold my-1">Rating</div>
 
-        <div className="flex justify-between mt-10">
-          <div>
-            {pagination > 1 && (
-              <button
-                className="bg-altDialogue w-[80px] px-2 py-1 rounded-md text-sm"
-                onClick={() => {
-                  navigate(
-                    `/browse/?limit=${limit}&genre=${encodeURIComponent(
-                      JSON.stringify(genre)
-                    )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=${
-                      pagination - 1
-                    }`
-                  );
-                }}
-              >
-                Previous
-              </button>
-            )}
-          </div>
-          {hasMoreBooks && (
-            <button
-              className="bg-altDialogue w-[80px] px-2 py-1 rounded-md text-sm"
-              onClick={() => {
-                navigate(
-                  `/browse/?limit=${limit}&genre=${encodeURIComponent(
-                    JSON.stringify(genre)
-                  )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=${
-                    pagination + 1
-                  }`
-                );
-              }}
-            >
-              Next
-            </button>
-          )}
+                  <div className="">
+                    {ratingList.map((one) => (
+                      <div
+                        onClick={() => {
+                          navigate(
+                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                              JSON.stringify(genre)
+                            )}&rating=${one}&pacing=${pacing}&page=${page}&pagination=1`
+                          );
+                        }}
+                        key={one}
+                        className={`cursor-pointer text-xs inline-block rounded-full ${
+                          rating === one ? "bg-greenBtn" : "bg-mainbg"
+                        } px-2 py-1 my-1 mr-1`}
+                      >
+                        {one}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-sm font-bold my-1">Page count</div>
+
+                  <div className="">
+                    {pageCountList.map((one) => (
+                      <div
+                        onClick={() => {
+                          navigate(
+                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                              JSON.stringify(genre)
+                            )}&rating=${rating}&pacing=${pacing}&page=${one}&pagination=1`
+                          );
+                        }}
+                        key={one}
+                        className={`cursor-pointer text-xs inline-block rounded-full ${
+                          page === one ? "bg-greenBtn" : "bg-mainbg"
+                        } px-2 py-1 my-1 mr-1`}
+                      >
+                        {one}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-sm font-bold my-1">Pacing</div>
+
+                  <div className="">
+                    {pacingList.map((one) => (
+                      <div
+                        onClick={() => {
+                          navigate(
+                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                              JSON.stringify(genre)
+                            )}&rating=${rating}&pacing=${one}&page=${page}&pagination=1`
+                          );
+                        }}
+                        key={one}
+                        className={`cursor-pointer text-xs inline-block rounded-full ${
+                          pacing === one ? "bg-greenBtn" : "bg-mainbg"
+                        } px-2 py-1 my-1 mr-1`}
+                      >
+                        {one}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
         </div>
+        <BookSection/>
+
       </div>
     </div>
   );
