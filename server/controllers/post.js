@@ -7,6 +7,7 @@ import SpecialPost from "../models/specialPost.js";
 import cloudinary from "cloudinary";
 import mongoose from "mongoose";
 import Log from "../models/log.js";
+import Hashtag from "../models/hashtag.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -23,24 +24,40 @@ const shuffle = (array) => {
 };
 
 const createPost = async (req, res) => {
-  const { text, image, title } = req.body;
+  const { text, image, title, hashtag } = req.body;
 
   if (!text.length) {
     return res.status(400).json({ msg: "You need to provide some content!" });
   }
 
   try {
+    let hashtagsIds = [];
+    if (hashtag.length) {
+      let uniqueTags = [...new Set(hashtag)];
+      for (const one of uniqueTags) {
+        let tag;
+        tag = await Hashtag.findOneAndUpdate(
+          { name: one },
+          { $inc: { numberOfPosts: 1 } }
+        );
+        if (!tag) {
+          tag = await Hashtag.create({ name: one });
+        }
+        hashtagsIds.push(tag._id);
+      }
+    }
+
     const post = await Post.create({
       text,
       postedBy: req.user.userId,
       image,
       title,
+      hashtag: hashtagsIds,
     });
 
-    const postWithUser = await Post.findById(post._id).populate(
-      "postedBy",
-      "-password -secret"
-    );
+    const postWithUser = await Post.findById(post._id)
+      .populate("postedBy", "-password -secret")
+      .populate("hashtag");
     return res
       .status(200)
       .json({ post: postWithUser, msg: "Create new post succesfully" });
@@ -54,6 +71,7 @@ const getAll = async (req, res) => {
   try {
     const posts = await Post.find({})
       .populate("postedBy", "-password -secret")
+      .populate("hashtag")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
@@ -68,7 +86,7 @@ const getAll = async (req, res) => {
 
 const getAllReported = async (req, res) => {
   try {
-    const posts = await Post.find({reported: true})
+    const posts = await Post.find({ reported: true })
       .populate("postedBy", "-password -secret")
       .sort({ createdAt: -1 });
     if (!posts) {
@@ -103,7 +121,8 @@ const getPost = async (req, res) => {
     const postId = req.params.id;
     const post = await Post.findById(postId)
       .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret");
+      .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag");
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
     }
@@ -133,6 +152,7 @@ const getFollowing = async (req, res) => {
       .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
       .sort({ createdAt: -1 })
       .limit(perPage);
     return res.status(200).json({ posts });
@@ -145,25 +165,56 @@ const getFollowing = async (req, res) => {
 const editPost = async (req, res) => {
   try {
     const postId = req.params.id;
-    const { text, image, title } = req.body;
+    const { text, image, title, hashtag } = req.body;
     if (!text.length) {
       return res.status(400).json({ msg: "You need to provide some content!" });
     }
+    const oldPost = await Post.findById(postId).populate("hashtag");
+
+    if (!oldPost) {
+      return res.status(400).json({ msg: "No post found!" });
+    }
+
+    const oldTags = [...new Set(oldPost.hashtag.map((one) => one.name))];
+    const newTags = [...new Set(hashtag)];
+    let hashtagIds = [];
+    if (newTags !== oldTags) {
+      if (oldTags.length > 0) {
+        for (const one of oldTags) {
+          await Hashtag.findOneAndUpdate(
+            { name: one },
+            { $inc: { numberOfPosts: -1 } }
+          );
+        }
+      }
+      if (newTags.length > 0) {
+        for (const one of newTags) {
+          let result = await Hashtag.findOneAndUpdate(
+            { name: one },
+            { $inc: { numberOfPosts: 1 } }
+          );
+          if (!result) result = await Hashtag.create({ name: one });
+          hashtagIds.push(result._id);
+        }
+      }
+    }
+
     const post = await Post.findByIdAndUpdate(
       postId,
       {
         text,
         image,
         title,
+        hashtag: hashtagIds,
       },
-      {
-        new: true,
-      }
+      { new: true, populate: { path: "hashtag" } }
     );
-    if (!post) {
-      return res.status(400).json({ msg: "No post found!" });
-    }
-    return res.status(200).json({ msg: "Updated posts!", post });
+
+    console.log(post)
+    // const newPost = await Post.findById(postId)
+    // .populate("hashtag")
+
+    return res.status(200).json({ msg: "Updated posts!", post: post });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -173,7 +224,6 @@ const editPost = async (req, res) => {
 const deletePost = async (req, res) => {
   try {
     const postId = req.params.id;
-    console.log('00000000')
     const post = await Post.findByIdAndDelete(postId);
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
@@ -181,6 +231,17 @@ const deletePost = async (req, res) => {
     if (post.image && post.image.public_id) {
       await cloudinary.v2.uploader.destroy(post.image.public_id);
     }
+
+    if (post.hashtag.length > 0) {
+      const uniqueTags = [...new Set(post.hashtag)];
+      for (const one of uniqueTags) {
+        await Hashtag.findOneAndUpdate(
+          { name: one },
+          { $inc: { numberOfPosts: -1 } }
+        );
+      }
+    }
+
     return res.status(200).json({ msg: "Deleted post!" });
   } catch (error) {
     return res.status(400).json({ msg: error });
@@ -202,19 +263,17 @@ const likePost = async (req, res) => {
     );
 
     const user = await User.findByIdAndUpdate(post.postedBy, {
-      
-      $inc: { points: 5 }
-
+      $inc: { points: 5 },
     });
 
     const log = await Log.create({
       toUser: post.postedBy,
       fromUser: req.user.userId,
       linkTo: post._id,
-      typeOfLink: 'Post',
-      type:3,
+      typeOfLink: "Post",
+      type: 3,
       points: 5,
-    })
+    });
 
     return res.status(200).json({ post });
   } catch (error) {
@@ -235,21 +294,19 @@ const unlikePost = async (req, res) => {
         new: true,
       }
     );
-    
-    const user = await User.findByIdAndUpdate(post.postedBy, {
-      
-      $inc: { points: -5 }
 
+    const user = await User.findByIdAndUpdate(post.postedBy, {
+      $inc: { points: -5 },
     });
 
     const log = await Log.create({
       toUser: post.postedBy,
       fromUser: req.user.userId,
       linkTo: post._id,
-      typeOfLink: 'Post',
-      type:4,
+      typeOfLink: "Post",
+      type: 4,
       points: -5,
-    })
+    });
     return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
@@ -278,20 +335,18 @@ const addComment = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret");
 
-      const user = await User.findByIdAndUpdate(post.postedBy, {
-      
-        $inc: { points: 20 }
-  
-      });
-  
-      const log = await Log.create({
-        toUser: post.postedBy,
-        fromUser: req.user.userId,
-        linkTo: post._id,
-        typeOfLink: 'Post',
-        type:5,
-        points: 20,
-      })
+    const user = await User.findByIdAndUpdate(post.postedBy, {
+      $inc: { points: 20 },
+    });
+
+    const log = await Log.create({
+      toUser: post.postedBy,
+      fromUser: req.user.userId,
+      linkTo: post._id,
+      typeOfLink: "Post",
+      type: 5,
+      points: 20,
+    });
     return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
@@ -314,20 +369,18 @@ const removeComment = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret");
 
-      const user = await User.findByIdAndUpdate(post.postedBy, {
-      
-        $inc: { points: -20 }
-  
-      });
-  
-      const log = await Log.create({
-        toUser: post.postedBy,
-        fromUser: req.user.userId,
-        linkTo: post._id,
-        typeOfLink: 'Post',
-        type:6,
-        points: -20,
-      })
+    const user = await User.findByIdAndUpdate(post.postedBy, {
+      $inc: { points: -20 },
+    });
+
+    const log = await Log.create({
+      toUser: post.postedBy,
+      fromUser: req.user.userId,
+      linkTo: post._id,
+      typeOfLink: "Post",
+      type: 6,
+      points: -20,
+    });
 
     return res.status(200).json({ post });
   } catch (error) {
@@ -351,6 +404,7 @@ const getPostsWithUserId = async (req, res) => {
     const posts = await Post.find({ postedBy: { _id: userId } })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
       .sort({
         createdAt: -1,
       });
@@ -367,6 +421,7 @@ const getDetailPost = async (req, res) => {
     const post = await Post.findById(postId)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
       .sort({
         createdAt: -1,
       });
@@ -390,7 +445,7 @@ const getDiscover = async (req, res) => {
     let shuffledFollowing = shuffle(following);
     let peopleList;
 
-    const suggestionIds = suggestion.map((one)=>mongoose.Types.ObjectId(one))
+    const suggestionIds = suggestion.map((one) => mongoose.Types.ObjectId(one));
 
     if (suggestionIds.length > 0) {
       if (shuffledFollowing.length > 0)
@@ -413,65 +468,77 @@ const getDiscover = async (req, res) => {
                   $and: [
                     { likes: { $nin: [mongoose.Types.ObjectId(userId)] } },
                     {
-                      comments: { $not: { $elemMatch: { postedBy: mongoose.Types.ObjectId(userId) } } },
+                      comments: {
+                        $not: {
+                          $elemMatch: {
+                            postedBy: mongoose.Types.ObjectId(userId),
+                          },
+                        },
+                      },
                     },
                   ],
                 },
-                 {postedBy: mongoose.Types.ObjectId(one)}
+                { postedBy: mongoose.Types.ObjectId(one) },
               ],
             },
           },
           { $sample: { size: 1 } },
-          { $project: { _id: 1 } }, 
+          { $project: { _id: 1 } },
         ]);
-  
+
         const post = await Post.findById(randomPostId)
           .populate("postedBy", "-password -secret")
           .populate("comments.postedBy", "-password -secret")
-          // .populate("book");
+          .populate("hashtag");
+        // .populate("book");
         if (post) result.push(post);
       }
     }
 
-    const peopleListPlus = [...peopleList, user._id]
+    const peopleListPlus = [...peopleList, user._id];
 
-      const randomPostId = await Post.aggregate([
-        {
-          $match: {
-            $and: [
-              {
-                $and: [
-                  { likes: { $nin: [mongoose.Types.ObjectId(userId)] } },
-                  {
-                    comments: { $not: { $elemMatch: { postedBy: mongoose.Types.ObjectId(userId) } } },
+    const randomPostId = await Post.aggregate([
+      {
+        $match: {
+          $and: [
+            {
+              $and: [
+                { likes: { $nin: [mongoose.Types.ObjectId(userId)] } },
+                {
+                  comments: {
+                    $not: {
+                      $elemMatch: { postedBy: mongoose.Types.ObjectId(userId) },
+                    },
                   },
-                ],
-              },
-              {
-                $or: [
-                  { likes: { $in: peopleList } },
-                  {
-                    comments: { $elemMatch: { postedBy: {$in: peopleList} } } ,
-                  },
-                ],
-              },
-              {
-                postedBy: {$nin: peopleListPlus}
-              },
-              
-            ],
-          },
+                },
+              ],
+            },
+            {
+              $or: [
+                { likes: { $in: peopleList } },
+                {
+                  comments: { $elemMatch: { postedBy: { $in: peopleList } } },
+                },
+              ],
+            },
+            {
+              postedBy: { $nin: peopleListPlus },
+            },
+          ],
         },
-        { $sample: { size: 10 } },
-        { $project: { _id: 1 } }, 
-      ]);
+      },
+      { $sample: { size: 10 } },
+      { $project: { _id: 1 } },
+    ]);
 
-      const post = await Post.find({_id: {$in: randomPostId}})
-        .populate("postedBy", "-password -secret")
-        .populate("comments.postedBy", "-password -secret")
-        // .populate("book");
+    const post = await Post.find({ _id: { $in: randomPostId } })
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag");
 
-      if (post.length>0) result = [...result,...post];
+    // .populate("book");
+
+    if (post.length > 0) result = [...result, ...post];
 
     return res.status(200).json({ posts: result });
   } catch (error) {
@@ -489,7 +556,7 @@ const getPopular = async (req, res) => {
     const aggregated = await Post.aggregate([
       {
         $match: {
-        createdAt: { $gt: sevenDaysAgo }
+          createdAt: { $gt: sevenDaysAgo },
         },
       },
       {
@@ -510,13 +577,17 @@ const getPopular = async (req, res) => {
       { $project: { _id: 1 } },
     ]);
 
-    const idsList = []
-    aggregated.forEach((one)=>{idsList.push(one._id)})
+    const idsList = [];
+    aggregated.forEach((one) => {
+      idsList.push(one._id);
+    });
 
     const posts = await Post.find({ _id: { $in: idsList } })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      // .populate("book");
+      .populate("hashtag");
+
+    // .populate("book");
 
     return res.status(200).json({ posts });
   } catch (e) {
@@ -531,7 +602,7 @@ const report = async (req, res) => {
     const post = await Post.findByIdAndUpdate(
       postId,
       {
-       reported: true
+        reported: true,
       },
       {
         new: true,
@@ -551,7 +622,7 @@ const dismissReport = async (req, res) => {
     const post = await Post.findByIdAndUpdate(
       postId,
       {
-       reported: false
+        reported: false,
       },
       {
         new: true,
@@ -584,5 +655,5 @@ export {
   getDiscover,
   getPopular,
   report,
-  dismissReport
+  dismissReport,
 };

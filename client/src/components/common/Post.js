@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,  } from "react";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import ReactLoading from "react-loading";
@@ -63,6 +63,7 @@ const Post = ({
     condition: currentPost.condition || "",
     address: currentPost.address || "",
     location: currentPost.location || "",
+    hashtag: currentPost.hashtag?.map((one)=>one.name) || []
   });
 
   const [attachment, setAttachment] = useState(
@@ -73,10 +74,11 @@ const Post = ({
   const navigate = useNavigate();
   const [type, setType] = useState("");
 
-  // open modal
-  // useEffect(() => {
-  //   setOneState("openModal", openModal);
-  // }, [openModal]);
+
+useEffect(()=>{
+  console.log(post)
+
+},[post])
 
   useEffect(() => {
     getType();
@@ -233,6 +235,7 @@ const Post = ({
           text: input.text,
           image: image,
           title: input.title,
+          hashtag: input.hashtag
         });
         postData = data.post;
       } else if (type === "review") {
@@ -299,6 +302,7 @@ const Post = ({
         address: postData.address || "",
         location: postData.location || "",
         condition: postData.condition || "",
+        hashtag: postData.hashtag || []
       });
 
       setInput({
@@ -316,6 +320,8 @@ const Post = ({
         address: postData.address || "",
         location: postData.location || "",
         condition: postData.condition || "",
+        hashtag: postData.hashtag?.map((one)=>one.name) || []
+
       });
 
       if (postData.image) {
@@ -587,6 +593,23 @@ const Post = ({
       >
         {post.text}
       </div>
+
+      {post.hashtag && <div className="px-4">
+        {post.hashtag.map((one) => (
+                <div
+                  className="cursor-pointer text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1"
+                  onClick={() => {
+                    navigate(
+                      `/search/?hashtag=${encodeURIComponent(
+                        JSON.stringify(one)
+                      )}`
+                    );
+                  }}
+                >
+                  {one.name}
+                </div>
+              ))}
+        </div>}
 
       {/* when has image */}
       {post.image && (

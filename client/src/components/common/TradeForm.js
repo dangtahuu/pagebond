@@ -275,87 +275,6 @@ const TradeForm = ({
             ))}
           </div>
 
-          {/* <div className="grid grid-cols-5 text-xs">
-            <div>
-              <input
-                checked={input.condition === "New"}
-                type="radio"
-                id="new"
-                name="condition"
-                value="New"
-                onChange={(e) =>
-                  setInput((prev) => ({ ...prev, condition: e.target.value }))
-                }
-              />
-              <label className="ml-2" for="new">
-                New
-              </label>
-            </div>
-
-            <div>
-              <input
-                checked={input.condition === 2}
-                type="radio"
-                id="like-new"
-                name="condition"
-                value="2"
-                onChange={(e) =>
-                  setInput((prev) => ({ ...prev, condition: e.target.value }))
-                }
-              />
-              <label className="ml-2" for="like-new">
-                Like New
-              </label>
-            </div>
-
-            <div>
-              <input
-                checked={input.condition == 3}
-                type="radio"
-                id="good"
-                name="condition"
-                value="3"
-                onChange={(e) =>
-                  setInput((prev) => ({ ...prev, condition: e.target.value }))
-                }
-              />
-              <label className="ml-2" for="good">
-                Good
-              </label>
-            </div>
-
-            <div>
-              <input
-                checked={input.condition == 4}
-                type="radio"
-                id="worn"
-                name="condition"
-                value="4"
-                onChange={(e) =>
-                  setInput((prev) => ({ ...prev, condition: e.target.value }))
-                }
-              />
-              <label className="ml-2" for="worn">
-                Worn
-              </label>
-            </div>
-            <div>
-              <input
-                checked={input.condition == 5}
-                type="radio"
-                id="bad"
-                name="condition"
-                value="5"
-                onChange={(e) =>
-                  setInput((prev) => ({ ...prev, condition: e.target.value }))
-                }
-              />
-              <label className="ml-2" for="bad">
-                Bad
-              </label>
-            </div>
-          </div> */}
-
           <div
             className="mt-2 mb-2 relative"
             // @ts-ignore
@@ -378,14 +297,12 @@ const TradeForm = ({
               }}
             />
 
-              {isSearching && (isEmpty || listSearchResult.length > 0) && (
-            <div className="scroll-bar -top-[180px] text-xs p-2 absolute bg-altDialogue max-h-[300px] rounded-lg overflow-y-auto overflow-x-hidden">
-
-                  {isEmpty && <div className="">No address found!</div>}
-                  {listSearchResult.length > 0 && <ResultList />}
-            </div>
-
-              )}
+            {isSearching && (isEmpty || listSearchResult.length > 0) && (
+              <div className="scroll-bar -top-[180px] text-xs p-2 absolute bg-altDialogue max-h-[300px] rounded-lg overflow-y-auto overflow-x-hidden">
+                {isEmpty && <div className="">No address found!</div>}
+                {listSearchResult.length > 0 && <ResultList />}
+              </div>
+            )}
           </div>
 
           {attachment && (
@@ -414,8 +331,13 @@ const TradeForm = ({
               placement="top-start"
             >
               <div>
-                <AiOutlineInfoCircle className="text-2xl" onClick={()=>{console.log(input) 
-                  console.log(isSearching)}} />
+                <AiOutlineInfoCircle
+                  className="text-2xl"
+                  onClick={() => {
+                    console.log(input);
+                    console.log(isSearching);
+                  }}
+                />
               </div>
             </Tooltip>
             <button

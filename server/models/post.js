@@ -43,7 +43,7 @@ const postSchema = new mongoose.Schema(
         },
       },
     ],
-
+    hashtag: [{ type: mongoose.Types.ObjectId, ref: "Hashtag" }],
     reported: {
       type: Boolean,
       default: false

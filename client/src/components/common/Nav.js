@@ -48,6 +48,10 @@ const Nav = () => {
   const exceptionRef = useRef();
   useOnClickOutside(notiRef, () => setNotiMenu(false), exceptionRef);
 
+  useEffect(()=>{
+    console.log(location.pathname)
+  },[location])
+
   const getUnreadMessages = async () => {
     try {
       const { data } = await autoFetch.get("api/message/unread");

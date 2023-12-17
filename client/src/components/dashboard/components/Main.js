@@ -1,10 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo  } from "react";
 import { toast } from "react-toastify";
-import {
-  Post,
-  FormCreatePost,
-  PostForm,
-} from "../..";
+import { Post, FormCreatePost, PostForm } from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 import shuffle from "../../../utils/shuffle";
 import SpecialPostForm from "../../common/SpecialPostForm";
@@ -20,11 +16,16 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const [attachment, setAttachment] = useState("");
   const [specialAttachment, setSpecialAttachment] = useState("");
-  const [input, setInput] = useState({
+
+  
+
+  const initInput = {
     text: "",
     title: "",
     image: "",
-  });
+    hashtag: [],
+  };
+  const [input, setInput] = useState(initInput);
   const [specialInput, setSpecialInput] = useState({
     text: "",
     title: "",
@@ -33,14 +34,13 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
 
-
   const [page, setPage] = useState(0);
 
   const [loading, setLoading] = useState(true);
 
   const [activePosts, setActivePosts] = useState([]);
   const [reservedPosts, setReservedPosts] = useState([]);
-  
+
   const [moreData, setmoreData] = useState(true);
 
   const [morePosts, setMorePosts] = useState(true);
@@ -77,6 +77,10 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     if (location) getNearby();
   }, [location]);
 
+  useEffect(() => {
+    console.log(activePosts);
+  }, [activePosts]);
+
   const createNewPost = async (formData) => {
     setLoadingCreateNewPost(true);
     try {
@@ -93,6 +97,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         text: input.text,
         image,
         title: input.title,
+        hashtag: input.hashtag,
       });
       setActivePosts((prev) => [data.post, ...prev]);
       toast.success("Create new post successfully!");
@@ -102,7 +107,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     } finally {
       setLoadingCreateNewPost(false);
     }
-    
   };
 
   const createNewSpecialPost = async (formData) => {
@@ -134,8 +138,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
-    } finally{
-    setLoadingCreateNewPost(false);
+    } finally {
+      setLoadingCreateNewPost(false);
     }
   };
 
@@ -156,9 +160,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       if (!data.length) setmoreData(false);
     } catch (e) {
       console.log(e);
-    } 
-    finally {
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -190,7 +193,9 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getPosts = async () => {
     if (!morePosts) return [];
-    const { data } = await autoFetch.get(`/api/post/following?page=${page + 1}`);
+    const { data } = await autoFetch.get(
+      `/api/post/following?page=${page + 1}`
+    );
     if (data.posts.length < 10) setMorePosts(false);
     if (data.posts.length === 0) return [];
     return data.posts;
@@ -198,7 +203,9 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getReviews = async () => {
     if (!moreReviews) return [];
-    const { data } = await autoFetch.get(`/api/review/following?page=${page + 1}`);
+    const { data } = await autoFetch.get(
+      `/api/review/following?page=${page + 1}`
+    );
     if (data.posts.length < 10) setMoreReviews(false);
     if (data.posts.length === 0) return [];
 
@@ -207,7 +214,9 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getTrades = async () => {
     if (!moreTrades) return [];
-    const { data } = await autoFetch.get(`/api/trade/following?page=${page + 1}`);
+    const { data } = await autoFetch.get(
+      `/api/trade/following?page=${page + 1}`
+    );
     if (data.posts.length < 10) setMoreTrades(false);
     if (data.posts.length === 0) return [];
 
@@ -216,7 +225,9 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getSpecial = async () => {
     if (!moreSpecialPosts) return [];
-    const { data } = await autoFetch.get(`/api/special/following?page=${page + 1}`);
+    const { data } = await autoFetch.get(
+      `/api/special/following?page=${page + 1}`
+    );
     if (data.posts.length < 10) setMoreSpecialPosts(false);
     if (data.posts.length === 0) return [];
     return data.posts;
@@ -288,10 +299,13 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
   };
 
+
   const Following = () => {
     if (loading) {
       return (
-        <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+        <div className="w-full flex justify-center">
+          <ReactLoading type="spin" width={30} height={30} color="#7d838c" />
+        </div>
       );
     }
 
@@ -309,59 +323,41 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         hasMore={moreData}
       >
         {activePosts.map((post) => (
-          <Post
-            key={post._id}
-            currentPost={post}
-          />
+          <Post key={post._id} currentPost={post} />
         ))}
+
       </InfiniteScroll>
+      // <div>{childComponent}</div>
     );
   };
+  const childComponent = useMemo(() => <Following/>, [activePosts]);
 
   const Discover = () => {
-
     if (loading) {
       return (
-        <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+        <div className="w-full flex justify-center">
+          <ReactLoading type="spin" width={30} height={30} color="#7d838c" />
+        </div>
       );
     }
 
-    // if (activePosts.length === 0) {
-    //   return (
-    //     <div className="w-full text-center text-xl font-bold pt-[20vh] ">
-    //       <div>Nothing to display</div>
-    //     </div>
-    //   );
-    // }
     return (
       <div>
         <div>Popular reviews</div>
         {popularReviews.map((post) => (
-          <Post
-            key={post._id}
-            currentPost={post}
-          />
+          <Post key={post._id} currentPost={post} />
         ))}
         <div>Popular posts</div>
         {popularPosts.map((post) => (
-          <Post
-            key={post._id}
-            currentPost={post}
-          />
+          <Post key={post._id} currentPost={post} />
         ))}
         <div>Nearby trades</div>
         {nearTrades.map((post) => (
-          <Post
-            key={post._id}
-            currentPost={post}
-          />
+          <Post key={post._id} currentPost={post} />
         ))}
         <div>Suggested posts</div>
         {suggestedPosts.map((post) => (
-          <Post
-            key={post._id}
-            currentPost={post}
-          />
+          <Post key={post._id} currentPost={post} />
         ))}
       </div>
     );
@@ -385,6 +381,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
           attachment={attachment}
           setAttachment={setAttachment}
           createNewPost={createNewPost}
+          initInput={initInput}
         />
       )}
 
@@ -409,8 +406,10 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         </div>
       )}
 
-      {menu === "Following" && <Following/>}
-      {menu === "Discover" && <Discover/>}
+      {/* {menu === "Following" && <Following />} */}
+      {menu === "Following" && <div>{childComponent}</div>}
+
+      {menu === "Discover" && <Discover />}
     </div>
   );
 };

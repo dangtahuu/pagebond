@@ -11,7 +11,6 @@ const initState = {
     token: token || "",
     unreadMessages: 0,
     openModal: false,
-    // isQrCode: false,
 };
 // @ts-ignore
 const AppContext = createContext();

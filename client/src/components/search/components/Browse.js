@@ -126,7 +126,7 @@ function Browse() {
         )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=${pagination}`
       );
       setPopularBooks(data.books);
-      if (data.books.length < 50) setHasMoreBooks(false);
+      if (data.books.length < 48) setHasMoreBooks(false);
     } catch (e) {
       console.log(e);
     }
@@ -136,7 +136,7 @@ function Browse() {
   const menuHandler = (value) => {
     setMenu(value);
     navigate(
-      `/browse/?limit=${list[value]}&genre=${encodeURIComponent(
+      `/browse?limit=${list[value]}&genre=${encodeURIComponent(
         JSON.stringify(genre)
       )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=1`
     );
@@ -221,7 +221,7 @@ function Browse() {
                     className="bg-altDialogue w-[80px] px-2 py-1 rounded-md text-sm"
                     onClick={() => {
                       navigate(
-                        `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                        `/browse?limit=${limit}&genre=${encodeURIComponent(
                           JSON.stringify(genre)
                         )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=${
                           pagination - 1
@@ -238,7 +238,7 @@ function Browse() {
                   className="bg-altDialogue w-[80px] px-2 py-1 rounded-md text-sm"
                   onClick={() => {
                     navigate(
-                      `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                      `/browse?limit=${limit}&genre=${encodeURIComponent(
                         JSON.stringify(genre)
                       )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=${
                         pagination + 1
@@ -295,7 +295,7 @@ function Browse() {
                       <div
                         onClick={() => {
                           navigate(
-                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                            `/browse?limit=${limit}&genre=${encodeURIComponent(
                               JSON.stringify(one)
                             )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=1`
                           );
@@ -314,7 +314,7 @@ function Browse() {
                       <div
                         onClick={() => {
                           navigate(
-                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                            `/browse?limit=${limit}&genre=${encodeURIComponent(
                               JSON.stringify(one)
                             )}&rating=${rating}&pacing=${pacing}&page=${page}&pagination=1`
                           );
@@ -335,7 +335,7 @@ function Browse() {
                       <div
                         onClick={() => {
                           navigate(
-                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                            `/browse?limit=${limit}&genre=${encodeURIComponent(
                               JSON.stringify(genre)
                             )}&rating=${one}&pacing=${pacing}&page=${page}&pagination=1`
                           );
@@ -356,7 +356,7 @@ function Browse() {
                       <div
                         onClick={() => {
                           navigate(
-                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                            `/browse?limit=${limit}&genre=${encodeURIComponent(
                               JSON.stringify(genre)
                             )}&rating=${rating}&pacing=${pacing}&page=${one}&pagination=1`
                           );
@@ -377,7 +377,7 @@ function Browse() {
                       <div
                         onClick={() => {
                           navigate(
-                            `/browse/?limit=${limit}&genre=${encodeURIComponent(
+                            `/browse?limit=${limit}&genre=${encodeURIComponent(
                               JSON.stringify(genre)
                             )}&rating=${rating}&pacing=${one}&page=${page}&pagination=1`
                           );

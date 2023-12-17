@@ -3,7 +3,6 @@ import { useAppContext } from "../../context/useContext";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TiTick } from "react-icons/ti";
-import axios from "axios";
 import { useLocation } from "react-router-dom";
 import Browse from "./components/Browse";
 import { IoIosArrowBack } from "react-icons/io";
@@ -11,7 +10,7 @@ import { IoIosArrowBack } from "react-icons/io";
 function Search() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { autoFetch, user, token, dark, setNameAndToken, setOneState } =
+  const { autoFetch} =
     useAppContext();
   const [bookLoading, setBookLoading] = useState(false);
   const [userloading, setUserLoading] = useState(false);
@@ -419,6 +418,7 @@ function Search() {
             placeholder="Search something"
             value={text}
             onChange={(e) => setText(e.target.value)}
+            onClick={()=>{navigate('/search')}}
           />
           <button
             class="text-white absolute right-4 end-2.5 bottom-2.5 bg-black hover:bg-gray-700 focus:outline-none font-medium rounded-full text-sm px-4 py-2"
