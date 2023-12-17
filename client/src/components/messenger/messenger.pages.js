@@ -9,9 +9,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAppContext } from "../../context/useContext";
 import BoxChat from "./components/BoxChat";
 import MainChat from "./components/MainChat.";
+import { MdOutlineLightbulb } from "react-icons/md";
+
 import { LoadingMessenger } from "../";
 import "./messenger.css";
 import { MdCancel } from "react-icons/md";
+import prompts from "../../consts/prompts";
+import shuffle from "../../utils/shuffle";
 
 // // @ts-ignore
 // const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
@@ -21,9 +25,7 @@ import { MdCancel } from "react-icons/md";
 // });
 const AI_ID = process.env.REACT_APP_AI_ID;
 
-function hasObjectWithFieldAndValue(arr, field, value) {
-  return arr.some(obj => obj.hasOwnProperty(field) && obj[field] === value);
-}
+
 
 const CHANGE_ALL_MESSAGES = "CHANGE_ALL_MESSAGES";
 const GET_DATA_SUCCESS = "GET_DATA_SUCCESS";
@@ -186,7 +188,8 @@ const Message = () => {
   const queryParams = new URLSearchParams(location.search);
   const dataString = queryParams.get("data");
   const newMessageData = JSON.parse(decodeURIComponent(dataString));
-  // console.log(data)
+  
+  const [promptOpen, setPromptOpen]= useState(false)
 
   const initState = {
     receiveUser: {
@@ -550,6 +553,27 @@ const Message = () => {
     setFormData(formData);
   };
 
+  const PromptSection = () => {
+    let shuffled = shuffle(prompts);
+    const data = shuffled.slice(0, 5);
+  
+    return (
+      <div className={`flex flex-col items-center py-4 bg-navBar justify-center rounded-lg absolute w-[450px] right-[25px] bottom-[50px] mb-5 gap-y-2
+      `}>
+        {data.map((one) => (
+          <div className="w-[400px] text-sm py-2 px-4 rounded-lg border-[1px] border-dialogue cursor-pointer"
+          onClick={()=>{setPageState("text", one)
+        setPromptOpen(false)
+        }}
+          >
+            <div>{one}</div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+
   if (scrLoading) {
     return     <div className="w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden">
         <div className="w-full h-full flex items-center justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
@@ -643,7 +667,14 @@ const Message = () => {
                     hidden
                   />
                 </label>}
+
+                {state.receiveUser._id === AI_ID &&
+                  <MdOutlineLightbulb  className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 cursor-pointer " 
+                  onClick={()=>{setPromptOpen((prev)=>(!prev))}}
+                  />
+                }
               
+              {promptOpen && <PromptSection/>}
                 <button
                   className="shrink-0 text-xl opacity-50 hover:opacity-80 cursor-pointer  "
                   type="submit"
