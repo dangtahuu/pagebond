@@ -9,6 +9,7 @@ import HeaderMenu from "../../common/HeaderMenu";
 import { IoFilterOutline } from "react-icons/io5";
 import useOnClickOutside from "../../../hooks/useOnClickOutside";
 import ReactLoading from "react-loading";
+import UserCard from "../../common/UserCard";
 
 function Browse() {
   const navigate = useNavigate();
@@ -154,20 +155,7 @@ function Browse() {
       <div className="grid grid-cols-5 gap-x-3">
         {popularUsers.map((person) => {
           return (
-            <div
-              className="flex flex-col gap-y-2 bg-dialogue rounded-lg items-center p-3 cursor-pointer"
-              onClick={() => {
-                navigate(`/profile/${person._id}`);
-              }}
-              key={person._id}
-            >
-              <img
-                className="rounded-full w-[40%]"
-                src={person.image.url}
-                alt=""
-              />
-              <div className="font-bold">{person.name}</div>
-            </div>
+          <UserCard person={person}/>
           );
         })}
       </div>

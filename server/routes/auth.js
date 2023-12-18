@@ -68,7 +68,7 @@ router.route("/popular-users").get(requireSignIn, getPopularUsers);
 
 
 
-router.route("/search-user").get(
+router.route("/search").get(
     // requireSignIn, 
     searchUser);
 

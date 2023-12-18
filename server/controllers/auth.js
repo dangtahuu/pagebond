@@ -535,7 +535,7 @@ const searchUser = async (req, res) => {
       return res.status(400).json({ msg: "No result found!" });
     }
 
-    return res.status(200).json({ users, perPage });
+    return res.status(200).json({ results: users, perPage });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });

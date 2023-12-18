@@ -5,20 +5,14 @@ import mongoose, { mongo } from "mongoose";
 import Log from "../models/log.js";
 import Book from "../models/book.js";
 import book from "../models/book.js";
-
+import Hashtag from "../models/hashtag.js";
+import shuffle from "../utils/shuffle.js";
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
   api_key: "846889586593325",
   api_secret: "mW4Q6mKi4acL72ZhUYzw-S0_y1A",
 });
 
-const shuffle = (array) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
 
 const create = async (req, res) => {
   const {
@@ -33,23 +27,40 @@ const create = async (req, res) => {
     writing,
     insights,
     dateRead,
+    hashtag
   } = req.body;
 
-  if (
-    !text ||
-    !rating ||
-    !title ||
-    !content ||
-    !development ||
-    !pacing ||
-    !writing ||
-    !insights
-  ) {
-    return res.status(400).json({ msg: "Please provide all required values" });
-  }
+  
 
   try {
+    if (
+      !text ||
+      !rating ||
+      !title ||
+      !content ||
+      !development ||
+      !pacing ||
+      !writing ||
+      !insights
+    ) {
+      return res.status(400).json({ msg: "Please provide all required values" });
+    }
 
+    let hashtagsIds = [];
+    if (hashtag.length) {
+      let uniqueTags = [...new Set(hashtag)];
+      for (const one of uniqueTags) {
+        let tag;
+        tag = await Hashtag.findOneAndUpdate(
+          { name: one },
+          { $inc: { numberOfPosts: 1 } }
+        );
+        if (!tag) {
+          tag = await Hashtag.create({ name: one });
+        }
+        hashtagsIds.push(tag._id);
+      }
+    }
 
     const post = await Review.create({
       text,
@@ -64,12 +75,14 @@ const create = async (req, res) => {
       writing,
       insights,
       dateRead,
+      hashtag: hashtagsIds
     });
 
     const postWithUser = await Review.findById(post._id).populate(
       "postedBy",
       "-password -secret"
-    );
+    )
+    .populate("hashtag")
 
     const bookData = await Book.findById(book.id)
 
@@ -113,6 +126,7 @@ const getAll = async (req, res) => {
   try {
     const posts = await Review.find({})
       .populate("postedBy", "-password -secret")
+    .populate("hashtag")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
@@ -125,13 +139,100 @@ const getAll = async (req, res) => {
   }
 };
 
+const search = async (req, res) => {
+  const term = JSON.parse(decodeURIComponent(req.query.term));
+  const page = Number(req.query.page) || 1;
+  const perPage = Number(req.query.perPage) || 10;
+  if (!term.length) {
+    return res.status(400).json({ msg: "Search term is required!" });
+  }
+
+  try {
+    let results;
+    
+    if (term.startsWith("#")) {
+      console.log('aaaa')
+      const hashtag = await Hashtag.findOne({ name: term.slice(1) });
+      results = await Review.aggregate([
+        { $match: { hashtag: { $in: [hashtag._id] } } },
+        {
+          $addFields: {
+            popularity: {
+              $add: [{ $size: "$likes" }, { $size: "$comments" }],
+            },
+          },
+        },
+        { $sort: { popularity: -1 } },
+        { $skip: (page - 1) * perPage },
+        { $limit: perPage },
+        {$project: {
+          _id: 1
+        }}
+      ]);
+
+    } else {
+      const regexPattern = term
+        .split(" ")
+        .map((word) => `(?=.*\\b${word}\\b)`)
+        .join("");
+
+      const regex = new RegExp(regexPattern, "i");
+
+      const hashtag = await Hashtag.findOne({ name: term.slice(1) });
+      results = await Review.aggregate([
+        {
+          $match: {
+            $or: [
+              { title: { $regex: regex } },
+              { text: { $regex: regex } },
+            ],
+          },
+        },
+        {
+          $addFields: {
+            popularity: {
+              $add: [{ $size: "$likes" }, { $size: "$comments" }],
+            },
+          },
+        },
+        { $sort: { popularity: -1 } },
+        { $skip: (page - 1) * perPage },
+        { $limit: perPage },
+        {$project: {
+          _id: 1
+        }}
+      ]);
+    
+    }
+
+    let posts = []
+    if (results.length>0) {
+      for (const id of results) {
+        const post = await Review.findById(id)
+        .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate("book")
+      .populate("hashtag")
+        
+        posts.push(post)
+      }
+    }
+    return res.status(200).json({ results: posts });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
 const getOne = async (req, res) => {
   try {
     const postId = req.params.id;
     const post = await Review.findById(postId)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book");
+      .populate("book")
+      .populate("hashtag")
+
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
     }
@@ -184,7 +285,9 @@ const getAllWithBook = async (req, res) => {
     for (const id of idList) {
       const review = await Review.findById(id)
         .populate("postedBy", "-password -secret")
-        .populate("comments.postedBy", "-password -secret");
+        .populate("comments.postedBy", "-password -secret")
+    .populate("hashtag")
+
       posts.push(review);
     }
 
@@ -205,6 +308,8 @@ const getMy = async (req, res) => {
     })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+    .populate("hashtag")
+
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ posts });
@@ -228,6 +333,7 @@ const edit = async (req, res) => {
       writing,
       insights,
       dateRead,
+      hashtag
     } = req.body;
 
     if (
@@ -244,6 +350,35 @@ const edit = async (req, res) => {
         .status(400)
         .json({ msg: "Please provide all required values" });
     }
+    const oldPost = await Review.findById(postId).populate("hashtag");
+
+    if (!oldPost) {
+      return res.status(400).json({ msg: "No post found!" });
+    }
+
+    const oldTags = [...new Set(oldPost.hashtag.map((one) => one.name))];
+    const newTags = [...new Set(hashtag)];
+    let hashtagIds = [];
+    if (newTags !== oldTags) {
+      if (oldTags.length > 0) {
+        for (const one of oldTags) {
+          await Hashtag.findOneAndUpdate(
+            { name: one },
+            { $inc: { numberOfPosts: -1 } }
+          );
+        }
+      }
+      if (newTags.length > 0) {
+        for (const one of newTags) {
+          let result = await Hashtag.findOneAndUpdate(
+            { name: one },
+            { $inc: { numberOfPosts: 1 } }
+          );
+          if (!result) result = await Hashtag.create({ name: one });
+          hashtagIds.push(result._id);
+        }
+      }
+    }
 
     const post = await Review.findByIdAndUpdate(
       postId,
@@ -258,6 +393,7 @@ const edit = async (req, res) => {
         writing,
         insights,
         dateRead,
+        hashtag: hashtagIds
       },
     );
     if (!post) {
@@ -266,7 +402,8 @@ const edit = async (req, res) => {
 
     const newPost = await Review.findById(postId).populate("postedBy", "-password -secret")
     .populate("comments.postedBy", "-password -secret")
-    .populate("book");
+    .populate("book")
+    .populate("hashtag")
   
 
     const bookData = await Book.findById(post.book)
@@ -314,6 +451,16 @@ const deleteOne = async (req, res) => {
     }
     if (post.image && post.image.public_id) {
       await cloudinary.v2.uploader.destroy(post.image.public_id);
+    }
+
+    if (post.hashtag.length > 0) {
+      const uniqueTags = [...new Set(post.hashtag)];
+      for (const one of uniqueTags) {
+        await Hashtag.findOneAndUpdate(
+          { name: one },
+          { $inc: { numberOfPosts: -1 } }
+        );
+      }
     }
 
     const bookData = await Book.findById(post.book._id)
@@ -444,7 +591,9 @@ const addComment = async (req, res) => {
       }
     )
       .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret");
+      .populate("comments.postedBy", "-password -secret")
+    .populate("hashtag")
+
 
     const user = await User.findByIdAndUpdate(post.postedBy, {
       $inc: { points: 20 },
@@ -479,7 +628,9 @@ const removeComment = async (req, res) => {
       }
     )
       .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret");
+      .populate("comments.postedBy", "-password -secret")
+    .populate("hashtag")
+
     const user = await User.findByIdAndUpdate(post.postedBy, {
       $inc: { points: -20 },
     });
@@ -515,6 +666,8 @@ const getWithUser = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
+    .populate("hashtag")
+
       .sort({
         createdAt: -1,
       });
@@ -545,6 +698,8 @@ const getFollowing = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
+    .populate("hashtag")
+
       .sort({ createdAt: -1 })
       .limit(perPage);
     return res.status(200).json({ posts });
@@ -611,7 +766,9 @@ const getDiscover = async (req, res) => {
         const post = await Review.findById(randomPostId)
           .populate("postedBy", "-password -secret")
           .populate("comments.postedBy", "-password -secret")
-          .populate("book");
+          .populate("book")
+    .populate("hashtag")
+
         if (post) result.push(post);
       }
     }
@@ -655,7 +812,9 @@ const getDiscover = async (req, res) => {
     const post = await Review.find({ _id: { $in: randomPostId } })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book");
+      .populate("book")
+    .populate("hashtag")
+
 
     if (post.length > 0) result = [...result, ...post];
 
@@ -704,7 +863,9 @@ const getPopular = async (req, res) => {
     const posts = await Review.find({ _id: { $in: idsList } })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book");
+      .populate("book")
+    .populate("hashtag")
+
 
     return res.status(200).json({ posts });
   } catch (e) {
@@ -727,7 +888,9 @@ const getRandomReadBooks = async (req, res) => {
     })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book");
+      .populate("book")
+    .populate("hashtag")
+
 
     const uniqueBookIds = new Set();
 
@@ -823,6 +986,7 @@ const getAllReported = async (req, res) => {
 export {
   create,
   getAll,
+  search,
   getOne,
   getAllWithBook,
   getMy,

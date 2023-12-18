@@ -2,6 +2,7 @@ import Trade from "../models/trade.js";
 import cloudinary from "cloudinary";
 import User from "../models/user.js";
 import Log from "../models/log.js";
+import Hashtag from "../models/hashtag.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -21,7 +22,7 @@ const shuffle = (array) => {
 }; 
 
 const create = async (req, res) => {
-  const { text, book, image, location, address, condition } = req.body;
+  const { text, book, image, location, address, condition, hashtag } = req.body;
 
   try {
     if (!text || !address || !location || !condition) {
@@ -29,6 +30,23 @@ const create = async (req, res) => {
         .status(400)
         .json({ msg: "Please provide all required values" });
     }
+
+    let hashtagsIds = [];
+    if (hashtag.length) {
+      let uniqueTags = [...new Set(hashtag)];
+      for (const one of uniqueTags) {
+        let tag;
+        tag = await Hashtag.findOneAndUpdate(
+          { name: one },
+          { $inc: { numberOfPosts: 1 } }
+        );
+        if (!tag) {
+          tag = await Hashtag.create({ name: one });
+        }
+        hashtagsIds.push(tag._id);
+      }
+    }
+
     const post = await Trade.create({
       text,
       postedBy: req.user.userId,
@@ -37,12 +55,15 @@ const create = async (req, res) => {
       book: book.id,
       address,
       condition,
+      hashtag: hashtagsIds
     });
 
     const postWithUser = await Trade.findById(post._id).populate(
       "postedBy",
       "-password -secret"
-    );
+    )
+    .populate("hashtag")
+
     return res
       .status(200)
       .json({ post: postWithUser, msg: "Create new trade post succesfully" });
@@ -56,6 +77,7 @@ const getAll = async (req, res) => {
   try {
     const posts = await Trade.find({})
       .populate("postedBy", "-password -secret")
+    .populate("hashtag")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No trade posts found!" });
@@ -68,13 +90,97 @@ const getAll = async (req, res) => {
   }
 };
 
+const search = async (req, res) => {
+  const term = JSON.parse(decodeURIComponent(req.query.term));
+  const page = Number(req.query.page) || 1;
+  const perPage = Number(req.query.perPage) || 10;
+  if (!term.length) {
+    return res.status(400).json({ msg: "Search term is required!" });
+  }
+
+  try {
+    let results;
+    
+    if (term.startsWith("#")) {
+      const hashtag = await Hashtag.findOne({ name: term.slice(1) });
+      results = await Trade.aggregate([
+        { $match: { hashtag: { $in: [hashtag._id] } } },
+        {
+          $addFields: {
+            popularity: {
+              $add: [{ $size: "$likes" }, { $size: "$comments" }],
+            },
+          },
+        },
+        { $sort: { popularity: -1 } },
+        { $skip: (page - 1) * perPage },
+        { $limit: perPage },
+        {$project: {
+          _id: 1
+        }}
+      ]);
+
+    } else {
+      const regexPattern = term
+        .split(" ")
+        .map((word) => `(?=.*\\b${word}\\b)`)
+        .join("");
+
+      const regex = new RegExp(regexPattern, "i");
+
+      const hashtag = await Hashtag.findOne({ name: term.slice(1) });
+      results = await Trade.aggregate([
+        {
+          $match: {
+            $or: [
+              { title: { $regex: regex } },
+              { text: { $regex: regex } },
+            ],
+          },
+        },
+        {
+          $addFields: {
+            popularity: {
+              $add: [{ $size: "$likes" }, { $size: "$comments" }],
+            },
+          },
+        },
+        { $sort: { popularity: -1 } },
+        { $skip: (page - 1) * perPage },
+        { $limit: perPage },
+        {$project: {
+          _id: 1
+        }}
+      ]);
+    
+    }
+
+    let posts = []
+    if (results.length>0) {
+      for (const id of results) {
+        const post = await Trade.findById(id)
+        .populate("postedBy", "-password -secret")
+        .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
+        .populate("book")
+        
+        posts.push(post)
+      }
+    }
+    return res.status(200).json({ results: posts });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
 const getOne = async (req, res) => {
   try {
     const postId = req.params.id;
     const post = await Trade.findById(postId)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("book");
+      .populate("book")
+      .populate("hashtag")
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
     }
@@ -95,6 +201,7 @@ const getAllWithBook = async (req, res) => {
       .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
       .sort({ createdAt: -1 })
       .limit(perPage);
 
@@ -115,6 +222,7 @@ const getMy = async (req, res) => {
     })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ posts });
@@ -127,14 +235,42 @@ const getMy = async (req, res) => {
 const edit = async (req, res) => {
   try {
     const postId = req.params.id;
-    const { text, book, image, location, address, condition } = req.body;
+    const { text, book, image, location, address, condition, hashtag } = req.body;
 
     if (!text || !address || !location || !condition) {
       return res
         .status(400)
         .json({ msg: "Please provide all required values" });
     }
+    const oldPost = await Trade.findById(postId).populate("hashtag");
 
+    if (!oldPost) {
+      return res.status(400).json({ msg: "No post found!" });
+    }
+
+    const oldTags = [...new Set(oldPost.hashtag.map((one) => one.name))];
+    const newTags = [...new Set(hashtag)];
+    let hashtagIds = [];
+    if (newTags !== oldTags) {
+      if (oldTags.length > 0) {
+        for (const one of oldTags) {
+          await Hashtag.findOneAndUpdate(
+            { name: one },
+            { $inc: { numberOfPosts: -1 } }
+          );
+        }
+      }
+      if (newTags.length > 0) {
+        for (const one of newTags) {
+          let result = await Hashtag.findOneAndUpdate(
+            { name: one },
+            { $inc: { numberOfPosts: 1 } }
+          );
+          if (!result) result = await Hashtag.create({ name: one });
+          hashtagIds.push(result._id);
+        }
+      }
+    }
     const post = await Trade.findByIdAndUpdate(
       postId,
       {
@@ -143,9 +279,10 @@ const edit = async (req, res) => {
         location,
         address,
         condition,
+        hashtag: hashtagIds
       },
       {
-        new: true,
+        new: true,populate: { path: "hashtag" } 
       }
     );
     if (!post) {
@@ -153,6 +290,7 @@ const edit = async (req, res) => {
     }
     return res.status(200).json({ msg: "Updated posts!", post });
   } catch (error) {
+    console.log(error)
     return res.status(400).json({ msg: error });
   }
 };
@@ -166,6 +304,15 @@ const deleteOne = async (req, res) => {
     }
     if (post.image && post.image.public_id) {
       await cloudinary.v2.uploader.destroy(post.image.public_id);
+    }
+    if (post.hashtag.length > 0) {
+      const uniqueTags = [...new Set(post.hashtag)];
+      for (const one of uniqueTags) {
+        await Hashtag.findOneAndUpdate(
+          { name: one },
+          { $inc: { numberOfPosts: -1 } }
+        );
+      }
     }
     return res.status(200).json({ msg: "Deleted post!" });
   } catch (error) {
@@ -257,7 +404,8 @@ const addComment = async (req, res) => {
       }
     )
       .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret");
+      .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
       const user = await User.findByIdAndUpdate(post.postedBy, {
       
         $inc: { points: 20 }
@@ -292,7 +440,9 @@ const removeComment = async (req, res) => {
       }
     )
       .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret");
+      .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
+
       const user = await User.findByIdAndUpdate(post.postedBy, {
       
         $inc: { points: -20 }
@@ -321,6 +471,7 @@ const getWithUser = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
+      .populate("hashtag")
       .sort({
         createdAt: -1,
       });
@@ -356,6 +507,7 @@ const getNearby = async (req, res) => {
         "-password -secret -email -username -following -follower -role -about"
       )
       .populate("book")
+      .populate("hashtag")
       .limit(50);
 
     console.log()
@@ -389,6 +541,7 @@ const getFollowing = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
+      .populate("hashtag")
       .sort({ createdAt: -1 })
       .limit(perPage);
     return res.status(200).json({ posts });
@@ -447,7 +600,8 @@ const getDiscover = async (req, res) => {
         const post = await Trade.findById(randomPostId)
           .populate("postedBy", "-password -secret")
           .populate("comments.postedBy", "-password -secret")
-          .populate("book");
+          .populate("book")
+          .populate("hashtag")
         if (post) result.push(post);
       }
     }
@@ -538,6 +692,7 @@ const getAllReported = async (req, res) => {
   try {
     const posts = await Trade.find({reported: true})
       .populate("postedBy", "-password -secret")
+      .populate("hashtag")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
@@ -553,6 +708,7 @@ const getAllReported = async (req, res) => {
 export {
   create,
   getAll,
+  search,
   getOne,
   getAllWithBook,
   getMy,

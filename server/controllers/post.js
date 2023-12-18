@@ -8,20 +8,13 @@ import cloudinary from "cloudinary";
 import mongoose from "mongoose";
 import Log from "../models/log.js";
 import Hashtag from "../models/hashtag.js";
+import shuffle from "../utils/shuffle.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
   api_key: "846889586593325",
   api_secret: "mW4Q6mKi4acL72ZhUYzw-S0_y1A",
 });
-
-const shuffle = (array) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
 
 const createPost = async (req, res) => {
   const { text, image, title, hashtag } = req.body;
@@ -97,6 +90,90 @@ const getAllReported = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
+  }
+};
+
+const search = async (req, res) => {
+  const term = JSON.parse(decodeURIComponent(req.query.term));
+  const page = Number(req.query.page) || 1;
+  const perPage = Number(req.query.perPage) || 10;
+  if (!term.length) {
+    return res.status(400).json({ msg: "Search term is required!" });
+  }
+
+  try {
+    let results;
+    
+    if (term.startsWith("#")) {
+      const hashtag = await Hashtag.findOne({ name: term.slice(1) });
+      results = await Post.aggregate([
+        { $match: { hashtag: { $in: [hashtag._id] } } },
+        {
+          $addFields: {
+            popularity: {
+              $add: [{ $size: "$likes" }, { $size: "$comments" }],
+            },
+          },
+        },
+        { $sort: { popularity: -1 } },
+        { $skip: (page - 1) * perPage },
+        { $limit: perPage },
+        {$project: {
+          _id: 1
+        }}
+      ]);
+      console.log(results)
+
+    } else {
+      const regexPattern = term
+        .split(" ")
+        .map((word) => `(?=.*\\b${word}\\b)`)
+        .join("");
+
+      const regex = new RegExp(regexPattern, "i");
+
+      const hashtag = await Hashtag.findOne({ name: term.slice(1) });
+      results = await Post.aggregate([
+        {
+          $match: {
+            $or: [
+              { title: { $regex: regex } },
+              { text: { $regex: regex } },
+            ],
+          },
+        },
+        {
+          $addFields: {
+            popularity: {
+              $add: [{ $size: "$likes" }, { $size: "$comments" }],
+            },
+          },
+        },
+        { $sort: { popularity: -1 } },
+        { $skip: (page - 1) * perPage },
+        { $limit: perPage },
+        {$project: {
+          _id: 1
+        }}
+      ]);
+    
+    }
+
+    let posts = []
+    if (results.length>0) {
+      for (const id of results) {
+        const post = await Post.findById(id)
+        .populate("postedBy", "-password -secret")
+        .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag")
+        
+        posts.push(post)
+      }
+    }
+    return res.status(200).json({ results: posts });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
   }
 };
 
@@ -209,10 +286,6 @@ const editPost = async (req, res) => {
       },
       { new: true, populate: { path: "hashtag" } }
     );
-
-    console.log(post)
-    // const newPost = await Post.findById(postId)
-    // .populate("hashtag")
 
     return res.status(200).json({ msg: "Updated posts!", post: post });
   } catch (error) {
@@ -333,7 +406,8 @@ const addComment = async (req, res) => {
       }
     )
       .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret");
+      .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag");
 
     const user = await User.findByIdAndUpdate(post.postedBy, {
       $inc: { points: 20 },
@@ -367,7 +441,8 @@ const removeComment = async (req, res) => {
       }
     )
       .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret");
+      .populate("comments.postedBy", "-password -secret")
+      .populate("hashtag");
 
     const user = await User.findByIdAndUpdate(post.postedBy, {
       $inc: { points: -20 },
@@ -640,6 +715,7 @@ export {
   createPost,
   getAll,
   getAllReported,
+  search,
   uploadImage,
   editPost,
   getPost,

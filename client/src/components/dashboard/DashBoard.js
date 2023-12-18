@@ -5,6 +5,7 @@ import Main from "./components/Main";
 import Suggestion from "./components/Suggestion";
 import BookSuggestion from "./components/BookSuggestion";
 import ChatBotBanner from "./components/ChatBotBanner";
+import Hashtag from "./components/Hashtags";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -45,6 +46,14 @@ const Dashboard = () => {
         </div>
         <div className="col-span-11 order-1 md:col-span-4 lg:col-span-3 md:order-2 lg:order-3 ">
           <ChatBotBanner/>
+
+          <Hashtag
+            autoFetch={autoFetch}
+            navigate={navigate}
+            setNameAndToken={setNameAndToken}
+            user={user}
+            token={token}
+          />
 
           <Suggestion
             autoFetch={autoFetch}

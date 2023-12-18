@@ -4,7 +4,7 @@ import {
   Post,
   LoadingPost,
   LoadingForm,
-  FormCreatePost,
+  CreateBox,
   ReviewForm,
 } from "../..";
 import { IoFilterOutline } from "react-icons/io5";
@@ -40,6 +40,7 @@ const Review = ({
     writing: "",
     insights: "",
     dateRead: "",
+    hashtag: []
   });
 
   const filterRef = useRef();
@@ -91,6 +92,7 @@ const Review = ({
         writing: input.writing,
         insights: input.insights,
         dateRead: input.dateRead,
+        hashtag: input.hashtag
       });
       setPosts([data.post, ...posts]);
       toast.success("Create new review successfully!");
@@ -137,7 +139,7 @@ const Review = ({
 
   return (
     <div className="">
-      <FormCreatePost
+      <CreateBox
         setAttachment={setAttachment}
         setOpenForm={setOpenModal}
         user={user}

@@ -5,7 +5,7 @@ import {
   Post,
   LoadingPost,
   LoadingForm,
-  FormCreatePost,
+  CreateBox,
   ReviewForm,
 } from "../..";
 import SpecialPostForm from "../../common/SpecialPostForm";

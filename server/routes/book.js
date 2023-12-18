@@ -22,7 +22,7 @@ router.route("/").get(async (req, res) => {
     res.json({msg: "Book"});
 });
 
-router.route("/search-book").get(searchBook);
+router.route("/search").get(searchBook);
 router.route("/get-book/:id").get(getBook);
 router.route("/get-book-author/:id").get(getBookBySameAuthor);
 

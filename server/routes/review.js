@@ -19,7 +19,8 @@ import{
   getDiary,
   report,
   dismissReport,
-  getAllReported
+  getAllReported,
+  search
 } from "../controllers/review.js";
 import formidable from "express-formidable";
 import {canUpdateOrDeleteReview} from "../middleware/canUpdateOrDelete.js";
@@ -34,6 +35,7 @@ router.route("/").get(async (req, res) => {
 router.route("/create").post(create);
 router.route("/all").get(isAdmin, getAll);
 router.route("/all-reported").get(isAdmin, getAllReported);
+router.route("/search").get(search);
 
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 

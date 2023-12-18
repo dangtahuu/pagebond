@@ -4,7 +4,7 @@ import Nav from "./common/Nav";
 import Post from "./common/Post";
 import Comment from "./common/Comment";
 import Dropdown from "./common/Dropdown";
-import FormCreatePost from "./common/FormCreatePost";
+import CreateBox from "./common/CreateBox";
 import ItemsList from "./common/ItemsList";
 import GroupAvatars from "./common/GroupAvatars";
 import ReviewForm from "./common/ReviewForm";
@@ -48,7 +48,7 @@ export {
   Dropdown,
   ItemsList,
   GroupAvatars,
-  FormCreatePost,
+  CreateBox,
   LoadingPost,
   LoadingSuggestion,
   LoadingForm,

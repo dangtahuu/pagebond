@@ -77,6 +77,7 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    hashtag: [{ type: mongoose.Types.ObjectId, ref: "Hashtag" }],
     reported: {
       type: Boolean,
       default: false

@@ -4,7 +4,7 @@ import React, {useEffect, useState} from "react";
 import {toast} from "react-toastify";
 
 // components
-import {LoadingPost, Modal, Post, LoadingForm, FormCreatePost, PostForm} from "../..";
+import {LoadingPost, Modal, Post, LoadingForm, CreateBox, PostForm} from "../..";
 
 const Main = ({
     autoFetch,
@@ -84,7 +84,7 @@ const Main = ({
             return <LoadingForm />;
         }
         return (
-            <FormCreatePost
+            <CreateBox
                 setAttachment={setAttachment}
                 setOpenModal={setOpenModal}
                 text={text}

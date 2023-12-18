@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { SlArrowDown } from "react-icons/sl";
 
-const FormCreatePost = ({ user, setOpenForm, setOpenSpecial, allowSpecialPost, text }) => {
+const CreateBox = ({ user, setOpenForm, setOpenSpecial, allowSpecialPost, text }) => {
   const [specialMenu, setSpecialMenu] = useState(false);
 
   return (
-    <div className={`relative px-2 mb-3`}>
+    <div className={`relative mb-3`}>
       <div className="flex items-center gap-x-2 ">
         <img
           src={user.image?.url}
@@ -42,4 +42,4 @@ const FormCreatePost = ({ user, setOpenForm, setOpenSpecial, allowSpecialPost, t
   );
 };
 
-export default FormCreatePost;
+export default CreateBox;

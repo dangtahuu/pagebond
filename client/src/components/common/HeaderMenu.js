@@ -7,7 +7,6 @@ const HeaderMenu=({list, menu, handler})=>{
               className={`li-profile ${menu === v && "active"} `}
               onClick={() => {
                 handler(v);
-                // navigate(`/profile/${user._id}`);
               }}
             >
               {v}

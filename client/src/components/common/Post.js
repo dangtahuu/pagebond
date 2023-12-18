@@ -26,6 +26,14 @@ import { Rating } from "@mui/material";
 import ReactMarkdown from 'react-markdown';
 import QuestionForm from "./QuestionForm";
 
+const typeDisplay={
+  post: "Post",
+  review: "Review",
+  special: "News",
+  trade: "Trade",
+  question: "Question"
+}
+
 const Post = ({
   currentPost,
   className = "",
@@ -427,29 +435,29 @@ useEffect(()=>{
       )}
 
       {/* header post */}
-      <div className="flex items-center px-4">
+      <div className="flex items-center">
         {/* avatar */}
         <img
-          src={post.postedBy.image.url}
+          src={post?.postedBy?.image?.url}
           alt="avatar"
           className="w-8 h-8 rounded-full object-cover cursor-pointer "
           onClick={() => {
-            navigate(`/profile/${post.postedBy._id}`);
+            navigate(`/profile/${post?.postedBy?._id}`);
           }}
         />
         {/* name and time post */}
         <div className={`ml-2 `}>
           <div
-            className="flex items-center text-sm font-bold gap-x-1 cursor-pointer "
+            className="flex items-center text-xs font-bold gap-x-1 cursor-pointer "
             onClick={() => {
-              navigate(`/profile/${post.postedBy._id}`);
+              navigate(`/profile/${post?.postedBy?._id}`);
             }}
           >
-            {post.postedBy.name}
-            {post.postedBy.role === 1 && (
+            {post?.postedBy?.name}
+            {post?.postedBy?.role === 1 && (
               <TiTick className="text-sm ml-1 text-white rounded-full bg-greenBtn " />
             )}
-            {post.postedBy.role === 2 && (
+            {post?.postedBy?.role === 2 && (
               <TiTick className="text-sm ml-1 text-white rounded-full bg-blue-700 " />
             )}
           </div>
@@ -457,10 +465,10 @@ useEffect(()=>{
           <div className="text-[10px] flex items-center gap-x-1 cursor-pointer hover:underline" 
           // style={{"text-decoration": "underline"}}
            onClick={() => {
-            navigate(`/detail/${type}/${post._id}`);
+            navigate(`/detail/${type}/${post?._id}`);
           }}
           >
-            {moment(post.createdAt).fromNow()}
+            {moment(post?.createdAt).fromNow()} • {typeDisplay[type]}
           </div>
         </div>
         {/* Edit or delete posts */}
@@ -480,7 +488,7 @@ useEffect(()=>{
                 setShowOption(false);
               }}
             >
-              {(user._id === post.postedBy._id)&& <>
+              {(user?._id === post?.postedBy?._id)&& <>
                 <li
                 className="px-3 py-1 bg-navBar rounded-md"
                 onClick={() => {
@@ -493,18 +501,18 @@ useEffect(()=>{
                 className="mt-1 px-3 py-1 bg-navBar rounded-md"
                 onClick={() => {
                   if (window.confirm("Do you want to delete this post?")) {
-                    deletePost(post._id);
+                    deletePost(post?._id);
                   }
                 }}
               >
                 Delete
               </li></>}
             
-                {(user._id !== post.postedBy._id && post.postedBy.type !== 1) && <li
+                {(user?._id !== post?.postedBy?._id && post?.postedBy?.type !== 1) && <li
                 className="mt-1 px-3 py-1 bg-navBar rounded-md"
                 onClick={() => {
                   if (window.confirm("Do you want to report this post?")) {
-                    reportPost(post._id);
+                    reportPost(post?._id);
                   }
                 }}
               >
@@ -518,28 +526,28 @@ useEffect(()=>{
       </div>
 
       {post.address && (
-        <div className="content mt-3 px-4 font-bold text-gray-500 text-xs" onClick={()=>console.log(post)}>
-          {post.address.slice(0,80)}...
+        <div className="content mt-3 font-bold text-gray-500 text-xs" onClick={()=>console.log(post)}>
+          {post?.address?.slice(0,80)}...
         </div>
       )}
 
     {post.condition && (
-        <div className="content mt-2 px-4 font-bold text-gray-500 text-xs">
-          Condition: {post.condition}{" "}
+        <div className="content mt-2 font-bold text-gray-500 text-xs">
+          Condition: {post?.condition}{" "}
         </div>
       )}
 
-      {post.book && !book ? (
-        <div className="flex items-center mt-2 pr-3 ml-2 md:px-3">
+      {post?.book && !book ? (
+        <div className="flex items-center mt-2 pr-3">
           {/* avatar */}
           <img
             src={
-              post.book.thumbnail || "https://sciendo.com/product-not-found.png"
+              post?.book?.thumbnail || "https://sciendo.com/product-not-found.png"
             }
             alt="avatar"
             className="max-h-20 rounded-md cursor-pointer "
             onClick={() => {
-              navigate(`/book/${post.book._id}`);
+              navigate(`/book/${post?.book?._id}`);
             }}
           />
           {/* name and time post */}
@@ -547,20 +555,20 @@ useEffect(()=>{
             <div
               className="flex items-center font-bold text-sm gap-x-1 cursor-pointer "
               onClick={() => {
-                navigate(`/book/${post.book._id}`);
+                navigate(`/book/${post?.book?._id}`);
               }}
             >
-              {post.book.title}
+              {post?.book?.title}
             </div>
 
             <div className="text-xs dark:text-[#B0B3B8] flex items-center gap-x-1 ">
-              {post.book.author}
+              {post?.book?.author}
             </div>
-            {post.rating && (
+            {post?.rating && (
               <div className="flex items-center gap-x-1  cursor-pointer mt-2">
                    <Rating
                    className="!text-[16px]"
-          value={post.rating}
+          value={post?.rating}
           precision={0.5}
           readOnly
         />
@@ -569,10 +577,10 @@ useEffect(()=>{
             )}
           </div>
         </div>
-      ) : post.rating ? (
-        <div className="content mt-[11px] px-4">
+      ) : post?.rating ? (
+        <div className="content mt-[11px]">
              <Rating
-          value={post.rating}
+          value={post?.rating}
           precision={0.5}
           readOnly
         />
@@ -580,57 +588,57 @@ useEffect(()=>{
       ) : (
         <></>
       )}
-      {post.title && (
-        <div className="content mt-3 px-4 serif-display text-2xl">
-          {post.title}
+      {post?.title && (
+        <div className="content mt-3 serif-display text-xl">
+          {post?.title}
         </div>
       )}
 
       <div
-        className={`content mt-[11px] px-4  ${
-          post.image || post.text.length > 60 ? "text-sm" : "text-base "
+        className={`content mt-[11px] ${
+          post?.image || post?.text?.length > 60 ? "text-sm" : "text-base "
         } `}
       >
-        {post.text}
+        {post?.text}
       </div>
 
-      {post.hashtag && <div className="px-4">
-        {post.hashtag.map((one) => (
+      {post?.hashtag && <div className="">
+        {post?.hashtag?.map((one) => (
                 <div
                   className="cursor-pointer text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1"
                   onClick={() => {
                     navigate(
-                      `/search/?hashtag=${encodeURIComponent(
-                        JSON.stringify(one)
-                      )}`
+                      `/search/?q=${encodeURIComponent(
+                        JSON.stringify(`#${one?.name}`)
+                      )}&searchType=${type}`
                     );
                   }}
                 >
-                  {one.name}
+                  {one?.name}
                 </div>
               ))}
         </div>}
 
       {/* when has image */}
-      {post.image && (
-        <div className="mt-3 flex items-center justify-center px-2 cursor-pointer ">
+      {post?.image && (
+        <div className="mt-3 flex items-center justify-center cursor-pointer ">
           <img
-            src={post.image.url}
+            src={post?.image?.url}
             alt="img_content"
             className="w-full rounded-lg h-auto max-h-[300px] sm:max-h-[350px] object-contain bg-[#F0F2F5] dark:bg-[#18191A]"
             onClick={() => {
-              navigate(`/detail/${type}/${post._id}`);
+              navigate(`/detail/${type}/${post?._id}`);
             }}
           />
         </div>
       )}
 
       {/* post's comment and like quantity */}
-      <div className="px-4 py-[10px] flex gap-x-[6px] items-center text-[15px] ">
+      <div className="py-[10px] flex gap-x-[6px] items-center text-[15px] ">
         {/* like quantity */}
 
         <>
-          {!post.likes.includes(user._id) ? (
+          {!post?.likes?.includes(user._id) ? (
             <>
               <AiOutlineHeart
                 onClick={() => like(post._id)}
@@ -672,26 +680,26 @@ useEffect(()=>{
 
       {/* comment box */}
       {showComment && (
-        <div className="px-4 pt-1 ">
-          {post.comments.map((comment) => (
+        <div className="pt-1 ">
+          {post?.comments?.map((comment) => (
             <Comment
-              key={comment._id}
+              key={comment?._id}
               currentComment={comment}
-              userId={user._id}
+              userId={user?._id}
               deleteComment={deleteComment}
               autoFetch={autoFetch}
-              postId={post._id}
+              postId={post?._id}
               navigate={navigate}
-              user_img={user.image?.url || "/images/avatar.png"}
+              user_img={user?.image?.url || "/images/avatar.png"}
             />
           ))}
         </div>
       )}
 
       {/* form add comment */}
-      <div className="flex gap-x-1.5 px-2 sm:px-3 md:px-4 py-1 mt-1 items-center ">
+      <div className="flex gap-x-1.5 px-2 py-1 mt-1 items-center ">
         <img
-          src={user.image?.url || "/images/avatar.png"}
+          src={user?.image?.url || "/images/avatar.png"}
           alt="user_avatar"
           className="w-7 h-7 object-cover shrink-0 rounded-full "
         />
@@ -699,7 +707,7 @@ useEffect(()=>{
           className="flex px-2 rounded-full bg-[#2c3440] w-full items-center "
           onSubmit={(e) => {
             e.preventDefault();
-            addComment(post._id);
+            addComment(post?._id);
           }}
         >
           <input
@@ -745,7 +753,7 @@ useEffect(()=>{
           <div className="relative ">
             <img
               // @ts-ignore
-              src={imageComment.url}
+              src={imageComment?.url}
               alt="image_comment"
               className="h-20 w-auto object-contain "
             />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo  } from "react";
 import { toast } from "react-toastify";
-import { Post, FormCreatePost, PostForm } from "../..";
+import { Post, CreateBox, PostForm } from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 import shuffle from "../../../utils/shuffle";
 import SpecialPostForm from "../../common/SpecialPostForm";
@@ -30,6 +30,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     text: "",
     title: "",
     image: "",
+    hashtag: [],
+
   });
 
   const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
@@ -125,6 +127,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         text: specialInput.text,
         title: specialInput.title,
         image,
+        hashtag: specialInput.hashtag,
         type: user.role === 1 ? 1 : 0,
       });
       setActivePosts((prev) => [data.post, ...prev]);
@@ -365,7 +368,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   return (
     <div className="">
-      <FormCreatePost
+      <CreateBox
         setOpenForm={setPostOpen}
         setOpenSpecial={setSpecialPostOpen}
         user={user}

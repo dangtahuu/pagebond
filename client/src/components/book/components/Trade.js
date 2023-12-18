@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {toast} from "react-toastify";
-import {Modal, Post, LoadingPost, LoadingForm, FormCreatePost, ReviewForm, TradeForm} from "../..";
+import {Modal, Post, LoadingPost, LoadingForm, CreateBox, ReviewForm, TradeForm} from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 const Trade = ({
@@ -24,7 +24,8 @@ const Trade = ({
         text: "",
         location:"",
         address:"",
-        image:""
+        image:"",
+        hashtag:[]
     })
 
     const [openModal, setOpenModal] = useState(false);
@@ -63,6 +64,7 @@ const Trade = ({
                 condition: input.condition,
                 address: input.address,
                 location: input.location,
+                hashtag: input.hashtag,
                 book,
                 image
             });
@@ -136,7 +138,7 @@ const Trade = ({
         }
         if (loading) return <LoadingForm />;
         return (
-            <FormCreatePost
+            <CreateBox
                 setAttachment={setAttachment}
                 setOpenForm={setOpenModal}
                 user={user}

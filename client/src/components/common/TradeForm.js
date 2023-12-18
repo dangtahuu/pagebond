@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { MdAddPhotoAlternate, MdCancel } from "react-icons/md";
-
+import { useAppContext } from "../../context/useContext";
 import ReactLoading from "react-loading";
 import { IoClose } from "react-icons/io5";
 import Rating from "@mui/material/Rating";
@@ -13,7 +13,6 @@ import useDebounce from "../../hooks/useDebounce";
 import useOnClickOutside from "../../hooks/useOnClickOutside";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 
-const toolTipText = {};
 
 const conditionList = ["New", "Like new", "Good", "Worn", "Bad"];
 
@@ -30,6 +29,8 @@ const TradeForm = ({
   setFormDataEdit = (event) => {},
   // setImageEdit = (event) => {},
 }) => {
+  const { autoFetch } = useAppContext();
+
   const [image, setImage] = useState(input.image);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
@@ -39,7 +40,74 @@ const TradeForm = ({
   const [listSearchResult, setListSearchResult] = useState([]);
   const [isEmpty, setIsEmpty] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [tag, setTag] = useState("");
 
+  const hashtagDebounce = useDebounce(tag, 500);
+  const [listTagSearch, setListTagSearch] = useState([]);
+  const [isSearchingTag, setIsSearchingTag] = useState(false);
+
+  const searchTagRef = useRef();
+
+  useOnClickOutside(searchTagRef, () => {
+    setIsSearchingTag(false);
+  });
+
+  useEffect(() => {
+    searchHashtag();
+  }, [hashtagDebounce]);
+
+  const searchHashtag = async () => {
+    if (!tag) {
+      setListTagSearch([]);
+      return;
+    }
+    try {
+      const { data } = await autoFetch.get(`/api/hashtag/search?term=${tag}`);
+      console.log(data);
+      if (data.hashtags.length === 0) {
+        setListTagSearch([]);
+      } else {
+        setListTagSearch(data.hashtags);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleClickResultTag = (item) => {
+    setTag("");
+    setInput((prev) => ({ ...prev, hashtag: [...prev.hashtag, item.name] }));
+    setListTagSearch([]);
+    setIsSearchingTag(false);
+  };
+
+  const ResultListTag = () => {
+    return (
+      <div className="">
+        {listTagSearch.map((item) => {
+          return (
+            <div
+              className="py-2 cursor-pointer hover:font-bold"
+              key={item._id}
+              onClick={() => handleClickResultTag(item)}
+            >
+              {item.name}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const handleTag = (e) => {
+    const words = e.target.value.split(" ");
+    if (words.length > 1) {
+      if(words[0]!=="") setInput((prev) => ({ ...prev, hashtag: [...prev.hashtag, words[0]] }));
+      setTag(words[1]);
+    } else {
+      setTag(e.target.value);
+    }
+  };
   const clearListResult = () => {
     if (isSearching) {
       setListSearchResult([]);
@@ -303,6 +371,49 @@ const TradeForm = ({
                 {listSearchResult.length > 0 && <ResultList />}
               </div>
             )}
+          </div>
+
+          <label className="form-label" for="hashtag">
+            Hashtag
+          </label>
+          <div className="standard-input h-[50px] flex items-center mb-2">
+            {input.hashtag.length > 0 && (
+              <div className="flex items-center gap-x-1 mr-2">
+                {input.hashtag.map((one, index) => (
+                  <div className="relative text-xs text-mainText inline-block rounded-full bg-dialogue px-2 py-1">
+                    {one}
+                    <IoClose className="text-xs cursor-pointer bg-mainbg rounded-full absolute -top-[5px] -right-[2px]"
+                    onClick={()=>{
+                      // let hashtag = input.hashtag
+                      // hashtag = hashtag.splice(index, 1)
+                      setInput((prev) => {
+                         let hashtag = prev.hashtag
+                        hashtag.splice(index, 1)
+                        return ({ ...prev, hashtag })});
+                    }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="relative">
+              <input
+                className="border-none focus:ring-0 bg-inputBg text-xs md:text-sm px-0"
+                placeholder="Type the hashtag"
+                value={tag}
+                ref={searchTagRef}
+                onChange={handleTag}
+                onFocus={() => {
+                  setIsSearchingTag(true);
+                }}
+              />
+
+              {isSearchingTag && listTagSearch.length > 0 && (
+                <div className="scroll-bar bottom-[50px] text-mainText text-xs p-2 absolute bg-altDialogue max-h-[300px] rounded-lg overflow-y-auto overflow-x-hidden">
+                  <ResultListTag />
+                </div>
+              )}
+            </div>
           </div>
 
           {attachment && (

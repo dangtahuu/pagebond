@@ -19,7 +19,8 @@ import {
     getDiscover,
     getPopular,
     report,
-    dismissReport
+    dismissReport,
+    search
 
 } from "../controllers/post.js";
 import formidable from "express-formidable";
@@ -35,6 +36,8 @@ router.route("/").get(async (req, res) => {
 router.route("/create-post").post(createPost);
 router.route("/all").get(isAdmin, getAll);
 router.route("/all-reported").get(isAdmin, getAllReported);
+router.route("/search").get(search);
+
 
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 

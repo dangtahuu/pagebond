@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {toast} from "react-toastify";
-import {Modal, Post, LoadingPost, LoadingForm, FormCreatePost, ReviewForm} from "../..";
+import {Modal, Post, LoadingPost, LoadingForm, CreateBox, ReviewForm} from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 import SpecialPostForm from "../../common/SpecialPostForm";
 
@@ -22,6 +22,7 @@ const Official = ({
       title: "",
       text: "",
       image: "",
+      hashtag: []
     });
   
     const [openModal, setOpenModal] = useState(false);
@@ -50,6 +51,7 @@ const Official = ({
             title: input.title,
             book,
             image,
+        hashtag: input.hashtag,
             type: user.role === 1 ? 1 : 0,
           });
           setPosts((prev) => [data.post, ...prev]);
@@ -112,7 +114,7 @@ const Official = ({
 
     return (
         <div className=''>
-           {user.role!==3 &&  <FormCreatePost
+           {user.role!==3 &&  <CreateBox
         setOpenForm={setOpenModal}
         user={user}
         text="special post"

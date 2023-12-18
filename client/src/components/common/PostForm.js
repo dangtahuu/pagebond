@@ -27,6 +27,7 @@ const PostForm = ({
   const [image, setImage] = useState(input.image);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
+  
   const [tag, setTag] = useState("");
 
   const hashtagDebounce = useDebounce(tag, 500);
@@ -34,10 +35,12 @@ const PostForm = ({
   const [isSearchingTag, setIsSearchingTag] = useState(false);
 
   const searchTagRef = useRef();
+  const tagExceptRef = useRef();
+
 
   useOnClickOutside(searchTagRef, () => {
     setIsSearchingTag(false);
-  });
+  }, tagExceptRef);
 
   useEffect(() => {
     searchHashtag();
@@ -70,15 +73,20 @@ const PostForm = ({
 
   const ResultList = () => {
     return (
-      <div className="">
+      <div className=""
+      ref={tagExceptRef}
+      >
         {listTagSearch.map((item) => {
           return (
             <div
               className="py-2 cursor-pointer hover:font-bold"
               key={item._id}
-              onClick={() => handleClickResult(item)}
+              onClick={() => {
+                handleClickResult(item)
+              }
+              }
             >
-              {item.name}
+              #{item.name} - {item.numberOfPosts} posts
             </div>
           );
         })}

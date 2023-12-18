@@ -15,21 +15,25 @@ const shuffle = (array) => {
 const searchBook = async (req, res) => {
   const term = req.query.term;
   const page = Number(req.query.page) || 1;
-  const perPage = Number(req.query.perPage) || 20;
+  const perPage = Number(req.query.perPage) || 10;
   if (!term.length) {
     return res.status(400).json({ msg: "Search term is required!" });
   }
 
   try {
-    const results = await Book.find({ title: { $regex: term, $options: "i" } })
+    const results = await Book.find({ $or: [
+      { title: { $regex: new RegExp(term, 'i') } }, 
+      { author: { $regex: new RegExp(term, 'i') } }, 
+      { publisher: { $regex: new RegExp(term, 'i') } }, 
+      { description: { $regex: new RegExp(term, 'i') } }, 
+    ]})
       .limit(perPage)
-      .skip((page - 1) * perPage);
 
     if (!results) {
       return res.status(400).json({ msg: "No result found!" });
     }
 
-    return res.status(200).json({ books: results, perPage });
+    return res.status(200).json({ results, perPage });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ msg: err });

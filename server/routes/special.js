@@ -20,7 +20,9 @@ import {
   dismissReport,
   getAllReported,
   verify,
-  getAllPending
+  getAllPending,
+  search,
+  getFeatured
 } from "../controllers/specialPost.js";
 import formidable from "express-formidable";
 import { canUpdateOrDeleteSpecialPost } from "../middleware/canUpdateOrDelete.js";
@@ -34,6 +36,8 @@ router.route("/").get(async (req, res) => {
 
 router.route("/create").post(create);
 router.route("/all").get(isAdmin, getAll);
+router.route("/search").get(search);
+
 // router.route("/create-adminpost").post(isAdmin, createAdminPost);
 router.route("/all-reported").get(isAdmin, getAllReported);
 router.route("/all-pending").get(isAdmin, getAllPending);
@@ -45,6 +49,8 @@ router.route("/following").get(getFollowing);
 
 //book
 router.route("/book/:id").get(getAllWithBook);
+router.route("/book-featured/:id").get(getFeatured);
+
 // router.route("/book-exchanges/:id").get(getExchanges);
 router.route("/book-my/:id").get(getMy);
 

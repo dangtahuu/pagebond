@@ -12,6 +12,10 @@ import Similar from "./components/Similar";
 import Official from "./components/Official";
 import Question from "./components/Question";
 import { VscOpenPreview } from "react-icons/vsc";
+import Post from "../common/Post";
+import ReactLoading from "react-loading";
+import { LuBadgeCheck } from "react-icons/lu";
+import HeaderMenu from "../common/HeaderMenu";
 
 function BookDetail() {
   const navigate = useNavigate();
@@ -59,6 +63,7 @@ function BookDetail() {
   const [exchange, setExchange] = useState([]);
   const [official, setOfficial] = useState([]);
   const [question, setQuestion] = useState([]);
+  const [featured, setFeatured] = useState({})
 
   const [shelves, setShelves] = useState([]);
   const [selectedShelves, setSelectedShelves] = useState([]);
@@ -81,6 +86,7 @@ function BookDetail() {
       try {
         setLoading(true);
         const data = await getBook();
+        getFeatured()
         getBoooksByAuthor();
         getSimilarBooks(data.author);
         // getTopShelves();
@@ -293,16 +299,17 @@ function BookDetail() {
     }
   };
 
-  // const getTopShelves = async () => {
-  //   try {
-  //     const { data } = await autoFetch.get(
-  //       `/api/shelf/get-top-shelves-of-book/${id}`
-  //     );
-  //     setTopShelves(data.names);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
+  const getFeatured = async () => {
+    try {
+      const { data } = await autoFetch.get(
+        `/api/special/book-featured/${id}`
+      );
+      setFeatured(data.post);
+    } catch (error) {
+      console.log(error);
+      setError(true);
+    } 
+  };
 
   const getSelectedShelves = async () => {
     setSelectedShelvesLoading(true);
@@ -404,6 +411,21 @@ function BookDetail() {
     );
   };
 
+  const Featured = ()=> {
+
+    return (
+      <div className="my-4 border-b-[1px] border-b-dialogue">
+        <div className="flex items-center gap-x-2 mb-2">
+        <LuBadgeCheck className="text-2xl text-greenBtn"/>
+        <div className="serif-display text-2xl">Featured</div>
+
+        </div>
+      <Post currentPost={featured} book={book}/>
+      </div>
+    )
+   
+  }
+
   const main = () => {
     if (menu === "By me") {
       return (
@@ -489,12 +511,14 @@ function BookDetail() {
       );
     }
   };
+
+  if (loading) return <div className="w-screen flex min-h-screen bg-mainbg justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
   return (
     <div
       className={`w-screen text-base min-h-screen bg-mainbg text-mainText pt-[65px] px-[3%] sm:px-[5%]`}
     >
       <div className="w-full mt-[3%] pt-3  md:grid grid-cols-10 items-start justify-center gap-x-8 py-16 px-4">
-        <div className="col-span-2 md:pr-8">
+        <div className="col-span-2 md:pr-8 sticky top-[65px]">
           <img
             className="max-w-[400px] md:w-[200px] object-contain mb-6 md:mb-0 rounded-lg"
             src={book.thumbnail}
@@ -588,26 +612,19 @@ function BookDetail() {
             </div>
           </div>
 
-          <div className="flex mx-0 sm:mx-10 ">
-            <ul className="flex items-center justify-between w-full px-16 py-1 gap-x-10 ">
-              {list.map((v) => (
-                <li
-                  key={v + "button"}
-                  className={`li-profile ${menu === v && "active"} `}
-                  onClick={() => {
-                    setMenu(v);
-                    // navigate(`/profile/${user._id}`);
-                  }}
-                >
-                  {v}
-                </li>
-              ))}
-            </ul>
+          <Featured/>
+
+          <div className="">
+          <div className="flex items-center gap-x-2 mb-2">
+        <LuBadgeCheck className="text-2xl text-greenBtn"/>
+        <div className="serif-display text-2xl">From the community</div>
+        </div>
+          <HeaderMenu list={list} menu={menu} setMenu={setMenu} />
           </div>
 
           {main()}
         </div>
-        <div className="col-span-3 ">
+        <div className="col-span-3 sticky top-[65px] ">
           <div className="flex flex-col">
             <div className="serif-display mb-2">
               From {book.postsCount} reviews

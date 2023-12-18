@@ -5,7 +5,7 @@ import {
   Post,
   LoadingPost,
   LoadingForm,
-  FormCreatePost,
+  CreateBox,
   ReviewForm,
   TradeForm,
 } from "../..";
@@ -31,6 +31,7 @@ const Question = ({
     title: "",
     text: "",
     image: "",
+    hashtag: []
   });
 
   const [openModal, setOpenModal] = useState(false);
@@ -65,6 +66,7 @@ const Question = ({
         title: input.title,
         book,
         image,
+        hashtag: input.hashtag
       });
       id = data.post._id;
       // newArray = [data.post, ...posts]
@@ -168,7 +170,7 @@ const Question = ({
     }
     if (loading) return <LoadingForm />;
     return (
-      <FormCreatePost
+      <CreateBox
         setAttachment={setAttachment}
         setOpenForm={setOpenModal}
         user={user}

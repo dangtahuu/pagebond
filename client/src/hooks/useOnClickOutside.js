@@ -10,7 +10,7 @@ const useOnClickOutside = (ref, handler, exception) => {
                     return;
                 }
                 if(exception) {
-                    if(exception.current.contains(event.target)) return;
+                    if(!exception.current || exception.current.contains(event.target)) return;
                 }
                 handler(event);
             };
