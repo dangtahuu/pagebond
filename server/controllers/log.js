@@ -9,7 +9,7 @@ const getNotifications = async (req, res) => {
     const unread = await Log.find({
         $and: [
           { toUser: req.user.userId },
-          { type: { $in: [1, 5, 7, 9, 10] } },
+          { type: { $in: [1, 5, 7, 10, 11] } },
           { isRead: false}
         ],
       })
@@ -20,7 +20,7 @@ const getNotifications = async (req, res) => {
     const notifications = await Log.find({
       $and: [
         { toUser: req.user.userId },
-        { type: { $in: [1, 5, 7, 9, 10] } },
+        { type: { $in: [1, 5, 7, 10, 11] } },
       ],
     })
       .populate({
@@ -117,7 +117,7 @@ const markReadAll = async (req, res) => {
     const notis = await Log.updateMany({
         $and: [
           { toUser: req.user.userId },
-          { type: { $in: [1, 5, 7, 8, 9] } },
+          { type: { $in: [1, 5, 7, 10, 11] } },
           { isRead: false}
         ],
       },{
@@ -132,13 +132,14 @@ const markReadAll = async (req, res) => {
 };
 
 const getLogs = async (req, res) => {
+  const {id} = req.params
     try {
       const page = Number(req.query.page) || 1;
       const perPage = Number(req.query.perPage) || 50;
   
       const logs = await Log.find({
-         $and: [ { toUser: req.user.userId },
-          { type: { $nin: [9,10] } },
+         $and: [ { toUser: id },
+          { type: { $nin: [10,11] } },
         ],
       })
         .populate({
@@ -151,7 +152,10 @@ const getLogs = async (req, res) => {
         .sort({ createdAt: -1 });
   
       const userLogs = logs.filter((one) => one.typeOfLink === "User");
-  
+      const userDetailLogs = await Log.populate(userLogs, {
+        path: "linkTo",
+        model: "User",
+      });
       const postLogs = logs.filter((one) => one.typeOfLink === "Post");
   
       const postDetailLogs = await Log.populate(postLogs, {
@@ -196,7 +200,7 @@ const getLogs = async (req, res) => {
       });
   
       let allLogs = [
-        ...userLogs,
+        ...userDetailLogs,
         ...postDetailLogs,
         ...reviewDetailLogs,
         ...tradeDetailLogs,

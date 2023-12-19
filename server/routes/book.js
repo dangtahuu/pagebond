@@ -12,6 +12,7 @@ import {
    getPopularGenres,
    fixGenres,
    getPopularBooks,
+   getPromptsForBook,
 } from "../controllers/book.js";
 import formidable from "express-formidable";
 import isAdmin from "../middleware/isAdmin.js";
@@ -24,6 +25,8 @@ router.route("/").get(async (req, res) => {
 
 router.route("/search").get(searchBook);
 router.route("/get-book/:id").get(getBook);
+router.route("/get-book-prompts/:id").get(getPromptsForBook);
+
 router.route("/get-book-author/:id").get(getBookBySameAuthor);
 
 router.route("/delete-book").delete(deleteAll);

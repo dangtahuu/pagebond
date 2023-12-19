@@ -23,6 +23,8 @@ function BookDetail() {
   const { autoFetch, user, token, dark, setNameAndToken, setOneState } =
     useAppContext();
   const [loading, setLoading] = useState(false);
+  const [promptLoading, setPromptLoading] = useState(false);
+
   const [reviewLoading, setReviewLoading] = useState(false);
   const [myPostLoading, setMyPostLoading] = useState(false);
   const [exchangeLoading, setExchangeLoading] = useState(false);
@@ -63,7 +65,7 @@ function BookDetail() {
   const [exchange, setExchange] = useState([]);
   const [official, setOfficial] = useState([]);
   const [question, setQuestion] = useState([]);
-  const [featured, setFeatured] = useState({})
+  const [featured, setFeatured] = useState({});
 
   const [shelves, setShelves] = useState([]);
   const [selectedShelves, setSelectedShelves] = useState([]);
@@ -80,13 +82,16 @@ function BookDetail() {
   const [openModal, setOpenModal] = useState(false);
   const [shelfForm, setShelfForm] = useState(false);
   const [similarBooks, setSimilarBooks] = useState([]);
-  const [toRead, setToRead] = useState(false)
+  const [promptList, setPromptList] = useState([]);
+
+  const [toRead, setToRead] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const data = await getBook();
-        getFeatured()
+        getFeatured();
         getBoooksByAuthor();
         getSimilarBooks(data.author);
         // getTopShelves();
@@ -101,6 +106,10 @@ function BookDetail() {
     };
 
     fetchData();
+  }, [id]);
+
+  useEffect(() => {
+    getPromptsForBook();
   }, [id]);
 
   const getBook = async () => {
@@ -130,6 +139,17 @@ function BookDetail() {
       topShelves: bookData.topShelves || [],
     });
     return bookData;
+  };
+
+  const getPromptsForBook = async () => {
+    setPromptLoading(true);
+    try {
+      const {data} = await autoFetch.get(`/api/book/get-book-prompts/${id}`);
+      setPromptList(data.prompts)
+    } catch (error) {
+      console.log(error);
+    }
+    setPromptLoading(false);
   };
 
   const getNewReviews = async (sort = "popularity", filter = "All") => {
@@ -301,14 +321,12 @@ function BookDetail() {
 
   const getFeatured = async () => {
     try {
-      const { data } = await autoFetch.get(
-        `/api/special/book-featured/${id}`
-      );
+      const { data } = await autoFetch.get(`/api/special/book-featured/${id}`);
       setFeatured(data.post);
     } catch (error) {
       console.log(error);
       setError(true);
-    } 
+    }
   };
 
   const getSelectedShelves = async () => {
@@ -319,8 +337,8 @@ function BookDetail() {
       );
       setSelectedShelves(data.ids);
       // console.log()
-      if(data.names.includes("to read")) setToRead(true) 
-      else setToRead(false)
+      if (data.names.includes("to read")) setToRead(true);
+      else setToRead(false);
     } catch (error) {
       console.log(error);
       setError(true);
@@ -411,20 +429,17 @@ function BookDetail() {
     );
   };
 
-  const Featured = ()=> {
-
+  const Featured = () => {
     return (
       <div className="my-4 border-b-[1px] border-b-dialogue">
         <div className="flex items-center gap-x-2 mb-2">
-        <LuBadgeCheck className="text-2xl text-greenBtn"/>
-        <div className="serif-display text-2xl">Featured</div>
-
+          <LuBadgeCheck className="text-2xl text-greenBtn" />
+          <div className="serif-display text-2xl">Featured</div>
         </div>
-      <Post currentPost={featured} book={book}/>
+        <Post currentPost={featured} book={book} />
       </div>
-    )
-   
-  }
+    );
+  };
 
   const main = () => {
     if (menu === "By me") {
@@ -512,7 +527,12 @@ function BookDetail() {
     }
   };
 
-  if (loading) return <div className="w-screen flex min-h-screen bg-mainbg justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+  if (loading)
+    return (
+      <div className="w-screen flex min-h-screen bg-mainbg justify-center">
+        <ReactLoading type="spin" width={30} height={30} color="#7d838c" />
+      </div>
+    );
   return (
     <div
       className={`w-screen text-base min-h-screen bg-mainbg text-mainText pt-[65px] px-[3%] sm:px-[5%]`}
@@ -569,62 +589,60 @@ function BookDetail() {
             ></ModalShelves>
           )}
 
-<button
-          className={`bg-[#00a11d] text-white text-sm block m-auto w-[200px] py-1.5 text-center rounded-full font-bold my-3`}
-          // disabled={!text || loading}
-          onClick={handleToRead}
-          // onClick={handleButton}
-        >
-          {toRead
-            ? "Remove from To read"
-            : "Want to read"}
-        </button>
+          <button
+            className={`bg-[#00a11d] text-white text-sm block m-auto w-[200px] py-1.5 text-center rounded-full font-bold my-3`}
+            // disabled={!text || loading}
+            onClick={handleToRead}
+            // onClick={handleButton}
+          >
+            {toRead ? "Remove from To read" : "Want to read"}
+          </button>
         </div>
-
-      
 
         <div className="col-span-5">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold serif-display text-white">
-                {book.title}
-              </h1>
-              <h2 className="text-xl font-semibold">{book.author}</h2>
+          <div className="mb-8">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-4xl font-bold serif-display text-white">
+                  {book.title}
+                </h1>
+                <h2 className="text-xl font-semibold">{book.author}</h2>
+              </div>
+              <a
+                href={`${book.previewLink}&lpg=PP1&pg=PP1&output=embed`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <VscOpenPreview className="text-2xl" />
+              </a>
             </div>
-            <a
-              href={`${book.previewLink}&lpg=PP1&pg=PP1&output=embed`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <VscOpenPreview className="text-2xl" />
-            </a>
+
+            <div
+              className="text-base mt-3 text-justify"
+              dangerouslySetInnerHTML={{ __html: book.description }}
+            />
+            {/* <p className="text-lg">{book.description}</p> */}
+            <div className="text-sm  text-smallText mt-3">
+              <div>{book.pageCount}</div>
+              <div>
+                {book.publishedDate} by {book.publisher}
+              </div>
+            </div>
           </div>
 
-          <div
-            className="text-base mt-3 text-justify"
-            dangerouslySetInnerHTML={{ __html: book.description }}
-          />
-          {/* <p className="text-lg">{book.description}</p> */}
-          <div className="text-sm  text-smallText mt-3">
-            <div>{book.pageCount}</div>
-            <div>
-              {book.publishedDate} by {book.publisher}
-            </div>
-          </div>
-
-          <Featured/>
+          {featured && <Featured />}
 
           <div className="">
-          <div className="flex items-center gap-x-2 mb-2">
-        <LuBadgeCheck className="text-2xl text-greenBtn"/>
-        <div className="serif-display text-2xl">From the community</div>
-        </div>
-          <HeaderMenu list={list} menu={menu} setMenu={setMenu} />
+            <div className="flex items-center gap-x-2 mb-2">
+              <LuBadgeCheck className="text-2xl text-greenBtn" />
+              <div className="serif-display text-2xl">From the community</div>
+            </div>
+            <HeaderMenu list={list} menu={menu} handler={setMenu} />
           </div>
 
           {main()}
         </div>
-        <div className="col-span-3 sticky top-[65px] ">
+        <div className="col-span-3 sticky top-[65px] max-h-[80vh] overflow-auto">
           <div className="flex flex-col">
             <div className="serif-display mb-2">
               From {book.postsCount} reviews
@@ -655,6 +673,30 @@ function BookDetail() {
                   {genre}
                 </div>
               ))}
+            </div>
+          )}
+
+          {promptLoading ? (
+            <div className="w-full flex justify-center">
+              <ReactLoading
+                type="spin"
+                width={30}
+                height={30}
+                color="#7d838c"
+              />
+            </div>
+          ) : (
+            <div>
+              {promptList.length > 0 && (
+                <div className="">
+                  <div>You could ask our assistant</div>
+                  <div className="flex flex-col">
+                    {promptList.map((one) => (
+                      <div className="bg-dialogue rounded-lg p-4">{one}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

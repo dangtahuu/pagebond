@@ -27,7 +27,8 @@ const notiText = {
   5: "has commented on your post",
   6: "has removed comment on your post",
   7: "has sent you",
-  8: "has redeemed voucher",
+  8: "have sent",
+  9: "have redeemed voucher",
 };
 
 const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
@@ -72,10 +73,10 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
 
   const getLogs = async () => {
     try {
-      const { data } = await autoFetch.get(`/api/log/logs`);
+      const { data } = await autoFetch.get(`/api/log/logs/${user._id}`);
       setLogs(data.logs);
       const voucher_type = data.logs.filter(
-        (one) => one.type === 8 && one.isRead === false
+        (one) => one.type === 9 && one.isRead === false
       );
       setRedeemed(voucher_type);
       // handleHistoryMenu(historyMenu)
@@ -129,7 +130,8 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
     console.log(data)
       switch (data.typeOfLink) {
         case "User":
-          navigate(`/profile/${data.fromUser._id}`);
+          if(data.type===7) navigate(`/profile/${data.fromUser._id}`);
+          else navigate(`/profile/${data.linkTo._id}`)
           break;
         case "Post":
           navigate(`/detail/post/${data.linkTo._id}`);
@@ -254,7 +256,7 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
          break;
       }
       case "Vouchers": {
-        filteredData =  data.filter((one) => one.type === 8);
+        filteredData =  data.filter((one) => one.type === 9);
          break;
       }
       default:
@@ -274,19 +276,28 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
                     {formatDate(noti.createdAt)}
                   </span>
                   <span className="font-semibold">
-                    {noti.type !== 8 ? noti?.fromUser?.name : `You`}
+                    {(noti.type !== 9 && noti.type !== 8) ? noti?.fromUser?.name : `You`}
                   </span>{" "}
                   {notiText[noti.type]}{" "}
                   <span className="font-semibold">
-                    {noti.type === 8 && `${noti?.linkTo?.name} - ${noti?.note}`}
+                    {noti.type === 9 && `${noti?.linkTo?.name} - ${noti?.note}`}
                   </span>
                   <span className="font-semibold">
                     {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
                       noti?.linkTo?.text}
                   </span>
                   <span className="font-semibold">
-                    {noti.type === 7 && noti?.points}
+                    {(noti.type === 7 ||noti.type === 8) && Math.abs(noti?.points)} points to {" "}
                   </span>
+                  <span className="font-semibold">
+                    {(noti.type === 7) &&
+                      `you`}
+                  </span>
+                  <span className="font-semibold">
+                    {(noti.type === 8) &&
+                      noti?.linkTo?.name}
+                  </span>
+                 
                 </div>
                 <div>
                   {noti.points > 0 ? `+${noti.points}` : `${noti.points}`}

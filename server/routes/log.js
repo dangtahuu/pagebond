@@ -16,7 +16,7 @@ router.route("/noti").get(getNotifications);
 router.route("/noti/mark-read").patch(markRead)
 router.route("/noti/mark-read-all").patch(markReadAll)
 
-router.route("/logs").get(getLogs);
+router.route("/logs/:id").get(getLogs);
 router.route("/logs/mark-used").patch(markAsUsed)
 
 

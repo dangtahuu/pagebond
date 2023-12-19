@@ -27,6 +27,7 @@ import {
   allBlocked,
   verifyUser,
   allPending,
+  giftPoints,
 } from "./../controllers/auth.js";
 
 const router = express.Router();
@@ -84,5 +85,8 @@ router.route("/all-pending").get(requireSignIn, isAdmin, allPending);
 router.route("/:id").get(requireSignIn, getInformationUser);
 
 router.route("/user-unfollow").put(requireSignIn, removeFollower, userUnFollower);
+
+router.route("/gift-points").put(requireSignIn, giftPoints);
+
 
 export default router;

@@ -762,6 +762,57 @@ const verifyUser = async (req, res) => {
   }
 };
 
+const giftPoints = async (req, res) => {
+  const { giftedId} = req.body
+  const points = Number(req.body.points)
+  const userId = req.user.userId;
+
+  try {
+
+    let giftedUser = await User.findById(giftedId);
+
+    if(!giftedUser) return res.status(400).json({ msg: "No gifted user found!" });
+
+
+    let currentUser = await User.findById(userId);
+
+    if(!currentUser) return res.status(400).json({ msg: "No user found!" });
+    if(currentUser.points<points) return res.status(400).json({ msg: "Not enough points" });
+
+    currentUser = await User.findByIdAndUpdate(userId,{
+      $inc: {points: points*(-1)}
+    });
+
+    giftedUser = await User.findByIdAndUpdate(giftedId,{
+      $inc: {points: points}
+    });
+
+    await Log.create({
+      toUser: giftedId,
+      fromUser: userId,
+      linkTo: userId,
+      typeOfLink: "User",
+      type: 7,
+      points: points,
+    });
+
+    await Log.create({
+      toUser: userId,
+      fromUser: userId,
+      linkTo: giftedId,
+      typeOfLink: "User",
+      type: 8,
+      points: points*(-1),
+    });
+
+
+    return res.status(200).json({ msg: "Success" });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
 export {
   register,
   login,
@@ -788,4 +839,5 @@ export {
   blockUser,
   verifyUser,
   allPending,
+  giftPoints
 };

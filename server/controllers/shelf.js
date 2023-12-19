@@ -1,6 +1,7 @@
 import Shelf from "../models/shelf.js";
 import User from "../models/user.js";
 import Book from "../models/book.js";
+import Review from "../models/review.js";
 
 const createShelf = async (req, res) => {
   const { name } = req.body;
@@ -38,7 +39,6 @@ const bookToShelf = async (req, res) => {
     return res.status(400).json({ msg: "Book and shelves are required!" });
   }
 
-
   try {
     if (selected) {
       selected.forEach(async (item) => {
@@ -65,8 +65,8 @@ const bookToShelf = async (req, res) => {
         { books: { $in: [book.id] } },
         { type: 1 },
         { name: { $ne: "to read" } },
-        { name: { $ne: "favorites" } }
-      ]
+        { name: { $ne: "favorites" } },
+      ],
     });
 
     const shelfNameCount = {};
@@ -79,9 +79,9 @@ const bookToShelf = async (req, res) => {
       (a, b) => shelfNameCount[b] - shelfNameCount[a]
     );
 
-    const newBook = await Book.findByIdAndUpdate(book.id,{
-      topShelves: sortedShelfNames.slice(0,5)
-    }) 
+    const newBook = await Book.findByIdAndUpdate(book.id, {
+      topShelves: sortedShelfNames.slice(0, 5),
+    });
 
     return res.status(200).json({ selected });
   } catch (err) {
@@ -89,7 +89,6 @@ const bookToShelf = async (req, res) => {
     return res.status(400).json({ msg: err });
   }
 };
-
 
 const addToTBR = async (req, res) => {
   const { id } = req.body;
@@ -100,11 +99,14 @@ const addToTBR = async (req, res) => {
   }
 
   try {
-        const shelf = await Shelf.findOneAndUpdate({$and: [{name: "to read"},{owner: userId}]}, {
-          $addToSet: {
-            books: id,
-          },
-        });
+    const shelf = await Shelf.findOneAndUpdate(
+      { $and: [{ name: "to read" }, { owner: userId }] },
+      {
+        $addToSet: {
+          books: id,
+        },
+      }
+    );
     return res.status(200).json({ shelf });
   } catch (err) {
     console.log(err);
@@ -121,11 +123,40 @@ const removeFromTBR = async (req, res) => {
   }
 
   try {
-        const shelf = await Shelf.findOneAndUpdate({$and: [{name: "to read"},{owner: userId}]}, {
-          $pull: {
-            books: id,
-          },
-        });
+    const shelf = await Shelf.findOneAndUpdate(
+      { $and: [{ name: "to read" }, { owner: userId }] },
+      {
+        $pull: {
+          books: id,
+        },
+      }
+    );
+    return res.status(200).json({ shelf });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const removeFromShelf = async (req, res) => {
+  const { bookId, shelfId } = req.body;
+  console.log(bookId);
+  console.log(shelfId);
+
+  if (!bookId || !shelfId) {
+    return res.status(400).json({ msg: "Book Id and Shelf Id are required!" });
+  }
+
+  try {
+    const shelf = await Shelf.findByIdAndUpdate(
+      shelfId,
+      {
+        $pull: {
+          books: bookId,
+        },
+      },
+      { new: true }
+    );
     return res.status(200).json({ shelf });
   } catch (err) {
     console.log(err);
@@ -136,7 +167,11 @@ const removeFromTBR = async (req, res) => {
 const getShelves = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const shelves = await Shelf.find({ owner: userId });
+    const first = await Shelf.find({ $and: [{ owner: userId }, { type: 1 }] });
+    const second = await Shelf.find({
+      $and: [{ owner: userId }, { type: { $ne: 1 } }],
+    }).sort({ name: "asc" });
+    const shelves = [...first, ...second];
     return res.status(200).json({ shelves });
   } catch (error) {
     console.log(error);
@@ -164,10 +199,43 @@ const getSelectedShelves = async (req, res) => {
 const getShelf = async (req, res) => {
   const { shelfId } = req.params;
   try {
-    const shelf = await Shelf.findById(shelfId)
+    let shelf = await Shelf.findById(shelfId)
       .populate("books")
       .sort({ createdAt: -1 });
-    return res.status(200).json({ shelf });
+
+    const result = [];
+
+    const bookData = shelf.books;
+
+    for (const book of bookData) {
+      const review = await Review.find({
+        $and: [{ postedBy: shelf.owner }, { book: book._id }],
+      })
+        .sort({ createdAt: -1 })
+        .lean();
+
+      if (review.length > 0) {
+        const reviewData = review[0];
+        const newBook = {
+          _id: book._id,
+          title: book.title,
+          author: book.author,
+          thumbnail: book.thumbnail,
+          userRating: review[0].rating,
+          dateRead: review[0].dateRead || null,
+        };
+
+        result.push(newBook);
+      } else
+        result.push({
+          _id: book._id,
+          title: book.title,
+          thumbnail: book.thumbnail,
+          author: book.author,
+        });
+    }
+    console.log(result);
+    return res.status(200).json({ shelf, books: result });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -177,8 +245,12 @@ const getShelf = async (req, res) => {
 const editShelf = async (req, res) => {
   const { shelfId, name } = req.body;
   try {
-    const shelf = await Shelf.findByIdAndUpdate(shelfId, { name });
-    return res.status(200).json({ shelf, msg: "Shelf renamed" });
+    const shelf = await Shelf.findByIdAndUpdate(
+      shelfId,
+      { name },
+      { new: true }
+    );
+    return res.status(200).json({ shelf });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -200,7 +272,7 @@ const getTopShelvesOfBook = async (req, res) => {
   const { id } = req.params;
   try {
     const shelves = await Shelf.find({
-      books: { $in: [id] }, 
+      books: { $in: [id] },
     });
 
     const shelfNameCount = {};
@@ -269,4 +341,5 @@ export {
   massAdd,
   addToTBR,
   removeFromTBR,
+  removeFromShelf,
 };

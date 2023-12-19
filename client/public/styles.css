@@ -1540,6 +1540,10 @@ body,
   margin-top: 60px;
 }
 
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
 .block {
   display: block;
 }
@@ -1696,6 +1700,10 @@ body,
   height: 100vh;
 }
 
+.h-40 {
+  height: 10rem;
+}
+
 .max-h-20 {
   max-height: 5rem;
 }
@@ -1716,16 +1724,8 @@ body,
   max-height: 300px;
 }
 
-.max-h-\[30vh\] {
-  max-height: 30vh;
-}
-
 .max-h-\[45vh\] {
   max-height: 45vh;
-}
-
-.max-h-\[50vh\] {
-  max-height: 50vh;
 }
 
 .max-h-\[70vh\] {
@@ -1971,6 +1971,10 @@ body,
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-\[200px\] {
+  max-width: 200px;
 }
 
 .flex-1 {
@@ -2533,10 +2537,6 @@ body,
   background-color: rgb(60 77 99 / 0.5);
 }
 
-.bg-\[\#4E4F50\]\/20 {
-  background-color: rgb(78 79 80 / 0.2);
-}
-
 .bg-\[\#8EABB4\] {
   --tw-bg-opacity: 1;
   background-color: rgb(142 171 180 / var(--tw-bg-opacity));
@@ -2558,10 +2558,6 @@ body,
 .bg-\[\#F0F2F5\] {
   --tw-bg-opacity: 1;
   background-color: rgb(240 242 245 / var(--tw-bg-opacity));
-}
-
-.bg-\[\#afb1b5\]\/30 {
-  background-color: rgb(175 177 181 / 0.3);
 }
 
 .bg-altDialogue {
@@ -2624,11 +2620,6 @@ body,
 .bg-navBar {
   --tw-bg-opacity: 1;
   background-color: rgb(20 24 28 / var(--tw-bg-opacity));
-}
-
-.bg-red-300 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(252 165 165 / var(--tw-bg-opacity));
 }
 
 .bg-sky-900 {
@@ -3679,11 +3670,6 @@ button.loading {
   border-color: rgb(58 59 60 / 0.6);
 }
 
-.hover\:bg-\[\#4E4F50\]:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(78 79 80 / var(--tw-bg-opacity));
-}
-
 .hover\:bg-\[\#D8DADF\]:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(216 218 223 / var(--tw-bg-opacity));
@@ -3697,10 +3683,6 @@ button.loading {
 .hover\:bg-\[\#F0F2F5\]:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(240 242 245 / var(--tw-bg-opacity));
-}
-
-.hover\:bg-\[\#afb1b5\]\/50:hover {
-  background-color: rgb(175 177 181 / 0.5);
 }
 
 .hover\:bg-altDialogue:hover {
@@ -3724,11 +3706,6 @@ button.loading {
 .hover\:bg-gray-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(55 65 81 / var(--tw-bg-opacity));
-}
-
-.hover\:bg-red-600:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(220 38 38 / var(--tw-bg-opacity));
 }
 
 .hover\:font-bold:hover {
@@ -3757,11 +3734,6 @@ button.loading {
 .hover\:text-\[\#FF8243\]:hover {
   --tw-text-opacity: 1;
   color: rgb(255 130 67 / var(--tw-text-opacity));
-}
-
-.hover\:text-white:hover {
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity));
 }
 
 .hover\:underline:hover {
@@ -3882,11 +3854,6 @@ button.loading {
 
 :is(.dark .dark\:bg-inherit) {
   background-color: inherit;
-}
-
-:is(.dark .dark\:bg-red-800) {
-  --tw-bg-opacity: 1;
-  background-color: rgb(153 27 27 / var(--tw-bg-opacity));
 }
 
 :is(.dark .dark\:bg-white) {

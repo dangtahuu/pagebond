@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { LoadingCard } from "../..";
-import { ModalShelf } from "../..";
+import ShelfForm from "../../common/ShelfForm";
 import { FiFolderPlus } from "react-icons/fi";
 import {toast} from "react-toastify";
-
+import ReactLoading from "react-loading";
 const Shelves = ({ dark, userId, autoFetch, navigate }) => {
   const initList = {
     name: "",
@@ -49,7 +49,7 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
   };
 
   if (loading) {
-    return <LoadingCard />;
+    return <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
   }
 
   return (
@@ -62,7 +62,7 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
         </div>
 
         <button
-          className="flex gap-x-2 items-center mr-6 font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
+          className="flex gap-x-2 items-center primary-btn"
           onClick={() => {
             setOpenModal(true);
           }}
@@ -73,7 +73,7 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
       </div>
 
       {openModal && (
-        <ModalShelf
+        <ShelfForm
           text={text}
           setOpenModal={setOpenModal}
           setText={setText}
@@ -106,12 +106,12 @@ export default Shelves;
 
 export function Shelf({ p, navigate, userId }) {
   const navigateToShelfPage = (shelfId) => {
-    navigate(`/profile/${userId}/${shelfId}`);
+    navigate(`/profile/${userId}/${shelfId}?view=shelves`);
   };
 
   return (
     <div
-      key={`${p._id}daskfhqw`}
+      key={`${p._id}`}
       className="col-span-1 flex items-center gap-x-3 px-1 sm:px-2 md:px-4 py-2 md:py-5 "
     >
       <img

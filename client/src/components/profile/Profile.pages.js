@@ -2,7 +2,7 @@ import React from "react";
 import {useAppContext} from "../../context/useContext";
 import {useEffect, useState} from "react";
 import {useLocation, useNavigate, useParams} from "react-router-dom";
-
+import ReactLoading from "react-loading";
 //components
 import Header from "./components/Header";
 import Details from "./components/Details";
@@ -25,6 +25,7 @@ const Profile = () => {
    
     // const isSearch = location.pathname.includes('/search')
     const tabView = searchParams.get('view') || "posts";
+
     const {
         dark,
         autoFetch,
@@ -51,7 +52,6 @@ const Profile = () => {
         featuredShelf:{books: []}
     });
     const [recent,setRecent] = useState([])
-    const [menu, setMenu] = useState("Posts");
   
 
     useEffect(() => {
@@ -107,7 +107,7 @@ const Profile = () => {
             navigate={navigate}
             setNameAndToken={setNameAndToken}
             token={token}
-            shelf={shelf}/>
+            shelfId={shelf}/>
         )}
         if (tabView === "following") {
             return (
@@ -145,7 +145,6 @@ const Profile = () => {
                     own={own}
                     setNameAndToken={setNameAndToken}
                     token={token}
-                    setMenu={setMenu}
                 />
             );
         }
@@ -160,7 +159,6 @@ const Profile = () => {
                     own={own}
                     setNameAndToken={setNameAndToken}
                     token={token}
-                    setMenu={setMenu}
                 />
             );
         }
@@ -175,7 +173,6 @@ const Profile = () => {
                     own={own}
                     setNameAndToken={setNameAndToken}
                     token={token}
-                    setMenu={setMenu}
                     setUser={setUser}
                 />
             );
@@ -198,8 +195,8 @@ const Profile = () => {
                 </div>
                 <div className='col-span-2 sticky top-20 self-start'>
                     <Details
-                       data={user.featuredShelf.books}
-                       name={user.featuredShelf.name}
+                       data={user?.featuredShelf?.books}
+                       name={user?.featuredShelf?.name}
                     />
                       <Details
                        data={recent}
@@ -210,25 +207,23 @@ const Profile = () => {
         );
     };
 
+    if (loading)
+    return <div className="w-screen min-h-screen bg-mainbg flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+
     return (
         <div className='min-h-screen w-screen bg-mainbg pb-7 '>
             <div className="flex justify-center w-full">
-            {!loading ? (
                 <Header
                     user={user}
                     own={own}
                     navigate={navigate}
-                    setMenu={setMenu}
-                    menu={menu}
                     autoFetch={autoFetch}
                     setNameAndToken={setNameAndToken}
                     token={token}
                     tabView={tabView}
                     socket={socket}
+                    currentUserId={currentUserId}
                 />
-            ) : (
-                <LoadingProfile />
-            )}
             </div>
           
 

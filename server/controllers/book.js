@@ -4,13 +4,13 @@ import Review from "../models/review.js";
 import User from "../models/user.js";
 import removeHtmlTags from "../utils/removeHtml.js";
 import sortObjectDes from "../utils/sortObjectDes.js";
-const shuffle = (array) => {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
+import shuffle from "../utils/shuffle.js";
+import { BingChat } from "bing-chat-rnz";
+
+const api = new BingChat({
+  cookie:
+    "1WuqLKrFr0QR_kEOqCT6qMy_4VBUK_RWZxOfeXFzNaBLZy6qn4PCvtw1xQnyEkyVFtDRwafbowdR6rtzMbs__YbnHJuQxgmm6NOhlnaUrUc4elZODqv1cjQNpGHH7bBNDZeBpDF17PfdtUAKFQfivNmn2Vg2IC_BiIEDPSpWMkTE9q77BL_1HW_jLmyofo3CkJIxNRXXSXo3uPDjfqy7YCjiT3vDJlpjeST9i5nEUyEk",
+});
 
 const searchBook = async (req, res) => {
   const term = req.query.term;
@@ -21,13 +21,14 @@ const searchBook = async (req, res) => {
   }
 
   try {
-    const results = await Book.find({ $or: [
-      { title: { $regex: new RegExp(term, 'i') } }, 
-      { author: { $regex: new RegExp(term, 'i') } }, 
-      { publisher: { $regex: new RegExp(term, 'i') } }, 
-      { description: { $regex: new RegExp(term, 'i') } }, 
-    ]})
-      .limit(perPage)
+    const results = await Book.find({
+      $or: [
+        { title: { $regex: new RegExp(term, "i") } },
+        { author: { $regex: new RegExp(term, "i") } },
+        { publisher: { $regex: new RegExp(term, "i") } },
+        { description: { $regex: new RegExp(term, "i") } },
+      ],
+    }).limit(perPage);
 
     if (!results) {
       return res.status(400).json({ msg: "No result found!" });
@@ -62,6 +63,54 @@ const getBook = async (req, res) => {
   }
 };
 
+const getPromptsForBook = async (req, res) => {
+  const id = req.params.id;
+  if (!id) {
+    return res.status(400).json({ msg: "Book Id is required!" });
+  }
+
+  try {
+    const result = await Book.findById(id);
+
+    if (!result) {
+      return res.status(400).json({ msg: "No book found!" });
+    }
+
+    const question = `give me 5 in-depth questions i can ask you about the book ${result.title}. format the result so i can use as an array in javascipt. don't say anything else in your answer`;
+    const reply = await api.sendMessage(question, {
+      // change the variant to 'Precise'
+      variant: "Precise",
+    });
+
+    const startIndex = reply.text.indexOf('[\n');
+const endIndex = reply.text.lastIndexOf(']\n') + 1;
+
+// Extract the JSON text
+const jsonText = reply.text.substring(startIndex, endIndex);
+    // const pureJsonString = reply.text.replace("```javascript", "").replace("```", "").trim();
+    // const jsonText = reply.text.replace(/```javascript/g, '').replace(/```/g, '');
+// Parse the JSON string into an array
+const questionsArray = JSON.parse(jsonText);
+    // Define a regular expression to match the questions
+    // const regex = /\d+\.\s(.*?)\?\s\[.*?\]/g;
+
+    // // Extract questions from the text using the regular expression
+    // const matches = [...reply.text.matchAll(regex)];
+
+    // // Extract and format the questions
+    // const questions = matches.map((match) => match[1]);
+
+    return res.status(200).json({
+      reply,
+      // questions,
+      prompts:questionsArray
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
 const getBookBySameAuthor = async (req, res) => {
   const id = req.params.id;
   if (!id) {
@@ -69,17 +118,16 @@ const getBookBySameAuthor = async (req, res) => {
   }
 
   try {
-
     const originalBook = await Book.findById(id);
 
-    const books = await Book.find({author: originalBook.author});
+    const books = await Book.find({ author: originalBook.author });
 
     if (!books) {
       return res.status(400).json({ msg: "No book found!" });
     }
 
     return res.status(200).json({
-      books
+      books,
     });
   } catch (err) {
     console.log(err);
@@ -371,14 +419,14 @@ const getPopularBooks = async (req, res) => {
       rating = "All",
       pacing = "All",
       page = "All",
-      pagination = 1
+      pagination = 1,
     } = req.query;
     let pipeline;
     let allData;
     if (limit !== "All") {
       const today = new Date();
-    const daysAgo = new Date(today);
-    daysAgo.setDate(today.getDate() - limit);
+      const daysAgo = new Date(today);
+      daysAgo.setDate(today.getDate() - limit);
       pipeline = [
         {
           $lookup: {
@@ -466,7 +514,7 @@ const getPopularBooks = async (req, res) => {
         $match: { pacing: pacing },
       });
     }
-  
+
     pipeline.push({
       $skip: (pagination - 1) * 48,
     });
@@ -482,7 +530,6 @@ const getPopularBooks = async (req, res) => {
   }
 };
 
-
 export {
   searchBook,
   getBook,
@@ -495,4 +542,5 @@ export {
   getPopularGenres,
   fixGenres,
   getPopularBooks,
+  getPromptsForBook,
 };

@@ -11,7 +11,8 @@ import {
     getTopShelvesOfBook,
     massAdd,
     addToTBR,
-    removeFromTBR
+    removeFromTBR,
+    removeFromShelf
 } from "../controllers/shelf.js";
 import formidable from "express-formidable";
 import canUpdateOrDeleteShelf from "../middleware/canUpdateOrDeleteShelf.js";
@@ -25,11 +26,13 @@ router.route("/").get(async (req, res) => {
 
 router.route("/create-shelf").post(createShelf);
 router.route("/book-to-shelf").post(bookToShelf);
-router.route("/edit-shelf").post(canUpdateOrDeleteShelf, editShelf);
+router.route("/edit-shelf").patch(canUpdateOrDeleteShelf, editShelf);
 router.route("/delete-shelf").post(canUpdateOrDeleteShelf, deleteShelf);
 
 router.route("/add-tbr").patch(addToTBR);
 router.route("/remove-tbr").patch(removeFromTBR);
+router.route("/remove").patch(removeFromShelf);
+
 
 
 router.route("/get-shelves/:userId").get(getShelves);

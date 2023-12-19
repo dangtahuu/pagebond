@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import ReactLoading from "react-loading";
 import { useNavigate } from "react-router-dom";
 
-const Details = ({ data, name }) => {
+const Details = ({ data=[], name="" }) => {
   const navigate = useNavigate();
 
   return (

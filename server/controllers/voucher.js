@@ -30,7 +30,7 @@ const redeem = async (req, res) => {
       fromUser: req.user.userId,
       typeOfLink: "Voucher",
       linkTo: id,
-      type: 8,
+      type: 9,
       points: voucher.points * -1,
       note: voucher.code[0],
     });

@@ -3,7 +3,7 @@ const HeaderMenu=({list, menu, handler})=>{
         <ul className="flex items-center justify-start w-auto py-1 mb-3 gap-x-5">
           {list.map((v) => (
             <li
-              key={v + "button"}
+              key={v}
               className={`li-profile ${menu === v && "active"} `}
               onClick={() => {
                 handler(v);

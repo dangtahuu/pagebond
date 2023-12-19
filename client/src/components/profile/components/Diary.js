@@ -8,8 +8,6 @@ import { Rating } from "@mui/material";
 const formatDate = (date) => {
   const originalDate = new Date(date);
   const options = { day: "numeric", month: "long", year: "2-digit" };
-
-  // Format the date
   const formattedDate = originalDate.toLocaleDateString("en-US", options);
   return formattedDate;
 };
