@@ -9,7 +9,7 @@ const getNotifications = async (req, res) => {
     const unread = await Log.find({
         $and: [
           { toUser: req.user.userId },
-          { type: { $in: [1, 5, 7, 8, 9] } },
+          { type: { $in: [1, 5, 7, 9, 10] } },
           { isRead: false}
         ],
       })
@@ -20,7 +20,7 @@ const getNotifications = async (req, res) => {
     const notifications = await Log.find({
       $and: [
         { toUser: req.user.userId },
-        { type: { $in: [1, 5, 7, 8, 9] } },
+        { type: { $in: [1, 5, 7, 9, 10] } },
       ],
     })
       .populate({
@@ -138,7 +138,7 @@ const getLogs = async (req, res) => {
   
       const logs = await Log.find({
          $and: [ { toUser: req.user.userId },
-          { type: { $nin: [8, 9] } },
+          { type: { $nin: [9,10] } },
         ],
       })
         .populate({
@@ -185,6 +185,15 @@ const getLogs = async (req, res) => {
         path: "linkTo",
         model: "SpecialPost",
       });
+
+      const voucherLogs = logs.filter(
+        (one) => one.typeOfLink === "Voucher"
+      );
+  
+      const voucherDetailLogs = await Log.populate(voucherLogs, {
+        path: "linkTo",
+        model: "Voucher",
+      });
   
       let allLogs = [
         ...userLogs,
@@ -192,6 +201,7 @@ const getLogs = async (req, res) => {
         ...reviewDetailLogs,
         ...tradeDetailLogs,
         ...specialPostDetailLogs,
+        ...voucherDetailLogs
       ];
   
       allLogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -203,4 +213,18 @@ const getLogs = async (req, res) => {
     }
   };
 
-export { getNotifications, getLogs, markRead, markReadAll };
+
+  const markAsUsed = async (req, res) => {
+    try {
+      const { id } = req.body;
+      if (!id) return res.status(400).json({ msg: "Id is required" })
+  
+      const log = await Log.findByIdAndUpdate(id,{isRead: true},{new: true});
+      return res.status(200).json({ log });
+    } catch (err) {
+      console.log(err);
+      return res.status(400).json({ msg: err });
+    }
+  };
+
+export { getNotifications, getLogs, markRead, markReadAll, markAsUsed };

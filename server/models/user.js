@@ -60,6 +60,11 @@ const userSchema = new mongoose.Schema(
       require: true,
       default: 0,
     },
+    featuredShelf:   {
+      type: mongoose.Types.ObjectId,
+      ref: "Shelf",
+      required: true
+    },
     blocked: {
       type: String,
       enum: ["Clean","Reported","Blocked"],

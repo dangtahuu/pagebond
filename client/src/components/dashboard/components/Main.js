@@ -48,6 +48,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   const [morePosts, setMorePosts] = useState(true);
   const [moreReviews, setMoreReviews] = useState(true);
   const [moreTrades, setMoreTrades] = useState(true);
+  const [moreQuestions, setMoreQuestions] = useState(true);
+
   const [moreSpecialPosts, setMoreSpecialPosts] = useState(true);
 
   const [popularReviews, setPopularReviews] = useState([]);
@@ -78,10 +80,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   useEffect(() => {
     if (location) getNearby();
   }, [location]);
-
-  useEffect(() => {
-    console.log(activePosts);
-  }, [activePosts]);
 
   const createNewPost = async (formData) => {
     setLoadingCreateNewPost(true);
@@ -148,13 +146,14 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getFirstData = async () => {
     try {
-      const [posts, reviews, trades, special] = await Promise.all([
+      const [posts, reviews, trades, special, questions] = await Promise.all([
         getPosts(),
         getReviews(),
         getTrades(),
         getSpecial(),
+        getQuestions()
       ]);
-      let data = [...posts, ...reviews, ...trades, ...special];
+      let data = [...posts, ...reviews, ...trades, ...special,...questions];
       data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       let firstData = data.splice(0, 10);
       setActivePosts(firstData);
@@ -170,11 +169,12 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getMoreData = async () => {
     try {
-      const [posts, reviews, trades, special] = await Promise.all([
+      const [posts, reviews, trades, special, questions] = await Promise.all([
         getPosts(),
         getReviews(),
         getTrades(),
         getSpecial(),
+        getQuestions()
       ]);
       let data = [
         ...reservedPosts,
@@ -182,6 +182,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         ...reviews,
         ...trades,
         ...special,
+        ...questions
       ];
       setPage((prev) => prev++);
       data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -232,6 +233,16 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       `/api/special/following?page=${page + 1}`
     );
     if (data.posts.length < 10) setMoreSpecialPosts(false);
+    if (data.posts.length === 0) return [];
+    return data.posts;
+  };
+
+  const getQuestions = async () => {
+    if (!moreQuestions) return [];
+    const { data } = await autoFetch.get(
+      `/api/question/following?page=${page + 1}`
+    );
+    if (data.posts.length < 10) setMoreQuestions(false);
     if (data.posts.length === 0) return [];
     return data.posts;
   };

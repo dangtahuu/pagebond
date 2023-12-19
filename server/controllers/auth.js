@@ -56,7 +56,7 @@ const register = async (req, res) => {
       password,
       secret,
       image,
-      role: official ? 0:3
+      role: official ? 0 : 3,
     });
 
     return res.status(200).json({
@@ -107,7 +107,15 @@ const login = async (req, res) => {
 
 const currentUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    console.log('nnnnnnnnn')
+    const user = await User.findById(req.user.userId)
+    .populate({
+      path: "featuredShelf",
+      populate: {
+        path: "books"
+      }
+    })
+    console.log(user)
     return res.status(200).json({ user, ok: true });
   } catch (error) {
     console.log(error);
@@ -172,7 +180,7 @@ const updateUser = async (req, res) => {
     user.password = undefined;
     user.secret = undefined;
     const token = jwt.sign({ _id: user._id }, process.env.JWT, {
-      expiresIn: process.env.JWT_LIFETIME || "1d",
+      expiresIn: "365d",
     });
     return res
       .status(200)
@@ -221,7 +229,7 @@ const addFollower = async (req, res, next) => {
       $addToSet: {
         follower: req.user.userId,
       },
-      $inc: { points: 50 }
+      $inc: { points: 50 },
     });
 
     if (!user) {
@@ -252,11 +260,11 @@ const userFollower = async (req, res) => {
       toUser: req.body.userId,
       fromUser: req.user.userId,
       linkTo: req.user.userId,
-      typeOfLink: 'User',
-      type:1,
+      typeOfLink: "User",
+      type: 1,
       points: 50,
-    })
-    
+    });
+
     res.status(200).json({ msg: "Follow successfully!", user });
   } catch (error) {
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
@@ -269,8 +277,7 @@ const removeFollower = async (req, res, next) => {
       $pull: {
         follower: req.user.userId,
       },
-      $inc: { points: -50 }
-
+      $inc: { points: -50 },
     });
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
@@ -293,15 +300,15 @@ const userUnFollower = async (req, res) => {
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
-   
+
     const log = await Log.create({
       toUser: req.body.userId,
       fromUser: req.user.userId,
       linkTo: req.user.userId,
-      typeOfLink: 'User',
-      type:2,
+      typeOfLink: "User",
+      type: 2,
       points: -50,
-    })
+    });
     res.status(200).json({ msg: "Unfollowed!", user });
   } catch (error) {
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
@@ -545,7 +552,13 @@ const searchUser = async (req, res) => {
 const getInformationUser = async (req, res) => {
   try {
     const _id = req.params.id;
-    const user = await User.findById(_id).select("-password -secret");
+    const user = await User.findById(_id).select("-password -secret")
+    .populate({
+      path: "featuredShelf",
+      populate: {
+        path: "books"
+      }
+    });
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
@@ -560,7 +573,7 @@ const allUsers = async (req, res) => {
   try {
     const users = await User.find({})
       .select("-password -secret")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
     if (!users) {
       return res.status(400).json({ msg: "No user found!" });
     }
@@ -574,9 +587,9 @@ const allUsers = async (req, res) => {
 
 const allPending = async (req, res) => {
   try {
-    const users = await User.find({role: 0})
+    const users = await User.find({ role: 0 })
       .select("-password -secret")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
     if (!users) {
       return res.status(400).json({ msg: "No user found!" });
     }
@@ -590,9 +603,9 @@ const allPending = async (req, res) => {
 
 const allReported = async (req, res) => {
   try {
-    const users = await User.find({blocked: "Reported"})
+    const users = await User.find({ blocked: "Reported" })
       .select("-password -secret")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
     if (!users) {
       return res.status(400).json({ msg: "No user found!" });
     }
@@ -606,9 +619,9 @@ const allReported = async (req, res) => {
 
 const allBlocked = async (req, res) => {
   try {
-    const users = await User.find({blocked: "Blocked"})
+    const users = await User.find({ blocked: "Blocked" })
       .select("-password -secret")
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
     if (!users) {
       return res.status(400).json({ msg: "No user found!" });
     }
@@ -638,7 +651,7 @@ const getPopularUsers = async (req, res) => {
     const limit = req.query.limit;
 
     let allData;
-    if (limit && limit!=-1) {
+    if (limit && limit != -1) {
       const today = new Date();
       const daysAgo = new Date(today);
       daysAgo.setDate(today.getDate() - limit);
@@ -650,7 +663,7 @@ const getPopularUsers = async (req, res) => {
       const posts = await Post.find({});
       const reviews = await Review.find({});
       const trades = await Trade.find({});
-      allData = [...posts,...reviews,...trades];
+      allData = [...posts, ...reviews, ...trades];
     }
 
     const users = {};
@@ -688,16 +701,15 @@ const getPopularUsers = async (req, res) => {
 const reportUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.body.userId, {
-      blocked: "Reported"
+      blocked: "Reported",
     });
 
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
     return res.status(200).json({ user });
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
   }
 };
@@ -705,16 +717,15 @@ const reportUser = async (req, res) => {
 const blockUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.body.userId, {
-      blocked: "Blocked"
+      blocked: "Blocked",
     });
 
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
     return res.status(200).json({ user });
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
   }
 };
@@ -722,16 +733,15 @@ const blockUser = async (req, res) => {
 const unblockUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.body.userId, {
-      blocked: "Clean"
+      blocked: "Clean",
     });
 
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
     return res.status(200).json({ user });
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
   }
 };
@@ -739,16 +749,15 @@ const unblockUser = async (req, res) => {
 const verifyUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.body.userId, {
-      role:2
+      role: 2,
     });
 
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
     return res.status(200).json({ user });
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
   }
 };
@@ -778,5 +787,5 @@ export {
   allBlocked,
   blockUser,
   verifyUser,
-  allPending
+  allPending,
 };

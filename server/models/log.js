@@ -22,6 +22,9 @@ const logSchema = new mongoose.Schema(
         enum: ['User','Post', 'Trade','Review',"SpecialPost","Question","Voucher"]
       },
     linkTo: { type: mongoose.Schema.Types.ObjectId},
+    note: {
+      type: String
+    },
     isRead: { type: Boolean, default: false },
     points: {
         type:Number,

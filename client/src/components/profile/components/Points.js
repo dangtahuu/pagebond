@@ -6,6 +6,9 @@ import { toast } from "react-toastify";
 import { Rating } from "@mui/material";
 import { IoBookOutline } from "react-icons/io5";
 import { AiOutlineInfoCircle } from "react-icons/ai";
+import ReactLoading from "react-loading";
+import { BsTicketPerforated } from "react-icons/bs";
+import HeaderMenu from "../../common/HeaderMenu";
 
 const formatDate = (timestamp) => {
   const date = new Date(timestamp);
@@ -24,42 +27,10 @@ const notiText = {
   5: "has commented on your post",
   6: "has removed comment on your post",
   7: "has sent you",
+  8: "has redeemed voucher",
 };
 
-const voucherTypes = [{
-    type:1,
-    points: 1000,
-    prize: "10,000VND discount",
-    text: "Tiki",
-},{
-    type:2,
-    points: 3000,
-    prize: "50,000VND discount",
-    text: "Tiki",
-},{
-    type:3,
-    points: 5000,
-    prize: "100,000VND discount",
-    text: "Tiki",
-},{
-    type:4,
-    points: 1000,
-    prize: "10,000VND discount",
-    text: "Shopee",
-},{
-    type:5,
-    points: 3000,
-    prize: "50,000VND discount",
-    text: "Shopee",
-},{
-    type:6,
-    points: 5000,
-    prize: "100,000VND discount",
-    text: "Shopee",
-}
-]
-
-const Points = ({ user,setUser,  userId, autoFetch, navigate }) => {
+const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
   const initList = {
     name: "",
 
@@ -68,105 +39,122 @@ const Points = ({ user,setUser,  userId, autoFetch, navigate }) => {
 
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState([]);
-  const [openModal, setOpenModal] = useState(false);
+  const [filteredLogs, setFilteredLogs] = useState([]);
+  const [vouchers, setVouchers] = useState([]);
+  const [redeemed, setRedeemed] = useState([]);
+  const list = ["List", "My wallet"];
+  const [menu, setMenu] = useState("List");
 
-  const [text, setText] = useState("");
+  const historyList = [
+    "All",
+    "Following",
+    "Likes",
+    "Comments",
+    "Gifted",
+    "Vouchers",
+  ];
+  const [historyMenu, setHistoryMenu] = useState("All");
 
   useEffect(() => {
-    getLogs();
+    const getData = async () => {
+      setLoading(true);
+      try {
+        await getLogs();
+        await getVouchers();
+      } catch (e) {
+        console.log(e);
+      }
+
+      setLoading(false);
+    };
+    getData();
   }, []);
 
   const getLogs = async () => {
-    console.log(`aaaaaaaaaaaaa`);
     try {
       const { data } = await autoFetch.get(`/api/log/logs`);
       setLogs(data.logs);
-      console.log(data.logs);
+      const voucher_type = data.logs.filter(
+        (one) => one.type === 8 && one.isRead === false
+      );
+      setRedeemed(voucher_type);
+      // handleHistoryMenu(historyMenu)
     } catch (error) {
       console.log(error);
     }
-    setLoading(false);
   };
 
-  const redeem = async (type) => {
-    console.log(`ccccc`);
+  const getVouchers = async () => {
+    console.log(`aaaaaaaaaaaaa`);
     try {
-      const { data } = await autoFetch.patch(`/api/voucher/redeem`,{
-        type
-      });
-   
-      setUser((prev)=> ({...prev, points: prev.points-data.log.points}))
-
-      toast.success("Redeem successfully")
+      const { data } = await autoFetch.get(`/api/voucher/all-remaining`);
+      setVouchers(data.vouchers);
+      console.log(data.vouchers);
     } catch (error) {
       console.log(error);
     }
     setLoading(false);
   };
 
-  if (loading) {
-    return <LoadingCard />;
-  }
+  const redeem = async (id) => {
+    try {
+      const { data } = await autoFetch.patch(`/api/voucher/redeem`, {
+        id,
+      });
+      setUser((prev) => ({ ...prev, points: prev.points + data.log.points }));
+      toast.success("Redeem successfully");
+    } catch (error) {
+      console.log(error);
+    }
+    getLogs();
+  };
 
-  return (
-    <div className={`w-full p-4 rounded-lg `}>
-      <div className="flex justify-between"></div>
+  const markAsUsed = async (id) => {
+    try {
+      const { data } = await autoFetch.patch(`/api/log/logs/mark-used`, {
+        id,
+      });
 
-      <div className="text-2xl text-white serif-display ">Your points</div>
+      setRedeemed((prev) => {
+        return prev.filter((one) => one._id !== data.log._id);
+      });
 
-      <div className="flex justify-between items-center mt-6">
-        <div className="flex items-center gap-x-3">
-          <img className="w-[50px]" src="/images/points.png" />
-          <div className="serif-display text-3xl ">{user.points} Coins</div>
-          <AiOutlineInfoCircle  className="text-2xl"/>
-        </div>
-        <button className="bg-greenBtn text-sm rounded-full py-1 px-2">My wallet</button>
+      toast.success("You haved mark this voucher as used!");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-      </div>
+  const handeClickLogs = (data) => {
+    console.log(data)
+      switch (data.typeOfLink) {
+        case "User":
+          navigate(`/profile/${data.fromUser._id}`);
+          break;
+        case "Post":
+          navigate(`/detail/post/${data.linkTo._id}`);
+          break;
+        case "Trade":
+          navigate(`/detail/trade/${data.linkTo._id}`);
+          break;
+        case "Review":
+          navigate(`/detail/review/${data.linkTo._id}`);
+          break;
+        case "Question":
+          navigate(`/detail/question/${data.linkTo._id}`);
+          break;
+        case "SpecialPost":
+          navigate(`/detail/special/${data.linkTo._id}`);
+          break;
+        default:
+          break;
+      }
+    
+  };
 
-    <div className="grid grid-cols-3 gap-x-5 mt-5">
-        {voucherTypes.map((data)=><Voucher data={data} redeem={redeem}/>)}
-    </div>
-
-      <div className="text-2xl text-white serif-display ">History</div>
-      {logs.length > 0 ? (
-        <div className="text-sm my-4 gap-1 text-bold ">
-          {logs.map((noti) => (
-            <div className="gap-x-5 p-4 mb-4 flex justify-between border-b-[1px] border-b-dialogue items-center">
-              <div>
-                <span className="text-gray-500 mr-6">
-                  {formatDate(noti.createdAt)}
-                </span>
-                <span className="font-semibold">{noti?.fromUser?.name}</span>{" "}
-                {notiText[noti.type]}{" "}
-                <span className="font-semibold">
-                  {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
-                    noti?.linkTo?.text}
-                </span>
-                <span className="font-semibold">
-                  {noti.type === 7 && noti?.points}
-                </span>
-              </div>
-              <div>
-                {noti.points > 0 ? `+${noti.points}` : `${noti.points}`}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className=" w-full text-center my-5  ">
-          User has no shelves yet!
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default Points;
-
-const Voucher = ({data, redeem}) => {
+  const Voucher = ({ data }) => {
     return (
-        <div
+      <div
         className="flex flex-col items-center mb-3 md:flex-row w-full "
         //   key={a.suggestedBook._id}
       >
@@ -176,24 +164,183 @@ const Voucher = ({data, redeem}) => {
           alt=""
           // onClick={() => navigate(`/book/${a.suggestedBook._id}`)}
         >
-          <div className="text-xl">{data.text}</div>
-
+          <BsTicketPerforated className="text-3xl" />
         </div>
-        <div className="flex justify-between items-center gap-x-4 p-2 bg-dialogue rounded-r-lg h-[100px]">
-            <div className="flex flex-col justify-between">
+        <div className="flex justify-between items-center gap-x-4 p-2 bg-dialogue rounded-r-lg h-[100px] flex-1">
+          <div className="flex flex-col justify-between">
             <p
-            className="mb-1 text-sm cursor-pointer"
-            // onClick={() => navigate(`/book/${a.suggestedBook._id}`)}
-          >
-            {data.prize}
-          </p>
-          <p className="mb-1 text-sm">{data.points} points</p>
+              className="mb-1 text-sm cursor-pointer"
+              // onClick={() => navigate(`/book/${a.suggestedBook._id}`)}
+            >
+              {menu === "List" ? data?.name : data?.note}
+            </p>
+            <p className="mb-1 text-sm">
+              {" "}
+              {menu === "List"
+                ? data?.points
+                : `${data?.linkTo?.name} - ${data?.linkTo?.points}`}{" "}
+              points
+            </p>
 
-          <button className="bg-greenBtn text-sm rounded-full py-1 px-2" onClick={()=>redeem(data.type)}>Redeem</button>
-            </div>
-            <AiOutlineInfoCircle  className="text-2xl"/>
-
+            <button
+              className="bg-greenBtn text-sm rounded-full py-1 px-2"
+              onClick={() => {
+                if (menu === "List") redeem(data._id);
+                else markAsUsed(data._id);
+              }}
+            >
+              {menu === "List" ? `Redeem` : `Mark as used`}
+            </button>
+          </div>
+          <AiOutlineInfoCircle className="text-2xl" />
         </div>
       </div>
-    )
-}
+    );
+  };
+
+  const VoucherSection = () => {
+    if (vouchers.length === 0)
+      return (
+        <div className="mt-5 text-lg w-full px-[20%] flex justify-center">
+          There's currently no voucher available
+        </div>
+      );
+    return (
+      <div className="grid grid-cols-3 gap-x-5 mt-5">
+        {vouchers.map((data) => (
+          <Voucher key={data._id} data={data} />
+        ))}
+      </div>
+    );
+  };
+
+  const WalletSection = () => {
+    if (redeemed.length === 0)
+      return (
+        <div className="mt-5 text-lg w-full px-[20%] flex justify-center">
+          Post, earn points and redeem vouchers for them to appear here
+        </div>
+      );
+    return (
+      <div className="grid grid-cols-3 gap-x-5 mt-5">
+        {redeemed.map((data) => (
+          <Voucher key={data._id} data={data} />
+        ))}
+      </div>
+    );
+  };
+
+  const HistorySection = ({ data, menu }) => {
+    let filteredData = []
+    switch (menu) {
+      case "All": {
+        filteredData= data;
+         break;
+      }
+      case "Following": {
+        filteredData = data.filter((one) => one.type === 1 || one.type === 2);
+        break;
+      }
+      case "Likes": {
+        filteredData = data.filter((one) => one.type === 3 || one.type === 4);
+         break;
+      }
+      case "Comments": {
+        filteredData = data.filter((one) => one.type === 5 || one.type === 6);
+         break;
+      }
+      case "Gifted": {
+        filteredData =  data.filter((one) => one.type === 7);
+         break;
+      }
+      case "Vouchers": {
+        filteredData =  data.filter((one) => one.type === 8);
+         break;
+      }
+      default:
+        break;
+    }
+
+    return (
+      <div>
+        {filteredData.length > 0 ? (
+          <div className="text-sm my-4 gap-1 text-bold ">
+            {filteredData.map((noti) => (
+              <div className="cursor-pointer gap-x-5 p-4 mb-4 flex justify-between border-b-[1px] border-b-dialogue items-center"
+      onClick={()=>{handeClickLogs(noti)}}
+              >
+                <div>
+                  <span className="text-gray-500 mr-6">
+                    {formatDate(noti.createdAt)}
+                  </span>
+                  <span className="font-semibold">
+                    {noti.type !== 8 ? noti?.fromUser?.name : `You`}
+                  </span>{" "}
+                  {notiText[noti.type]}{" "}
+                  <span className="font-semibold">
+                    {noti.type === 8 && `${noti?.linkTo?.name} - ${noti?.note}`}
+                  </span>
+                  <span className="font-semibold">
+                    {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
+                      noti?.linkTo?.text}
+                  </span>
+                  <span className="font-semibold">
+                    {noti.type === 7 && noti?.points}
+                  </span>
+                </div>
+                <div>
+                  {noti.points > 0 ? `+${noti.points}` : `${noti.points}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className=" w-full text-center my-5  ">
+            User has no activity yet
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full flex justify-center">
+        <ReactLoading type="spin" width={30} height={30} color="#7d838c" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`w-full p-4 rounded-lg `}>
+      <div className="flex justify-between"></div>
+
+      <div className="mb-5">
+        <div className="text-2xl text-white serif-display ">Your points</div>
+
+        <div className="flex items-center gap-x-3 my-3">
+          <img className="w-[50px]" src="/images/points.png" />
+          <div className="serif-display text-3xl ">{user.points} Points</div>
+          <AiOutlineInfoCircle className="text-2xl" />
+        </div>
+
+        <HeaderMenu list={list} menu={menu} handler={setMenu} />
+
+        {menu === "List" && <VoucherSection />}
+
+        {menu === "My wallet" && <WalletSection />}
+      </div>
+
+      <div className="text-2xl text-white serif-display ">History</div>
+      <HeaderMenu
+        list={historyList}
+        menu={historyMenu}
+        handler={setHistoryMenu}
+      />
+
+      <HistorySection data={logs} menu={historyMenu}/>
+    </div>
+  );
+};
+
+export default Points;

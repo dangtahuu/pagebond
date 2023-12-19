@@ -466,15 +466,20 @@ const removeComment = async (req, res) => {
 
 const getWithUser = async (req, res) => {
   try {
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 10;
     const userId = req.params.userId;
     const posts = await Trade.find({ postedBy: { _id: userId } })
+    .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
       .populate("hashtag")
       .sort({
         createdAt: -1,
-      });
+      })
+      .limit(perPage);
+
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);

@@ -1238,18 +1238,6 @@ body,
   top: 60px;
 }
 
-.top-\[20px\] {
-  top: 20px;
-}
-
-.top-\[80px\] {
-  top: 80px;
-}
-
-.top-\[50px\] {
-  top: 50px;
-}
-
 .top-\[65px\] {
   top: 65px;
 }
@@ -1983,6 +1971,10 @@ body,
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
 }
 
 .shrink-0 {

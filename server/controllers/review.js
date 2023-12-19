@@ -661,16 +661,23 @@ const totalReviews = async (req, res) => {
 
 const getWithUser = async (req, res) => {
   try {
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 10;
     const userId = req.params.userId;
+    console.log('ooooooooooo')
+    console.log(userId)
+
     const posts = await Review.find({ postedBy: { _id: userId } })
+    .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
     .populate("hashtag")
-
       .sort({
         createdAt: -1,
-      });
+      })
+      .limit(perPage);
+
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);
@@ -926,6 +933,26 @@ const getDiary = async (req, res) => {
   }
 };
 
+const getRecent = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const posts = await Review.find({
+      $and: [{ postedBy: { _id: userId } }, { dateRead: { $ne: null } }],
+    })
+      .populate("book")
+      .sort({
+        dateRead: -1,
+      })
+      .limit(6)
+
+    const books = posts.map(post=>post.book)
+    return res.status(200).json({ books });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 
 const report = async (req, res) => {
   try {
@@ -1001,6 +1028,7 @@ export {
   getDiscover,
   getPopular,
   getDiary,
+  getRecent,
   report,
   dismissReport,
   getAllReported

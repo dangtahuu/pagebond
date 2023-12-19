@@ -70,7 +70,7 @@ router.route("/remove-comment").put(removeComment);
 router.route("/report").patch(report);
 router.route("/unreport").patch(isAdmin,dismissReport);
 // get post with userID
-router.route("/withUser/:userId").get(getWithUser);
+router.route("/withUser/:userId").get(getWithUser)
 
 router.route("/admin/delete/:id").delete(isAdmin, deleteOne);
 

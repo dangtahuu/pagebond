@@ -3,19 +3,21 @@ import mongoose from "mongoose";
 const voucherSchema = new mongoose.Schema(
   {
     code: {
+      type: [String],  // Array of strings
+      unique: true,    // Ensures that all values in the array are unique
+      required: true   // Makes the field required
+    },
+    name: {
       type: String,
-      required: true,
-      unique: true,
+      required: true
     },
-    owner: { type: mongoose.Types.ObjectId, ref: "User" },
-    type: {
+    points: {
       type: Number,
-      enum: [1, 2, 3, 4, 5, 6],
-      required: true,
+      required: String
     },
-    isUsed: {
-        type:Boolean,
-        default: false
+    description: {
+      type: String,
+      required: true
     }
   },
   { timestamps: true }

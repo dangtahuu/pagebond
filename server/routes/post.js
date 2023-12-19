@@ -71,7 +71,7 @@ router.route("/total-posts").get(totalPosts);
 router.route("/admin/delete/:id").delete(isAdmin, deletePost);
 
 // get post with userID 
-router.route("/getPostWithUser/:userId").get(getPostsWithUserId);
+router.route("/withUser/:userId").get(getPostsWithUserId);
 
 router.route("/report").patch(report);
 router.route("/unreport").patch(isAdmin,dismissReport);

@@ -58,35 +58,29 @@ const Post = ({
   const [openModal, setOpenModal] = useState(false);
 
   const [input, setInput] = useState({
-    title: currentPost.title || "",
-    text: currentPost.text || "",
-    rating: currentPost.rating || "",
-    content: currentPost.content || "",
-    development: currentPost.development || "",
-    pacing: currentPost.pacing || "",
-    writing: currentPost.writing || "",
-    insights: currentPost.insights || "",
-    dateRead: currentPost.dateRead || "",
-    image: currentPost.image || "",
-    condition: currentPost.condition || "",
-    address: currentPost.address || "",
-    location: currentPost.location || "",
-    hashtag: currentPost.hashtag?.map((one)=>one.name) || []
+    title: currentPost?.title || "",
+    text: currentPost?.text || "",
+    rating: currentPost?.rating || "",
+    content: currentPost?.content || "",
+    development: currentPost?.development || "",
+    pacing: currentPost?.pacing || "",
+    writing: currentPost?.writing || "",
+    insights: currentPost?.insights || "",
+    dateRead: currentPost?.dateRead || "",
+    image: currentPost?.image || "",
+    condition: currentPost?.condition || "",
+    address: currentPost?.address || "",
+    location: currentPost?.location || "",
+    hashtag: currentPost?.hashtag?.map((one)=>one.name) || []
   });
 
   const [attachment, setAttachment] = useState(
-    currentPost.image ? "photo" : ""
+    currentPost?.image ? "photo" : ""
   );
   // const [imageEdit, setImageEdit] = useState(currentPost.image);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const navigate = useNavigate();
   const [type, setType] = useState("");
-
-
-useEffect(()=>{
-  console.log(post)
-
-},[post])
 
   useEffect(() => {
     getType();
@@ -96,10 +90,10 @@ useEffect(()=>{
   let commentCount = post?.comments?.length || 0;
 
   const getType = () => {
-    if (post.rating) setType("review");
-    else if (post.address) setType("trade");
-    else if (post.type) setType("special");
-    else if (post.book) setType("question")
+    if (post?.rating) setType("review");
+    else if (post?.address) setType("trade");
+    else if (post?.type) setType("special");
+    else if (post?.book) setType("question")
     else setType("post");
   };
 
@@ -206,7 +200,7 @@ useEffect(()=>{
       const { data } = await autoFetch.delete(`api/${type}/${postId}`);
       setIsDelete(true);
       toast(data.msg);
-      getDeletePostId(postId);
+      // getDeletePostId(postId);
     } catch (error) {
       console.log(error);
     }
@@ -350,7 +344,7 @@ useEffect(()=>{
   }
 
   // when error data
-  if (!post.postedBy) {
+  if (!post?.postedBy) {
     return null;
   }
 

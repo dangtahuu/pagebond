@@ -61,7 +61,7 @@ const create = async (req, res) => {
 
     return res
       .status(200)
-      .json({ post: postWithUser, msg: "Create new trade post succesfully" });
+      .json({ post: postWithUser, msg: "Create new question succesfully" });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ msg: err });
@@ -511,16 +511,20 @@ const removeComment = async (req, res) => {
 
 const getWithUser = async (req, res) => {
   try {
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 10;
     const userId = req.params.userId;
     const posts = await Question.find({ postedBy: { _id: userId } })
+    .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
     .populate("hashtag")
-
       .sort({
         createdAt: -1,
-      });
+      })
+      .limit(perPage);
+
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);
@@ -531,7 +535,7 @@ const getWithUser = async (req, res) => {
 const getFollowing = async (req, res) => {
   try {
     const { userId } = req.user;
-    const user = await Question.findById(userId);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
@@ -543,7 +547,7 @@ const getFollowing = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
 
-    const posts = await Trade.find({ postedBy: { $in: following } })
+    const posts = await Question.find({ postedBy: { $in: following } })
       .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")

@@ -48,17 +48,25 @@ const Profile = () => {
         _id: currentUserId,
         follower: [],
         following: [],
+        featuredShelf:{books: []}
     });
-
+    const [recent,setRecent] = useState([])
     const [menu, setMenu] = useState("Posts");
+  
 
     useEffect(() => {
-        getCurrentUser(currentUserId);
-        getPostWithUserId(currentUserId);
-    if(shelf) setMenu("Shelves")
-
-        else setMenu("Posts");
-        setImages([]);
+        const getData = async()=>{
+            setLoading(true)
+            try{
+                await getCurrentUser(currentUserId);
+                await getRecent(currentUserId)
+            } catch(e){
+                console.log(e)
+            }
+            setLoading(false)
+      
+        }
+      getData()
     }, [currentUserId]);
 
     const getCurrentUser = async (userId) => {
@@ -67,39 +75,25 @@ const Profile = () => {
             const {data} = await autoFetch.get(`/api/auth/${userId}`);
             console.log(data.user)
             setUser(data.user);
+
         } catch (error) {
             console.log(error);
         }
         setLoading(false);
     };
 
-    const getPostWithUserId = async (userId) => {
-        setPostLoading(true);
+    const getRecent = async (userId) => {
         try {
-            const {data} = await autoFetch.get(
-                `/api/post/getPostWithUser/${userId}`
-            );
-            setPosts(data.posts);
+            const {data} = await autoFetch.get(`/api/review/recent/${userId}`);
+            // console.log(data.user)
+            setRecent(data.books);
+            console.log(data.books)
+
         } catch (error) {
             console.log(error);
         }
-        setPostLoading(false);
     };
-    useEffect(() => {
-        if (posts.length) {
-            setImages(
-                posts.filter((p) => p.type==3)
-            );
-        }
-    }, [posts]);
 
-    const getDeletePostId = (postId) => {
-        // @ts-ignore
-        const newPosts = posts.filter((v) => v._id !== postId);
-        // @ts-ignore
-        setPosts(newPosts);
-        console.log("delete post: ", postId);
-    };
 
     const main = () => {
         if(shelf) {
@@ -198,21 +192,18 @@ const Profile = () => {
                         user={user}
                         setOneState={setOneState}
                         loading={postLoading}
-                        posts={posts}
-                        setPosts={setPosts}
-                        getDeletePostId={getDeletePostId}
+                        // posts={activePosts}
+                        // setPosts={setActivePosts}
                     />
                 </div>
                 <div className='col-span-2 sticky top-20 self-start'>
                     <Details
-                        user={user}
-                        own={own}
-                        images={images}
-                        navigate={navigate}
-                        autoFetch={autoFetch}
-                        dark={dark}
-                        profileLoading={loading}
-                        postLoading={postLoading}
+                       data={user.featuredShelf.books}
+                       name={user.featuredShelf.name}
+                    />
+                      <Details
+                       data={recent}
+                       name="Recent"
                     />
                 </div>
             </div>

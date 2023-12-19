@@ -103,7 +103,7 @@ const search = async (req, res) => {
 
   try {
     let results;
-    
+
     if (term.startsWith("#")) {
       const hashtag = await Hashtag.findOne({ name: term.slice(1) });
       results = await Post.aggregate([
@@ -118,12 +118,13 @@ const search = async (req, res) => {
         { $sort: { popularity: -1 } },
         { $skip: (page - 1) * perPage },
         { $limit: perPage },
-        {$project: {
-          _id: 1
-        }}
+        {
+          $project: {
+            _id: 1,
+          },
+        },
       ]);
-      console.log(results)
-
+      console.log(results);
     } else {
       const regexPattern = term
         .split(" ")
@@ -136,10 +137,7 @@ const search = async (req, res) => {
       results = await Post.aggregate([
         {
           $match: {
-            $or: [
-              { title: { $regex: regex } },
-              { text: { $regex: regex } },
-            ],
+            $or: [{ title: { $regex: regex } }, { text: { $regex: regex } }],
           },
         },
         {
@@ -152,22 +150,23 @@ const search = async (req, res) => {
         { $sort: { popularity: -1 } },
         { $skip: (page - 1) * perPage },
         { $limit: perPage },
-        {$project: {
-          _id: 1
-        }}
+        {
+          $project: {
+            _id: 1,
+          },
+        },
       ]);
-    
     }
 
-    let posts = []
-    if (results.length>0) {
+    let posts = [];
+    if (results.length > 0) {
       for (const id of results) {
         const post = await Post.findById(id)
-        .populate("postedBy", "-password -secret")
-        .populate("comments.postedBy", "-password -secret")
-      .populate("hashtag")
-        
-        posts.push(post)
+          .populate("postedBy", "-password -secret")
+          .populate("comments.postedBy", "-password -secret")
+          .populate("hashtag");
+
+        posts.push(post);
       }
     }
     return res.status(200).json({ results: posts });
@@ -475,14 +474,20 @@ const totalPosts = async (req, res) => {
 
 const getPostsWithUserId = async (req, res) => {
   try {
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 10;
+
     const userId = req.params.userId;
     const posts = await Post.find({ postedBy: { _id: userId } })
+      .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("hashtag")
       .sort({
         createdAt: -1,
-      });
+      })
+      .limit(perPage);
+
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);

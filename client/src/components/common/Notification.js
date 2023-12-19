@@ -49,7 +49,7 @@ const Notification = ({
           case "Question":
             navigate(`/detail/question/${data.linkTo._id}`);
             break;
-          case "Special":
+          case "SpecialPost":
             navigate(`/detail/special/${data.linkTo._id}`);
             break;
           default:
@@ -87,7 +87,7 @@ const Notification = ({
             </span>
             <div className="text-smallText">
               {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
-                noti.linkTo.text}
+                noti?.linkTo?.text}
             </div>
           </div>
         </div>
