@@ -39,7 +39,8 @@ const Review = ({
     writing: "",
     insights: "",
     dateRead: "",
-    hashtag: []
+    hashtag: [],
+    spoiler: false,
   });
 
   const filterRef = useRef();
@@ -88,7 +89,9 @@ const Review = ({
         writing: input.writing,
         insights: input.insights,
         dateRead: input.dateRead,
-        hashtag: input.hashtag
+        hashtag: input.hashtag,
+        spoiler: input.spoiler
+
       });
       setPosts([data.post, ...posts]);
       toast.success("Create new review successfully!");

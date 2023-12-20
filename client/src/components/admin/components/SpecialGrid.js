@@ -12,6 +12,7 @@ import { AiOutlineCheck } from "react-icons/ai";
 import { FiTrash } from "react-icons/fi";
 import { TbLockOpen, TbUserCheck } from "react-icons/tb";
 import { TiTick } from "react-icons/ti";
+import formatDate from "../../../utils/formatDate";
 
 const darkTheme = createTheme({
   palette: {
@@ -19,13 +20,6 @@ const darkTheme = createTheme({
   },
 });
 
-const convertDate = (time) => {
-  const date = new Date(time);
-  const yyyy = date.getFullYear();
-  const mm = date.getMonth() + 1;
-  const dd = date.getDate();
-  return `${yyyy}-${mm >= 10 ? mm : "0" + mm}-${dd >= 10 ? dd : "0" + dd}`;
-};
 
 const SpecialGrid = ({ menu, option }) => {
   const apis = {
@@ -140,7 +134,7 @@ const SpecialGrid = ({ menu, option }) => {
       likes: v.likes.length,
       // @ts-ignore
       comments: v.comments.length,
-      date: v.createdAt,
+      date: formatDate(v.createdAt),
       status: v.reported,
     };
   });

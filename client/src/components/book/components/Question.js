@@ -25,6 +25,8 @@ const Question = ({
     text: "",
     image: "",
     hashtag: [],
+    spoiler: false,
+
   });
 
   const [openModal, setOpenModal] = useState(false);
@@ -55,6 +57,8 @@ const Question = ({
         book,
         image,
         hashtag: input.hashtag,
+        spoiler: input.spoiler
+
       });
       setPosts((prev) => [data.post, ...prev]);
       toast.success(data?.msg || "Create new question successfully!");

@@ -13,7 +13,7 @@ import { TiTick } from "react-icons/ti";
 import { TbUserCheck } from "react-icons/tb";
 import { TbLockOpen } from "react-icons/tb";
 import { TbLock } from "react-icons/tb";
-
+import formatDate from "../../../utils/formatDate";
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
@@ -24,15 +24,7 @@ const apis = {
   All: `/api/auth/all`,
   Reported: `/api/auth/all-reported`,
   Blocked: `/api/auth/all-blocked`,
-  Pending: `/api/auth/all-pending`
-};
-
-const convertDate = (time) => {
-  const date = new Date(time);
-  const yyyy = date.getFullYear();
-  const mm = date.getMonth() + 1;
-  const dd = date.getDate();
-  return `${yyyy}-${mm >= 10 ? mm : "0" + mm}-${dd >= 10 ? dd : "0" + dd}`;
+  Pending: `/api/auth/all-pending`,
 };
 
 const UserGrid = ({ option }) => {
@@ -69,7 +61,7 @@ const UserGrid = ({ option }) => {
           // @ts-ignore
           role: v.role,
           // @ts-ignore
-          date: convertDate(v.createdAt),
+          date: formatDate(v.createdAt),
           status: v.blocked,
           // block: ()=> (<MdBlock onClick={handleSuspend}/>)
         };
@@ -83,7 +75,7 @@ const UserGrid = ({ option }) => {
 
   const columns = [
     { field: "no", headerName: "No.", width: 20 },
-    { field: "id", headerName: "ID", width: 90, flex: 1 },
+    { field: "id", headerName: "ID", width: 70 },
     {
       field: "info",
       headerName: "Info",
@@ -91,19 +83,29 @@ const UserGrid = ({ option }) => {
       flex: 1,
       renderCell: (params) => (
         <div className="flex items-center gap-x-2">
-        <img className="rounded-full w-6 h-6" src={params.row.avatar} />
-<div>{params.row.name}</div>
+          <img className="rounded-full w-6 h-6" src={params.row.avatar} />
+          <div>{params.row.name}</div>
         </div>
       ),
     },
     { field: "email", headerName: "Email", width: 90, flex: 1 },
-    { field: "follower", headerName: "Follower", width: 20 },
+    { field: "follower", headerName: "Follower", width: 90 },
     {
       field: "role",
       headerName: "Role",
       width: 20,
       renderCell: (params) => (
-        <TiTick className={`text-lg rounded-full text-white ${params.row.role===1? `bg-greenBtn`: params.row.role===2? `bg-sky-900`: params.row.role===0? `bg-yellow-900`:`hidden`}`}/>
+        <TiTick
+          className={`text-lg rounded-full text-white ${
+            params.row.role === 1
+              ? `bg-greenBtn`
+              : params.row.role === 2
+              ? `bg-sky-900`
+              : params.row.role === 0
+              ? `bg-yellow-900`
+              : `hidden`
+          }`}
+        />
       ),
     },
     {
@@ -112,7 +114,7 @@ const UserGrid = ({ option }) => {
       width: 20,
       renderCell: () => <TbUserCheck />,
     },
-    { field: "date", headerName: "Date", width: 90, flex: 1 },
+    { field: "date", headerName: "Date", width: 90 },
     {
       field: "status",
       headerName: "Blocked status",

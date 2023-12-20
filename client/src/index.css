@@ -163,7 +163,7 @@
   }
 
   .form-label {
-    @apply text-sm font-semibold block
+    @apply text-sm font-semibold block my-2
   }
 
   .standard-input {

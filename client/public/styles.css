@@ -929,6 +929,8 @@ body,
 }
 
 .form-label {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
   display: block;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -1299,10 +1301,6 @@ body,
 
 .z-\[99\] {
   z-index: 99;
-}
-
-.z-\[210\] {
-  z-index: 210;
 }
 
 .order-1 {
@@ -1715,6 +1713,10 @@ body,
   height: 100vh;
 }
 
+.h-\[150px\] {
+  height: 150px;
+}
+
 .max-h-20 {
   max-height: 5rem;
 }
@@ -1958,6 +1960,10 @@ body,
 
 .w-screen {
   width: 100vw;
+}
+
+.w-\[130px\] {
+  width: 130px;
 }
 
 .min-w-\[28px\] {
@@ -2945,6 +2951,11 @@ body,
   font-size: 16px !important;
 }
 
+.\!text-lg {
+  font-size: 1.125rem !important;
+  line-height: 1.75rem !important;
+}
+
 .\!text-sm {
   font-size: 0.875rem !important;
   line-height: 1.25rem !important;
@@ -3077,10 +3088,6 @@ body,
 
 .font-semibold {
   font-weight: 600;
-}
-
-.italic {
-  font-style: italic;
 }
 
 .leading-5 {

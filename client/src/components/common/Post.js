@@ -24,6 +24,7 @@ import { Rating } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import QuestionForm from "./QuestionForm";
 import Modal from "./Modal";
+import formatDate from "../../utils/formatDate";
 
 const typeDisplay = {
   post: "Post",
@@ -71,6 +72,7 @@ const Post = ({
     address: currentPost?.address || "",
     location: currentPost?.location || "",
     hashtag: currentPost?.hashtag?.map((one) => one.name) || [],
+    spoiler: currentPost?.spoiler || false,
   });
 
   const [attachment, setAttachment] = useState(
@@ -81,6 +83,8 @@ const Post = ({
   const [answer, setAnswer] = useState("");
   const [answerModalOpen, setAnswerModalOpen] = useState(false);
 
+  const [viewMoreRating, setViewMoreRating] = useState(false);
+  const [spoilerView, setSpoilerView] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -257,6 +261,7 @@ const Post = ({
           image: image,
           title: input.title,
           hashtag: input.hashtag,
+          spoiler: input.spoiler,
         });
         postData = data.post;
       } else if (type === "review") {
@@ -273,6 +278,8 @@ const Post = ({
             insights: input.insights,
             dateRead: input.dateRead,
             image: image,
+            hashtag: input.hashtag,
+            spoiler: input.spoiler,
           }
         );
         postData = data.post;
@@ -282,6 +289,7 @@ const Post = ({
           condition: input.condition,
           address: input.address,
           location: input.location,
+          hashtag: input.hashtag,
           image,
         });
         postData = data.post;
@@ -292,6 +300,8 @@ const Post = ({
             text: input.text,
             image: image,
             title: input.title,
+            hashtag: input.hashtag,
+            spoiler: input.spoiler,
           }
         );
         postData = data.post;
@@ -302,6 +312,8 @@ const Post = ({
             text: input.text,
             image: image,
             title: input.title,
+            hashtag: input.hashtag,
+            spoiler: input.spoiler,
           }
         );
         postData = data.post;
@@ -324,6 +336,7 @@ const Post = ({
         location: postData.location || "",
         condition: postData.condition || "",
         hashtag: postData.hashtag || [],
+        spoiler: postData.spoiler || false,
       });
 
       setInput({
@@ -342,6 +355,7 @@ const Post = ({
         location: postData.location || "",
         condition: postData.condition || "",
         hashtag: postData.hashtag?.map((one) => one.name) || [],
+        spoiler: postData.spoiler || false,
       });
 
       if (postData.image) {
@@ -354,6 +368,59 @@ const Post = ({
     }
     setLoadingEdit(false);
     setFormData(null);
+  };
+
+  const MainContent = () => {
+    return (
+      <div>
+        {post?.title && (
+          <div className="content mt-3 serif-display font-semibold text-2xl">
+            {post?.title}
+          </div>
+        )}
+
+        <div
+          className={`content mt-[11px] ${
+            post?.image || post?.text?.length > 60 ? "text-sm" : "text-base "
+          } `}
+        >
+          <ReactMarkdown>{post?.text}</ReactMarkdown>
+        </div>
+
+        {post?.hashtag && (
+          <div className="">
+            {post?.hashtag?.map((one) => (
+              <div
+                className="cursor-pointer text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1"
+                onClick={() => {
+                  navigate(
+                    `/search/?q=${encodeURIComponent(
+                      JSON.stringify(`#${one?.name}`)
+                    )}&searchType=${type}`
+                  );
+                }}
+              >
+                {one?.name}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* when has image */}
+        {post?.image && (
+          <div className="mt-3 flex items-center justify-center cursor-pointer ">
+            <img
+              src={post?.image?.url}
+              alt="img_content"
+              className="w-full rounded-lg h-auto max-h-[300px] sm:max-h-[350px] object-contain bg-[#F0F2F5] dark:bg-[#18191A]"
+              onClick={() => {
+                navigate(`/detail/${type}/${post?._id}`);
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   // when post was delete
@@ -579,7 +646,7 @@ const Post = ({
         </div>
       )}
 
-      {post?.book && !book ? (
+      {post?.book && !book && (
         <div className="flex items-center mt-2 pr-3">
           {/* avatar */}
           <img
@@ -619,57 +686,100 @@ const Post = ({
             )}
           </div>
         </div>
-      ) : post?.rating ? (
-        <div className="content mt-[11px]">
-          <Rating value={post?.rating} precision={0.5} readOnly />
-        </div>
-      ) : (
-        <></>
-      )}
-      {post?.title && (
-        <div className="content mt-3 serif-display text-xl">{post?.title}</div>
       )}
 
-      <div
-        className={`content mt-[11px] ${
-          post?.image || post?.text?.length > 60 ? "text-sm" : "text-base "
-        } `}
-      >
-        <ReactMarkdown>{post?.text}</ReactMarkdown>
-      </div>
-
-      {post?.hashtag && (
-        <div className="">
-          {post?.hashtag?.map((one) => (
-            <div
-              className="cursor-pointer text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1"
-              onClick={() => {
-                navigate(
-                  `/search/?q=${encodeURIComponent(
-                    JSON.stringify(`#${one?.name}`)
-                  )}&searchType=${type}`
-                );
-              }}
-            >
-              {one?.name}
+      {post?.rating && book && (
+        <div>
+          <div className="content mt-[11px]">
+            <div className="flex items-center gap-x-2">
+              <div className="">Overall</div>
+              <Rating value={post?.rating} precision={0.5} readOnly />
             </div>
-          ))}
+          </div>
         </div>
       )}
 
-      {/* when has image */}
-      {post?.image && (
-        <div className="mt-3 flex items-center justify-center cursor-pointer ">
-          <img
-            src={post?.image?.url}
-            alt="img_content"
-            className="w-full rounded-lg h-auto max-h-[300px] sm:max-h-[350px] object-contain bg-[#F0F2F5] dark:bg-[#18191A]"
-            onClick={() => {
-              navigate(`/detail/${type}/${post?._id}`);
-            }}
-          />
+      {post?.rating && (
+        <div
+          className={`text-xs text-smallText cursor-pointer ${
+            viewMoreRating && `hidden`
+          }`}
+          onClick={() => {
+            setViewMoreRating(true);
+          }}
+        >
+          See more
         </div>
       )}
+
+      {viewMoreRating && (
+        <div>
+          <div className="grid grid-cols-2 my-1">
+            <div className="flex items-center gap-x-2">
+              <div className="text-sm">Content</div>
+              <Rating
+                className="!text-lg"
+                value={post?.content}
+                precision={0.5}
+                readOnly
+              />
+            </div>
+
+            <div className="flex items-center gap-x-2">
+              <div className="text-sm">Development</div>
+              <Rating
+                className="!text-lg"
+                value={post?.development}
+                precision={0.5}
+                readOnly
+              />
+            </div>
+
+            <div className="flex items-center gap-x-2">
+              <div className="text-sm">Writing</div>
+              <Rating
+                className="!text-lg"
+                value={post?.writing}
+                precision={0.5}
+                readOnly
+              />
+            </div>
+
+            <div className="flex items-center gap-x-2">
+              <div className="text-sm">Insights</div>
+              <Rating
+                className="!text-lg"
+                value={post?.insights}
+                precision={0.5}
+                readOnly
+              />
+            </div>
+          </div>
+
+          {post?.dateRead && (
+            <div className="content mt-2 font-bold text-gray-500 text-xs">
+              Read on: {formatDate(post?.dateRead)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {post?.spoiler && (
+        <div className={`${spoilerView && `hidden`} flex flex-col items-center gap-y-2 my-2`}>
+          <div className="font-semibold">Warning! Spoiler ahead!</div>
+          <button
+            className="primary-btn bg-black"
+            onClick={() => {
+              setSpoilerView(true);
+            }}
+          >
+            I can handle the truth
+          </button>
+        </div>
+      )}
+
+      {post?.spoiler && spoilerView && <MainContent />}
+      {!post?.spoiler && <MainContent />}
 
       {/* post's comment and like quantity */}
       <div className="py-[10px] flex gap-x-[6px] items-center text-[15px] ">

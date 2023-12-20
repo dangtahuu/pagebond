@@ -22,7 +22,9 @@ import {
   UndoRedo,
   linkDialogPlugin,
   ListsToggle,
-  CreateLink
+  CreateLink,
+  linkPlugin
+
 } from "@mdxeditor/editor";
 
 import "./common.css";
@@ -55,12 +57,18 @@ const ReviewForm = ({
   const [isSearchingTag, setIsSearchingTag] = useState(false);
 
   const searchTagRef = useRef();
+  const tagExceptRef = useRef();
+
   const markdownRef = useRef();
 
+useEffect(()=>{
+
+  console.log(input.hashtag)
+},[input])
 
   useOnClickOutside(searchTagRef, () => {
     setIsSearchingTag(false);
-  });
+  },tagExceptRef);
 
   useEffect(() => {
     searchHashtag();
@@ -93,7 +101,8 @@ const ReviewForm = ({
 
   const ResultList = () => {
     return (
-      <div className="">
+      <div className=""
+      ref={tagExceptRef}>
         {listTagSearch.map((item) => {
           return (
             <div
@@ -231,17 +240,17 @@ const ReviewForm = ({
 
   const RatingBox = ({ criteria }) => {
     return (
-      <div className="mb-2 relative">
+      <div className="mb-2 relative flex items-center">
         <Tooltip title="aaaa" placement="top-start">
-          <div className="flex items-center">
+          <div className="flex items-center w-[130px]">
             <label className="form-label">
-              {criteria.charAt(0).toUpperCase() + criteria.slice(1)}
+              {criteria.charAt(0).toUpperCase() + criteria.slice(1)+" *"}
             </label>
             <IoIosHelpCircle className="text-lg ml-2 cursor-pointer" />
           </div>
         </Tooltip>
 
-        <div className="mt-1">
+        <div className="">
           <div className="flex items-center">
             <Rating
               precision={0.5}
@@ -266,7 +275,7 @@ const ReviewForm = ({
           }
         }}
       ></div>
-      <div className="mx-auto w-[80%] max-h-[90%] overflow-auto bg-dialogue rounded-xl px-4 z-[202] box-shadow relative ">
+      <div className="mx-auto w-[80%] max-h-[90%] overflow-auto style-3 bg-dialogue rounded-xl px-4 z-[202] box-shadow relative ">
         <IoClose
           className="absolute top-4 right-6 text-lg opacity-50 hover:opacity-100 cursor-pointer transition-50 "
           onClick={() => {
@@ -278,17 +287,18 @@ const ReviewForm = ({
             {isEditPost ? "Edit review" : "Create review"}
           </div>
 
-          <div className="mt-3 grid grid-cols-3 ">
+          <div className="mt-3 grid grid-cols-2 ">
             <RatingBox criteria={"content"} />
             <RatingBox criteria={"development"} />
             {/* <RatingBox criteria={"pacing"} /> */}
             <RatingBox criteria={"writing"} />
             <RatingBox criteria={"insights"} />
-            <RatingBox criteria={"rating"} />
           </div>
 
+          <RatingBox criteria={"rating"} />
+
           <label className="form-label" for="">
-            Pacing
+            Pacing *
           </label>
 
           <div className="grid grid-cols-3 text-xs mt-2">
@@ -331,13 +341,13 @@ const ReviewForm = ({
           <MDXEditor
           ref={markdownRef}
           id="text"
-            className="standard-input"
+            className="standard-input h-[200px]"
             markdown={input.text}
             placeholder={`Review`}
             onBlur={() => {
               setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
             }}
-            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),
+            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),linkPlugin(),
               toolbarPlugin({
                 toolbarContents: () => (
                   <>
@@ -381,7 +391,10 @@ const ReviewForm = ({
               setInput((prev) => ({ ...prev, dateRead: e.target.value }));
             }}
           />
-
+<div className="mt-3 flex items-center gap-x-3">
+              <input type="checkbox" name="official" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
+              <label className="text-xs md:text-sm">This contains spoiler of content?</label>
+              </div>
           <label className="form-label" for="hashtag">
             Hashtag
           </label>

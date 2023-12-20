@@ -11,7 +11,7 @@ cloudinary.v2.config({
 });
 
 const create = async (req, res) => {
-  const { text, image, title, type, book, hashtag } = req.body;
+  const { text, image, title, type, book, hashtag, spoiler } = req.body;
   if (!text.length || !title.length) {
     return res.status(400).json({ msg: "Content and title are required!" });
   }
@@ -43,6 +43,7 @@ const create = async (req, res) => {
         type,
         title,
         hashtag: hashtagsIds,
+        spoiler
       });
     } else {
       post = await SpecialPost.create({
@@ -187,7 +188,7 @@ const getOne = async (req, res) => {
 const edit = async (req, res) => {
   try {
     const postId = req.params.id;
-    const { text, image, title, type, hashtag } = req.body;
+    const { text, image, title, type, hashtag, spoiler } = req.body;
     if (!text.length || !title.length) {
       return res.status(400).json({ msg: "Content and title are required!" });
     }
@@ -228,6 +229,7 @@ const edit = async (req, res) => {
         image,
         title,
         hashtag: hashtagIds,
+        spoiler
       },
       {
         new: true,

@@ -2,6 +2,97 @@ import Log from "../models/log.js";
 import User from "../models/user.js";
 import Voucher from "../models/voucher.js";
 
+
+
+const create = async (req, res) => {
+  try {
+    const { code, name, description, points } = req.body;
+
+    const array = code.split(",").map((item) => {
+      return item.trim();
+    });
+
+    const voucher = await Voucher.create({
+      code: array,
+      name,
+      description,
+      points,
+    });
+    return res.status(200).json({ voucher });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const edit = async (req, res) => {
+  try {
+    const { voucherId, code, name, description, points } = req.body;
+
+    const array = code.split(",").map((item) => {
+      return item.trim();
+    });
+
+    console.log('points')
+    const voucher = await Voucher.findByIdAndUpdate(voucherId, {
+      code: array,
+      name,
+      description,
+      points,
+    });
+    return res.status(200).json({ voucher });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const deleteOne = async (req, res) => {
+  try {
+    const { id: voucherId } = req.params;
+
+    const voucher = await Voucher.findByIdAndDelete(voucherId)
+    if (!voucher) return res.status(200).json({ msg: "No voucher found!" })
+    return res.status(200).json({ voucher });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const getOne = async (req, res) => {
+  try {
+    const { id: voucherId } = req.params;
+
+    const voucher = await Voucher.findById(voucherId)
+    if (!voucher) return res.status(200).json({ msg: "No voucher found!" })
+    return res.status(200).json({ voucher });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const getAllRemaining = async (req, res) => {
+  try {
+    const vouchers = await Voucher.find({ code: { $ne: [] } });
+    return res.status(200).json({ vouchers });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const getAll = async (req, res) => {
+  try {
+    const vouchers = await Voucher.find({}).sort({ createdAt: -1 });
+    return res.status(200).json({ vouchers });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
 const redeem = async (req, res) => {
   try {
     const { id } = req.body;
@@ -42,27 +133,4 @@ const redeem = async (req, res) => {
   }
 };
 
-const create = async (req, res) => {
-  try {
-    const { code, name, description, points } = req.body;
-    const voucher = await Voucher.create({ code, name, description, points });
-    console.log(voucher);
-    return res.status(200).json({ voucher });
-  } catch (err) {
-    console.log(err);
-    return res.status(400).json({ msg: err });
-  }
-};
-
-const getAllRemaining = async (req, res) => {
-  try {
-    const vouchers = await Voucher.find({ code: { $ne: [] } });
-    return res.status(200).json({ vouchers });
-  } catch (err) {
-    console.log(err);
-    return res.status(400).json({ msg: err });
-  }
-};
-
-
-export { create, redeem, getAllRemaining };
+export { create, edit, deleteOne, getOne, getAll, getAllRemaining, redeem };

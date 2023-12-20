@@ -21,7 +21,8 @@ import {
   UndoRedo,
   linkDialogPlugin,
   ListsToggle,
-  CreateLink
+  CreateLink,
+  linkPlugin
 } from "@mdxeditor/editor";
 
 import "./common.css";
@@ -267,7 +268,7 @@ const PostForm = ({
             onBlur={() => {
               setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
             }}
-            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),
+            plugins={[listsPlugin(),linkPlugin(), linkDialogPlugin(),thematicBreakPlugin(),
               toolbarPlugin({
                 toolbarContents: () => (
                   <>
@@ -285,6 +286,11 @@ const PostForm = ({
               headingsPlugin(),
             ]}
           />
+
+<div className="mt-3 flex items-center gap-x-3">
+              <input type="checkbox" name="official" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
+              <label className="text-xs md:text-sm">This contains spoiler of content?</label>
+              </div>
 
           <label className="form-label" for="hashtag">
             Hashtag

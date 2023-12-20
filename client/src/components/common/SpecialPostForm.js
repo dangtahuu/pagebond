@@ -24,7 +24,9 @@ import {
   UndoRedo,
   linkDialogPlugin,
   ListsToggle,
-  CreateLink
+  CreateLink,
+  linkPlugin
+
 } from "@mdxeditor/editor";
 
 import "./common.css";
@@ -52,11 +54,13 @@ const SpecialPostForm = ({
   const [isSearchingTag, setIsSearchingTag] = useState(false);
 
   const searchTagRef = useRef();
+  const tagExceptRef = useRef();
+
   const markdownRef = useRef();
 
   useOnClickOutside(searchTagRef, () => {
     setIsSearchingTag(false);
-  });
+  },tagExceptRef);
 
   useEffect(() => {
     searchHashtag();
@@ -89,7 +93,8 @@ const SpecialPostForm = ({
 
   const ResultList = () => {
     return (
-      <div className="">
+      <div className=""
+      ref={tagExceptRef}>
         {listTagSearch.map((item) => {
           return (
             <div
@@ -265,7 +270,7 @@ const SpecialPostForm = ({
             onBlur={() => {
               setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
             }}
-            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),
+            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),linkPlugin(),
               toolbarPlugin({
                 toolbarContents: () => (
                   <>
@@ -283,7 +288,10 @@ const SpecialPostForm = ({
               headingsPlugin(),
             ]}
           />
-
+<div className="mt-3 flex items-center gap-x-3">
+              <input type="checkbox" name="official" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
+              <label className="text-xs md:text-sm">This contains spoiler of content?</label>
+              </div>
 <label className="form-label" for="hashtag">
             Hashtag
           </label>

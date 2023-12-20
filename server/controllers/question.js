@@ -20,7 +20,7 @@ const api = new BingChat({
 });
 
 const create = async (req, res) => {
-  const { text, title, book, image, hashtag } = req.body;
+  const { text, title, book, image, hashtag, spoiler } = req.body;
 
   try {
     if (!text || !title || !book) {
@@ -51,6 +51,7 @@ const create = async (req, res) => {
       image,
       book: book.id,
       hashtag: hashtagsIds,
+      spoiler,
     });
 
     const postWithUser = await Question.findById(post._id)
@@ -247,7 +248,10 @@ const getMy = async (req, res) => {
 const edit = async (req, res) => {
   try {
     const postId = req.params.id;
-    const { text, title, image, hashtag } = req.body;
+
+    console.log(postId);
+
+    const { text, title, image, hashtag, spoiler } = req.body;
 
     if (!text || !title) {
       return res
@@ -256,7 +260,6 @@ const edit = async (req, res) => {
     }
 
     const oldPost = await Question.findById(postId).populate("hashtag");
-
     if (!oldPost) {
       return res.status(400).json({ msg: "No post found!" });
     }
@@ -285,13 +288,14 @@ const edit = async (req, res) => {
       }
     }
 
-    const post = await Trade.findByIdAndUpdate(
+    const post = await Question.findByIdAndUpdate(
       postId,
       {
         text,
         title,
         image,
         hashtag: hashtagIds,
+        spoiler,
       },
       {
         new: true,
@@ -706,15 +710,15 @@ const getAIRes = async (req, res) => {
     const { postId } = req.params;
     const post = await Question.findById(postId).populate("book");
 
-    let question = `In discussion of the book ${post.book.title} by ${post.book.author}, a reader posts "${post.title}. ${post.text}" What do you think about the post and the following replies it received? Don't analyze each reply like "the first reply says this", "the second says that". Just summarize them. Then give your own answer to the original post.`
+    let question = `In discussion of the book ${post.book.title} by ${post.book.author}, a reader posts "${post.title}. ${post.text}" What do you think about the post and the following replies it received? Don't analyze each reply like "the first reply says this", "the second says that". Just summarize them. Then give your own answer to the original post.`;
 
     post.comments.forEach((one, index) => {
-      question = question + `[${one.text}]`
+      question = question + `[${one.text}]`;
     });
 
-    const reply = await api.sendMessage(question,{
+    const reply = await api.sendMessage(question, {
       variant: "Precise",
-    })
+    });
 
     return res.status(200).json({ question, reply: reply.text });
   } catch (error) {
@@ -743,5 +747,5 @@ export {
   report,
   dismissReport,
   getAllReported,
-  getAIRes
+  getAIRes,
 };

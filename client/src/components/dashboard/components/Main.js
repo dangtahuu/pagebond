@@ -22,6 +22,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     title: "",
     image: "",
     hashtag: [],
+    spoiler: false
   };
   const [input, setInput] = useState(initInput);
   const [specialInput, setSpecialInput] = useState({
@@ -29,6 +30,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     title: "",
     image: "",
     hashtag: [],
+    spoiler: false
 
   });
 
@@ -96,6 +98,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         image,
         title: input.title,
         hashtag: input.hashtag,
+        spoiler: input.spoiler
       });
       setActivePosts((prev) => [data.post, ...prev]);
       toast.success("Create new post successfully!");
@@ -125,6 +128,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         image,
         hashtag: specialInput.hashtag,
         type: user.role === 1 ? 1 : 0,
+        spoiler: input.spoiler
       });
       setActivePosts((prev) => [data.post, ...prev]);
 

@@ -78,6 +78,7 @@ const reviewSchema = new mongoose.Schema(
       required: true,
     },
     hashtag: [{ type: mongoose.Types.ObjectId, ref: "Hashtag" }],
+    spoiler: { type: Boolean, default: false },
     reported: {
       type: Boolean,
       default: false

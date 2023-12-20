@@ -13,7 +13,10 @@ import { AiOutlineInfoCircle } from "react-icons/ai";
 
 import "@mdxeditor/editor/style.css";
 import {
-  headingsPlugin, listsPlugin, thematicBreakPlugin,InsertThematicBreak,
+  headingsPlugin,
+  listsPlugin,
+  thematicBreakPlugin,
+  InsertThematicBreak,
   MDXEditor,
   toolbarPlugin,
   BlockTypeSelect,
@@ -21,11 +24,11 @@ import {
   UndoRedo,
   linkDialogPlugin,
   ListsToggle,
-  CreateLink
+  CreateLink,
+  linkPlugin,
 } from "@mdxeditor/editor";
 
 import "./common.css";
-
 
 const conditionList = ["New", "Like new", "Good", "Worn", "Bad"];
 
@@ -60,11 +63,17 @@ const TradeForm = ({
   const [isSearchingTag, setIsSearchingTag] = useState(false);
 
   const searchTagRef = useRef();
+  const tagExceptRef = useRef();
+
   const markdownRef = useRef();
 
-  useOnClickOutside(searchTagRef, () => {
-    setIsSearchingTag(false);
-  });
+  useOnClickOutside(
+    searchTagRef,
+    () => {
+      setIsSearchingTag(false);
+    },
+    tagExceptRef
+  );
 
   useEffect(() => {
     searchHashtag();
@@ -97,7 +106,7 @@ const TradeForm = ({
 
   const ResultListTag = () => {
     return (
-      <div className="">
+      <div className="" ref={tagExceptRef}>
         {listTagSearch.map((item) => {
           return (
             <div
@@ -116,7 +125,8 @@ const TradeForm = ({
   const handleTag = (e) => {
     const words = e.target.value.split(" ");
     if (words.length > 1) {
-      if(words[0]!=="") setInput((prev) => ({ ...prev, hashtag: [...prev.hashtag, words[0]] }));
+      if (words[0] !== "")
+        setInput((prev) => ({ ...prev, hashtag: [...prev.hashtag, words[0]] }));
       setTag(words[1]);
     } else {
       setTag(e.target.value);
@@ -323,15 +333,22 @@ const TradeForm = ({
           </label>
 
           <MDXEditor
-          ref={markdownRef}
-          id="text"
+            ref={markdownRef}
+            id="text"
             className="standard-input"
             markdown={input.text}
             placeholder={`Review`}
             onBlur={() => {
-              setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
+              setInput((prev) => ({
+                ...prev,
+                text: markdownRef.current?.getMarkdown(),
+              }));
             }}
-            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),
+            plugins={[
+              listsPlugin(),
+              linkDialogPlugin(),
+              thematicBreakPlugin(),
+              linkPlugin(),
               toolbarPlugin({
                 toolbarContents: () => (
                   <>
@@ -341,7 +358,7 @@ const TradeForm = ({
                     <BlockTypeSelect />
                     <CreateLink />
                     <ListsToggle />
-                    <InsertThematicBreak/>
+                    <InsertThematicBreak />
                     {/* <ChangeAdmonitionType/> */}
                   </>
                 ),
@@ -414,15 +431,17 @@ const TradeForm = ({
                 {input.hashtag.map((one, index) => (
                   <div className="relative text-xs text-mainText inline-block rounded-full bg-dialogue px-2 py-1">
                     {one}
-                    <IoClose className="text-xs cursor-pointer bg-mainbg rounded-full absolute -top-[5px] -right-[2px]"
-                    onClick={()=>{
-                      // let hashtag = input.hashtag
-                      // hashtag = hashtag.splice(index, 1)
-                      setInput((prev) => {
-                         let hashtag = prev.hashtag
-                        hashtag.splice(index, 1)
-                        return ({ ...prev, hashtag })});
-                    }}
+                    <IoClose
+                      className="text-xs cursor-pointer bg-mainbg rounded-full absolute -top-[5px] -right-[2px]"
+                      onClick={() => {
+                        // let hashtag = input.hashtag
+                        // hashtag = hashtag.splice(index, 1)
+                        setInput((prev) => {
+                          let hashtag = prev.hashtag;
+                          hashtag.splice(index, 1);
+                          return { ...prev, hashtag };
+                        });
+                      }}
                     />
                   </div>
                 ))}

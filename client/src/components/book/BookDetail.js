@@ -681,8 +681,8 @@ function BookDetail() {
 
             <div
               className="text-base mt-3 text-justify"
-              dangerouslySetInnerHTML={{ __html: book.description }}
-            />
+              
+            >{book.description}</div>
             {/* <p className="text-lg">{book.description}</p> */}
             <div className="text-sm  text-smallText mt-3">
               <div>{book.pageCount}</div>

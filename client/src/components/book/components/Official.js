@@ -22,7 +22,9 @@ const Official = ({
       title: "",
       text: "",
       image: "",
-      hashtag: []
+      hashtag: [],
+    spoiler: false,
+
     });
   
     const [openModal, setOpenModal] = useState(false);
@@ -53,6 +55,8 @@ const Official = ({
             image,
         hashtag: input.hashtag,
             type: user.role === 1 ? 1 : 0,
+            spoiler: input.spoiler
+
           });
           setPosts((prev) => [data.post, ...prev]);
     

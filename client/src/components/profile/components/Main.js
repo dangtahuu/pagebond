@@ -18,6 +18,7 @@ const Main = ({
         title: "",
         image: "",
         hashtag: [],
+        spoiler: false,
       };
       const [input, setInput] = useState(initInput);
 
@@ -26,6 +27,7 @@ const Main = ({
         title: "",
         image: "",
         hashtag: [],
+        spoiler: false
     
       });
       const [postOpen, setPostOpen] = useState(false);
@@ -178,6 +180,7 @@ const Main = ({
             image,
             title: input.title,
             hashtag: input.hashtag,
+            spoiler: input.spoiler
           });
           setActivePosts((prev) => [data.post, ...prev]);
           toast.success("Create new post successfully!");
@@ -207,6 +210,7 @@ const Main = ({
             image,
             hashtag: specialInput.hashtag,
             type: user.role === 1 ? 1 : 0,
+            spoiler: input.spoiler
           });
           setActivePosts((prev) => [data.post, ...prev]);
     

@@ -1,11 +1,9 @@
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-
-  return `${day}-${month}-${year}`;
+const formatDate = (time) => {
+  const date = new Date(time);
+  const yyyy = date.getFullYear();
+  const mm = date.getMonth() + 1;
+  const dd = date.getDate();
+  return `${dd >= 10 ? dd : "0" + dd}-${mm >= 10 ? mm : "0" + mm}-${yyyy}`;
 };
 
-export default formatDate;
+export default formatDate

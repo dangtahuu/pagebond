@@ -50,6 +50,8 @@ const questionSchema = new mongoose.Schema(
       },
     ],
     hashtag: [{ type: mongoose.Types.ObjectId, ref: "Hashtag" }],
+    spoiler: { type: Boolean, default: false },
+
     reported: {
       type: Boolean,
       default: false

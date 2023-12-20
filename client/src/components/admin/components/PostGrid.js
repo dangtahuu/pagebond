@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { AiOutlineCheck } from "react-icons/ai";
 import { FiTrash } from "react-icons/fi";
 import { TbLockOpen } from "react-icons/tb";
+import formatDate from "../../../utils/formatDate";
 
 const bigMenuToType = {
     "Posts": "post",
@@ -25,13 +26,6 @@ const darkTheme = createTheme({
   },
 });
 
-const convertDate = (time) => {
-  const date = new Date(time);
-  const yyyy = date.getFullYear();
-  const mm = date.getMonth() + 1;
-  const dd = date.getDate();
-  return `${yyyy}-${mm >= 10 ? mm : "0" + mm}-${dd >= 10 ? dd : "0" + dd}`;
-};
 
 const PostGrid = ({ menu, option }) => {
 
@@ -119,7 +113,7 @@ const PostGrid = ({ menu, option }) => {
       likes: v.likes.length,
       // @ts-ignore
       comments: v.comments.length,
-      date: v.createdAt,
+      date: formatDate(v.createdAt),
       status: v.reported,
     };
   });

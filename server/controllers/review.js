@@ -27,6 +27,7 @@ const create = async (req, res) => {
     insights,
     dateRead,
     hashtag,
+    spoiler
   } = req.body;
 
   try {
@@ -75,6 +76,7 @@ const create = async (req, res) => {
       insights,
       dateRead,
       hashtag: hashtagsIds,
+      spoiler
     });
 
     const postWithUser = await Review.findById(post._id)
@@ -387,7 +389,10 @@ const edit = async (req, res) => {
       insights,
       dateRead,
       hashtag,
+      spoiler
     } = req.body;
+
+    console.log(hashtag)
 
     if (
       !text ||
@@ -445,7 +450,11 @@ const edit = async (req, res) => {
       insights,
       dateRead,
       hashtag: hashtagIds,
+      spoiler
     });
+
+    console.log(hashtagIds)
+
     if (!post) {
       return res.status(400).json({ msg: "No review found!" });
     }

@@ -17,7 +17,7 @@ cloudinary.v2.config({
 });
 
 const createPost = async (req, res) => {
-  const { text, image, title, hashtag } = req.body;
+  const { text, image, title, hashtag, spoiler } = req.body;
 
   if (!text.length) {
     return res.status(400).json({ msg: "You need to provide some content!" });
@@ -46,6 +46,7 @@ const createPost = async (req, res) => {
       image,
       title,
       hashtag: hashtagsIds,
+      spoiler,
     });
 
     const postWithUser = await Post.findById(post._id)
@@ -241,7 +242,7 @@ const getFollowing = async (req, res) => {
 const editPost = async (req, res) => {
   try {
     const postId = req.params.id;
-    const { text, image, title, hashtag } = req.body;
+    const { text, image, title, hashtag, spoiler } = req.body;
     if (!text.length) {
       return res.status(400).json({ msg: "You need to provide some content!" });
     }
@@ -282,6 +283,7 @@ const editPost = async (req, res) => {
         image,
         title,
         hashtag: hashtagIds,
+        spoiler
       },
       { new: true, populate: { path: "hashtag" } }
     );

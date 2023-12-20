@@ -53,6 +53,7 @@ const specialPostSchema = new mongoose.Schema(
       ref: "Book",
     },
     hashtag: [{ type: mongoose.Types.ObjectId, ref: "Hashtag" }],
+    spoiler: { type: Boolean, default: false },
     reported: {
       type: Boolean,
       default: false
