@@ -13,7 +13,6 @@ cloudinary.v2.config({
   api_secret: "mW4Q6mKi4acL72ZhUYzw-S0_y1A",
 });
 
-
 const create = async (req, res) => {
   const {
     text,
@@ -27,10 +26,8 @@ const create = async (req, res) => {
     writing,
     insights,
     dateRead,
-    hashtag
+    hashtag,
   } = req.body;
-
-  
 
   try {
     if (
@@ -43,7 +40,9 @@ const create = async (req, res) => {
       !writing ||
       !insights
     ) {
-      return res.status(400).json({ msg: "Please provide all required values" });
+      return res
+        .status(400)
+        .json({ msg: "Please provide all required values" });
     }
 
     let hashtagsIds = [];
@@ -75,42 +74,65 @@ const create = async (req, res) => {
       writing,
       insights,
       dateRead,
-      hashtag: hashtagsIds
+      hashtag: hashtagsIds,
     });
 
-    const postWithUser = await Review.findById(post._id).populate(
-      "postedBy",
-      "-password -secret"
-    )
-    .populate("hashtag")
+    const postWithUser = await Review.findById(post._id)
+      .populate("postedBy", "-password -secret")
+      .populate("hashtag");
 
-    const bookData = await Book.findById(book.id)
+    const bookData = await Book.findById(book.id);
 
+    let slowCount = await Review.countDocuments({
+      $and: [{ book: book.id }, { pacing: "Slow" }],
+    });
+    let mediumCount = await Review.countDocuments({
+      $and: [{ book: book.id }, { pacing: "Medium" }],
+    });
+    let fastCount = await Review.countDocuments({
+      $and: [{ book: book.id }, { pacing: "Fast" }],
+    });
 
-    let slowCount = await Review.countDocuments({$and:[ {book: book.id},{pacing: "Slow"}] });
-    let mediumCount = await Review.countDocuments({$and:[ {book: book.id},{pacing: "Medium"}] });
-    let fastCount = await Review.countDocuments({$and:[ {book: book.id},{pacing: "Fast"}] });
+    const mostPacingCount = Math.max(slowCount, mediumCount, fastCount);
+    const newPacing =
+      mostPacingCount === slowCount
+        ? "Slow"
+        : mostPacingCount === "Medium"
+        ? "Medium"
+        : "Fast";
 
-    const mostPacingCount = Math.max(slowCount,mediumCount,fastCount)
-    const newPacing = mostPacingCount === slowCount? "Slow":mostPacingCount==="Medium"? "Medium": "Fast"
+    const numberOfRating = bookData.numberOfRating;
+    const newNumberOfRating = bookData.numberOfRating + 1;
 
-    const numberOfRating = bookData.numberOfRating
-    const newNumberOfRating = bookData.numberOfRating + 1
-    
-    const ratingAvg = ((bookData.rating*numberOfRating + rating)/ newNumberOfRating).toFixed(2);
-    const contentAvg = ((bookData.content*numberOfRating + content)/ newNumberOfRating).toFixed(2);
-    const developmentAvg = ((bookData.development*numberOfRating + development)/ newNumberOfRating).toFixed(2);
-    const writingAvg = ((bookData.writing*numberOfRating + writing)/ newNumberOfRating).toFixed(2);
-    const insightsAvg = ((bookData.insights*numberOfRating + insights)/ newNumberOfRating).toFixed(2);
+    const ratingAvg = (
+      (bookData.rating * numberOfRating + rating) /
+      newNumberOfRating
+    ).toFixed(2);
+    const contentAvg = (
+      (bookData.content * numberOfRating + content) /
+      newNumberOfRating
+    ).toFixed(2);
+    const developmentAvg = (
+      (bookData.development * numberOfRating + development) /
+      newNumberOfRating
+    ).toFixed(2);
+    const writingAvg = (
+      (bookData.writing * numberOfRating + writing) /
+      newNumberOfRating
+    ).toFixed(2);
+    const insightsAvg = (
+      (bookData.insights * numberOfRating + insights) /
+      newNumberOfRating
+    ).toFixed(2);
 
-    const newBook = await Book.findByIdAndUpdate(book.id,{
+    const newBook = await Book.findByIdAndUpdate(book.id, {
       rating: ratingAvg,
       content: contentAvg,
       development: developmentAvg,
       pacing: newPacing,
       writing: writingAvg,
       insights: insightsAvg,
-      numberOfRating: newNumberOfRating
+      numberOfRating: newNumberOfRating,
     });
 
     return res
@@ -126,7 +148,7 @@ const getAll = async (req, res) => {
   try {
     const posts = await Review.find({})
       .populate("postedBy", "-password -secret")
-    .populate("hashtag")
+      .populate("hashtag")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
@@ -149,9 +171,9 @@ const search = async (req, res) => {
 
   try {
     let results;
-    
+
     if (term.startsWith("#")) {
-      console.log('aaaa')
+      console.log("aaaa");
       const hashtag = await Hashtag.findOne({ name: term.slice(1) });
       results = await Review.aggregate([
         { $match: { hashtag: { $in: [hashtag._id] } } },
@@ -165,11 +187,12 @@ const search = async (req, res) => {
         { $sort: { popularity: -1 } },
         { $skip: (page - 1) * perPage },
         { $limit: perPage },
-        {$project: {
-          _id: 1
-        }}
+        {
+          $project: {
+            _id: 1,
+          },
+        },
       ]);
-
     } else {
       const regexPattern = term
         .split(" ")
@@ -182,10 +205,7 @@ const search = async (req, res) => {
       results = await Review.aggregate([
         {
           $match: {
-            $or: [
-              { title: { $regex: regex } },
-              { text: { $regex: regex } },
-            ],
+            $or: [{ title: { $regex: regex } }, { text: { $regex: regex } }],
           },
         },
         {
@@ -198,23 +218,24 @@ const search = async (req, res) => {
         { $sort: { popularity: -1 } },
         { $skip: (page - 1) * perPage },
         { $limit: perPage },
-        {$project: {
-          _id: 1
-        }}
+        {
+          $project: {
+            _id: 1,
+          },
+        },
       ]);
-    
     }
 
-    let posts = []
-    if (results.length>0) {
+    let posts = [];
+    if (results.length > 0) {
       for (const id of results) {
         const post = await Review.findById(id)
-        .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret")
-      .populate("book")
-      .populate("hashtag")
-        
-        posts.push(post)
+          .populate("postedBy", "-password -secret")
+          .populate("comments.postedBy", "-password -secret")
+          .populate("book")
+          .populate("hashtag");
+
+        posts.push(post);
       }
     }
     return res.status(200).json({ results: posts });
@@ -231,7 +252,7 @@ const getOne = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
-      .populate("hashtag")
+      .populate("hashtag");
 
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
@@ -266,11 +287,8 @@ const getAllWithBook = async (req, res) => {
       { $limit: perPage },
     ];
 
-
-    if (rating!=="All") {
-      const [minRating, maxRating] = rating
-        .split("-")
-        .map(parseFloat);
+    if (rating !== "All") {
+      const [minRating, maxRating] = rating.split("-").map(parseFloat);
       pipeline.push({
         $match: { rating: { $gte: minRating, $lte: maxRating } },
       });
@@ -286,12 +304,47 @@ const getAllWithBook = async (req, res) => {
       const review = await Review.findById(id)
         .populate("postedBy", "-password -secret")
         .populate("comments.postedBy", "-password -secret")
-    .populate("hashtag")
+        .populate("hashtag");
 
       posts.push(review);
     }
 
     return res.status(200).json({ posts });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const calculateRatingChart = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const reviews = await Review.find({ book: id });
+
+    const ratingCounts = {};
+
+    reviews.forEach((item) => {
+      ratingCounts[item.rating] = (ratingCounts[item.rating] || 0) + 1;
+    });
+
+    const result = []
+    for (let i=0.5; i<=5; i+=0.5) {
+      if (ratingCounts[i]) {
+        result.push({
+          number: ratingCounts[i],
+          rating: i,
+      })
+      } else {
+        result.push({
+          number: 0,
+          rating: i,
+      })
+      }
+     
+    }
+
+    return res.status(200).json({ result });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -308,7 +361,7 @@ const getMy = async (req, res) => {
     })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-    .populate("hashtag")
+      .populate("hashtag")
 
       .sort({ createdAt: -1 });
 
@@ -333,7 +386,7 @@ const edit = async (req, res) => {
       writing,
       insights,
       dateRead,
-      hashtag
+      hashtag,
     } = req.body;
 
     if (
@@ -380,52 +433,76 @@ const edit = async (req, res) => {
       }
     }
 
-    const post = await Review.findByIdAndUpdate(
-      postId,
-      {
-        text,
-        image,
-        rating,
-        title,
-        content,
-        development,
-        pacing,
-        writing,
-        insights,
-        dateRead,
-        hashtag: hashtagIds
-      },
-    );
+    const post = await Review.findByIdAndUpdate(postId, {
+      text,
+      image,
+      rating,
+      title,
+      content,
+      development,
+      pacing,
+      writing,
+      insights,
+      dateRead,
+      hashtag: hashtagIds,
+    });
     if (!post) {
       return res.status(400).json({ msg: "No review found!" });
     }
 
-    const newPost = await Review.findById(postId).populate("postedBy", "-password -secret")
-    .populate("comments.postedBy", "-password -secret")
-    .populate("book")
-    .populate("hashtag")
-  
+    const newPost = await Review.findById(postId)
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate("book")
+      .populate("hashtag");
 
-    const bookData = await Book.findById(post.book)
+    const bookData = await Book.findById(post.book);
 
+    let slowCount = await Review.countDocuments({
+      $and: [{ book: post.book }, { pacing: "Slow" }],
+    });
+    let mediumCount = await Review.countDocuments({
+      $and: [{ book: post.book }, { pacing: "Medium" }],
+    });
+    let fastCount = await Review.countDocuments({
+      $and: [{ book: post.book }, { pacing: "Fast" }],
+    });
 
-    let slowCount = await Review.countDocuments({$and:[ {book: post.book},{pacing: "Slow"}] });
-    let mediumCount = await Review.countDocuments({$and:[ {book: post.book},{pacing: "Medium"}] });
-    let fastCount = await Review.countDocuments({$and:[ {book: post.book},{pacing: "Fast"}] });
+    const mostPacingCount = Math.max(slowCount, mediumCount, fastCount);
+    const newPacing =
+      mostPacingCount === slowCount
+        ? "Slow"
+        : mostPacingCount === mediumCount
+        ? "Medium"
+        : "Fast";
 
-    const mostPacingCount = Math.max(slowCount,mediumCount,fastCount)
-    const newPacing = mostPacingCount === slowCount? "Slow":mostPacingCount===mediumCount? "Medium": "Fast"
-
-    const numberOfRating = bookData.numberOfRating
+    const numberOfRating = bookData.numberOfRating;
     // const newNumberOfRating = bookData.numberOfRating + 1
-    
-    const ratingAvg = ((bookData.rating*numberOfRating - post.rating + newPost.rating)/ numberOfRating).toFixed(2);
-    const contentAvg = ((bookData.content*numberOfRating - post.content+ newPost.content)/ numberOfRating).toFixed(2);
-    const developmentAvg = ((bookData.development*numberOfRating - post.development + newPost.development)/ numberOfRating).toFixed(2);
-    const writingAvg = ((bookData.writing*numberOfRating - post.writing +  newPost.writing)/ numberOfRating).toFixed(2);
-    const insightsAvg = ((bookData.insights*numberOfRating - post.insights + newPost.insights)/ numberOfRating).toFixed(2);
 
-    const newBook = await Book.findByIdAndUpdate(post.book,{
+    const ratingAvg = (
+      (bookData.rating * numberOfRating - post.rating + newPost.rating) /
+      numberOfRating
+    ).toFixed(2);
+    const contentAvg = (
+      (bookData.content * numberOfRating - post.content + newPost.content) /
+      numberOfRating
+    ).toFixed(2);
+    const developmentAvg = (
+      (bookData.development * numberOfRating -
+        post.development +
+        newPost.development) /
+      numberOfRating
+    ).toFixed(2);
+    const writingAvg = (
+      (bookData.writing * numberOfRating - post.writing + newPost.writing) /
+      numberOfRating
+    ).toFixed(2);
+    const insightsAvg = (
+      (bookData.insights * numberOfRating - post.insights + newPost.insights) /
+      numberOfRating
+    ).toFixed(2);
+
+    const newBook = await Book.findByIdAndUpdate(post.book, {
       rating: ratingAvg,
       content: contentAvg,
       development: developmentAvg,
@@ -443,9 +520,10 @@ const edit = async (req, res) => {
 const deleteOne = async (req, res) => {
   try {
     const postId = req.params.id;
-    const post = await Review.findByIdAndDelete(postId).populate("postedBy", "-password -secret")
-    .populate("comments.postedBy", "-password -secret")
-    .populate("book");;
+    const post = await Review.findByIdAndDelete(postId)
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate("book");
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
     }
@@ -463,45 +541,70 @@ const deleteOne = async (req, res) => {
       }
     }
 
-    const bookData = await Book.findById(post.book._id)
-    let slowCount = await Review.countDocuments({$and:[ {book: post.book._id},{pacing: "Slow"}] });
-    let mediumCount = await Review.countDocuments({$and:[ {book: post.book._id},{pacing: "Medium"}] });
-    let fastCount = await Review.countDocuments({$and:[ {book: post.book._id},{pacing: "Fast"}] });
+    const bookData = await Book.findById(post.book._id);
+    let slowCount = await Review.countDocuments({
+      $and: [{ book: post.book._id }, { pacing: "Slow" }],
+    });
+    let mediumCount = await Review.countDocuments({
+      $and: [{ book: post.book._id }, { pacing: "Medium" }],
+    });
+    let fastCount = await Review.countDocuments({
+      $and: [{ book: post.book._id }, { pacing: "Fast" }],
+    });
 
-    const mostPacingCount = Math.max(slowCount,mediumCount,fastCount)
-    const newPacing = mostPacingCount === slowCount? "Slow":mostPacingCount==="Medium"? "Medium": "Fast"
+    const mostPacingCount = Math.max(slowCount, mediumCount, fastCount);
+    const newPacing =
+      mostPacingCount === slowCount
+        ? "Slow"
+        : mostPacingCount === "Medium"
+        ? "Medium"
+        : "Fast";
 
-    const numberOfRating = bookData.numberOfRating
-    const newNumberOfRating = bookData.numberOfRating - 1
-    if(newNumberOfRating!==0)
-    {
-      const ratingAvg = ((bookData.rating*numberOfRating - post.rating)/ newNumberOfRating).toFixed(2);
-      const contentAvg = ((bookData.content*numberOfRating - post.content)/ newNumberOfRating).toFixed(2);
-      const developmentAvg = ((bookData.development*numberOfRating - post.development)/ newNumberOfRating).toFixed(2);
-      const writingAvg = ((bookData.writing*numberOfRating -post.writing)/ newNumberOfRating).toFixed(2);
-      const insightsAvg = ((bookData.insights*numberOfRating -post.insights)/ newNumberOfRating).toFixed(2);
-  
-      const newBook = await Book.findByIdAndUpdate(post.book._id,{
+    const numberOfRating = bookData.numberOfRating;
+    const newNumberOfRating = bookData.numberOfRating - 1;
+    if (newNumberOfRating !== 0) {
+      const ratingAvg = (
+        (bookData.rating * numberOfRating - post.rating) /
+        newNumberOfRating
+      ).toFixed(2);
+      const contentAvg = (
+        (bookData.content * numberOfRating - post.content) /
+        newNumberOfRating
+      ).toFixed(2);
+      const developmentAvg = (
+        (bookData.development * numberOfRating - post.development) /
+        newNumberOfRating
+      ).toFixed(2);
+      const writingAvg = (
+        (bookData.writing * numberOfRating - post.writing) /
+        newNumberOfRating
+      ).toFixed(2);
+      const insightsAvg = (
+        (bookData.insights * numberOfRating - post.insights) /
+        newNumberOfRating
+      ).toFixed(2);
+
+      const newBook = await Book.findByIdAndUpdate(post.book._id, {
         rating: ratingAvg,
         content: contentAvg,
         development: developmentAvg,
         pacing: newPacing,
-        writing: writingAvg, 
+        writing: writingAvg,
         insights: insightsAvg,
-        numberOfRating: newNumberOfRating
+        numberOfRating: newNumberOfRating,
       });
     } else {
-      const newBook = await Book.findByIdAndUpdate(post.book._id,{
+      const newBook = await Book.findByIdAndUpdate(post.book._id, {
         rating: 0,
         content: 0,
         development: 0,
         pacing: "",
-        writing: 0, 
+        writing: 0,
         insights: 0,
-        numberOfRating: 0
-      })
+        numberOfRating: 0,
+      });
     }
-    
+
     return res.status(200).json({ msg: "Deleted post!" });
   } catch (error) {
     return res.status(400).json({ msg: error });
@@ -592,8 +695,7 @@ const addComment = async (req, res) => {
     )
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-    .populate("hashtag")
-
+      .populate("hashtag");
 
     const user = await User.findByIdAndUpdate(post.postedBy, {
       $inc: { points: 20 },
@@ -629,7 +731,7 @@ const removeComment = async (req, res) => {
     )
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-    .populate("hashtag")
+      .populate("hashtag");
 
     const user = await User.findByIdAndUpdate(post.postedBy, {
       $inc: { points: -20 },
@@ -664,15 +766,15 @@ const getWithUser = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
     const userId = req.params.userId;
-    console.log('ooooooooooo')
-    console.log(userId)
+    console.log("ooooooooooo");
+    console.log(userId);
 
     const posts = await Review.find({ postedBy: { _id: userId } })
-    .skip((page - 1) * perPage)
+      .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
-    .populate("hashtag")
+      .populate("hashtag")
       .sort({
         createdAt: -1,
       })
@@ -705,7 +807,7 @@ const getFollowing = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
-    .populate("hashtag")
+      .populate("hashtag")
 
       .sort({ createdAt: -1 })
       .limit(perPage);
@@ -774,7 +876,7 @@ const getDiscover = async (req, res) => {
           .populate("postedBy", "-password -secret")
           .populate("comments.postedBy", "-password -secret")
           .populate("book")
-    .populate("hashtag")
+          .populate("hashtag");
 
         if (post) result.push(post);
       }
@@ -820,8 +922,7 @@ const getDiscover = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
-    .populate("hashtag")
-
+      .populate("hashtag");
 
     if (post.length > 0) result = [...result, ...post];
 
@@ -871,8 +972,7 @@ const getPopular = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
-    .populate("hashtag")
-
+      .populate("hashtag");
 
     return res.status(200).json({ posts });
   } catch (e) {
@@ -896,8 +996,7 @@ const getRandomReadBooks = async (req, res) => {
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
-    .populate("hashtag")
-
+      .populate("hashtag");
 
     const uniqueBookIds = new Set();
 
@@ -943,9 +1042,9 @@ const getRecent = async (req, res) => {
       .sort({
         dateRead: -1,
       })
-      .limit(6)
+      .limit(6);
 
-    const books = posts.map(post=>post.book)
+    const books = posts.map((post) => post.book);
     return res.status(200).json({ books });
   } catch (error) {
     console.log(error);
@@ -953,14 +1052,13 @@ const getRecent = async (req, res) => {
   }
 };
 
-
 const report = async (req, res) => {
   try {
     const postId = req.body.postId;
     const post = await Review.findByIdAndUpdate(
       postId,
       {
-       reported: true
+        reported: true,
       },
       {
         new: true,
@@ -980,7 +1078,7 @@ const dismissReport = async (req, res) => {
     const post = await Review.findByIdAndUpdate(
       postId,
       {
-       reported: false
+        reported: false,
       },
       {
         new: true,
@@ -996,7 +1094,7 @@ const dismissReport = async (req, res) => {
 
 const getAllReported = async (req, res) => {
   try {
-    const posts = await Review.find({reported: true})
+    const posts = await Review.find({ reported: true })
       .populate("postedBy", "-password -secret")
       .sort({ createdAt: -1 });
     if (!posts) {
@@ -1016,6 +1114,7 @@ export {
   search,
   getOne,
   getAllWithBook,
+  calculateRatingChart,
   getMy,
   edit,
   deleteOne,
@@ -1031,5 +1130,5 @@ export {
   getRecent,
   report,
   dismissReport,
-  getAllReported
+  getAllReported,
 };

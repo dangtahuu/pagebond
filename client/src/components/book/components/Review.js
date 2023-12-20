@@ -2,13 +2,12 @@ import { useEffect, useState, useRef } from "react";
 import { toast } from "react-toastify";
 import {
   Post,
-  LoadingPost,
-  LoadingForm,
   CreateBox,
   ReviewForm,
 } from "../..";
 import { IoFilterOutline } from "react-icons/io5";
 import useOnClickOutside from "../../../hooks/useOnClickOutside";
+import ReactLoading from "react-loading";
 
 const Review = ({
   posts,
@@ -61,12 +60,9 @@ const Review = ({
   }, [book]);
 
   const handleFilter = (sort,filter) => {
-    // console.log(filter)
     getAllPosts(sort, filter);
     setPage(1);
   };
-
-  useEffect(()=>console.log(filter),[filter])
 
   const createNewReview = async (formData) => {
     setLoadingCreateNewPost(true);
@@ -105,69 +101,9 @@ const Review = ({
     }
   };
 
-  const content = () => {
-    if (loading) {
-      return (
-        <div>
-          <LoadingPost />
-        </div>
-      );
-    }
-
-    if (posts.length === 0) {
-      return (
-        <div className="w-full text-center text-xl font-semibold pt-[5vh] pb-[5vh] flex-col ">
-          <div>There's nothing here</div>
-        </div>
-      );
-    }
-    return (
-      <div>
-        {posts.map((post) => (
-          <Post
-            key={post._id}
-            currentPost={post}
-            className={"shadow-post"}
-            book={book}
-          />
-        ))}
-
-        {moreReviews && <div onClick={()=>{getNewPosts(sort,filter)}}>LOAD MORE</div>}
-      </div>
-    );
-  };
-
-  return (
-    <div className="">
-      <CreateBox
-        setAttachment={setAttachment}
-        setOpenForm={setOpenModal}
-        user={user}
-      />
-
-      {openModal && (
-        <ReviewForm
-          setOpenModal={setOpenModal}
-          input={input}
-          setInput={setInput}
-          attachment={attachment}
-          setAttachment={setAttachment}
-          createNewPost={createNewReview}
-        />
-      )}
-
-      <div className="relative">
-        <div ref={exceptionRef}>
-          <IoFilterOutline
-            onClick={() => {
-              setFilterBox((prev) => !prev);
-            }}
-            className="text-xl cursor-pointer block ml-auto mb-2"
-          />
-        </div>
-
-        {filterBox && (
-          <div
+  const FilterBox = ()=>{
+    return(
+      <div
             ref={filterRef}
             className="absolute p-3 z-[150] rounded-lg right-0 top-[32px] w-[400px] bg-dialogue"
           >
@@ -207,10 +143,81 @@ const Review = ({
               ))}
             </div>
           </div>
-        )}
+    )
+  }
+
+  const Content = () => {
+    if (loading) {
+      return (
+        <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+      );
+    }
+
+    if (posts.length === 0) {
+      return (
+          <div className='w-full text-center text-xl font-semibold pt-[5vh] pb-[5vh] flex-col '>
+              <div>
+                  There's nothing here at the momment
+              </div>
+          </div>
+      );
+  }
+    return (
+      <div>
+        {posts.map((post) => (
+          <Post
+            key={post._id}
+            currentPost={post}
+            className={"shadow-post"}
+            book={book}
+          />
+        ))}
+
+        {moreReviews && <div onClick={()=>{getNewPosts(sort,filter)}}>LOAD MORE</div>}
       </div>
-      {loadingCreateNewPost && <LoadingPost className="mb-4" />}
-      {content()}
+    );
+  };
+
+  //Main return
+  return (
+    <div className="">
+      <CreateBox
+        setAttachment={setAttachment}
+        setOpenForm={setOpenModal}
+        user={user}
+      />
+
+      {openModal && (
+        <ReviewForm
+          setOpenModal={setOpenModal}
+          input={input}
+          setInput={setInput}
+          attachment={attachment}
+          setAttachment={setAttachment}
+          createNewPost={createNewReview}
+        />
+      )}
+
+      <div className="relative">
+        <div ref={exceptionRef}>
+          <IoFilterOutline
+            onClick={() => {
+              setFilterBox((prev) => !prev);
+            }}
+            className="text-xl cursor-pointer block ml-auto mb-2"
+          />
+        </div>
+
+        {filterBox && <FilterBox/>
+          
+        }
+      </div>
+      {loadingCreateNewPost && (
+        <div className="flex justify-center main-bg">
+          <ReactLoading type="bubbles" width={64} height={64} color="white" />
+        </div>
+      )}
+      <Content/>
     </div>
   );
 };

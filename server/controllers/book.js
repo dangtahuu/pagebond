@@ -13,27 +13,32 @@ const api = new BingChat({
 });
 
 const searchBook = async (req, res) => {
-  const term = req.query.term;
+  const term = JSON.parse(decodeURIComponent(req.query.term));
   const page = Number(req.query.page) || 1;
   const perPage = Number(req.query.perPage) || 10;
   if (!term.length) {
     return res.status(400).json({ msg: "Search term is required!" });
   }
+  const regexPattern = term
+    .split(" ")
+    .map((word) => `(?=.*\\b${word}\\b)`)
+    .join("");
 
+  const regex = new RegExp(regexPattern, "i");
   try {
     const results = await Book.find({
       $or: [
-        { title: { $regex: new RegExp(term, "i") } },
-        { author: { $regex: new RegExp(term, "i") } },
-        { publisher: { $regex: new RegExp(term, "i") } },
-        { description: { $regex: new RegExp(term, "i") } },
+        { title: { $regex: regex } },
+        { author: { $regex: regex } },
+        { publisher: { $regex: regex } },
       ],
     }).limit(perPage);
 
     if (!results) {
       return res.status(400).json({ msg: "No result found!" });
     }
-
+    console.log("yyyyyy");
+    console.log(results);
     return res.status(200).json({ results, perPage });
   } catch (err) {
     console.log(err);
@@ -78,32 +83,19 @@ const getPromptsForBook = async (req, res) => {
 
     const question = `give me 5 in-depth questions i can ask you about the book ${result.title}. format the result so i can use as an array in javascipt. don't say anything else in your answer`;
     const reply = await api.sendMessage(question, {
-      // change the variant to 'Precise'
       variant: "Precise",
     });
 
-    const startIndex = reply.text.indexOf('[\n');
-const endIndex = reply.text.lastIndexOf(']\n') + 1;
+    const startIndex = reply.text.indexOf("[\n");
+    const endIndex = reply.text.lastIndexOf("]\n") + 1;
 
-// Extract the JSON text
-const jsonText = reply.text.substring(startIndex, endIndex);
-    // const pureJsonString = reply.text.replace("```javascript", "").replace("```", "").trim();
-    // const jsonText = reply.text.replace(/```javascript/g, '').replace(/```/g, '');
-// Parse the JSON string into an array
-const questionsArray = JSON.parse(jsonText);
-    // Define a regular expression to match the questions
-    // const regex = /\d+\.\s(.*?)\?\s\[.*?\]/g;
-
-    // // Extract questions from the text using the regular expression
-    // const matches = [...reply.text.matchAll(regex)];
-
-    // // Extract and format the questions
-    // const questions = matches.map((match) => match[1]);
-
+    const jsonText = reply.text.substring(startIndex, endIndex);
+    const questionsArray = JSON.parse(jsonText);
+    const suggestedRes = reply.detail.suggestedResponses.map((one) => one.text);
     return res.status(200).json({
       reply,
-      // questions,
-      prompts:questionsArray
+      suggestedRes,
+      prompts: questionsArray,
     });
   } catch (err) {
     console.log(err);

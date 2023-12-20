@@ -1,15 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import {
-  Modal,
-  Post,
-  LoadingPost,
-  LoadingForm,
-  CreateBox,
-  ReviewForm,
-  TradeForm,
-} from "../..";
+import { Post, CreateBox } from "../..";
 import QuestionForm from "../../common/QuestionForm";
+import ReactLoading from "react-loading";
 
 const Question = ({
   posts,
@@ -23,7 +16,7 @@ const Question = ({
   getNewPosts,
   error,
   book,
-  moreTrades,
+  morePosts,
 }) => {
   const [attachment, setAttachment] = useState("");
 
@@ -31,26 +24,21 @@ const Question = ({
     title: "",
     text: "",
     image: "",
-    hashtag: []
+    hashtag: [],
   });
 
   const [openModal, setOpenModal] = useState(false);
   const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
 
-  // get posts
   useEffect(() => {
     if (token) {
       getAllPosts();
     }
   }, [book]);
 
-  useEffect(() => {
-    console.log(posts);
-  }, [posts]);
 
   const createNewQuestion = async (formData) => {
     setLoadingCreateNewPost(true);
-    let id;
     try {
       let image = null;
       if (formData) {
@@ -66,82 +54,37 @@ const Question = ({
         title: input.title,
         book,
         image,
-        hashtag: input.hashtag
+        hashtag: input.hashtag,
       });
-      id = data.post._id;
-      // newArray = [data.post, ...posts]
       setPosts((prev) => [data.post, ...prev]);
       toast.success(data?.msg || "Create new question successfully!");
     } catch (error) {
       console.log(error);
-
       toast.error(error.response.data.msg || "Something went wrong");
     }
     setLoadingCreateNewPost(false);
-    await addCommentAI(id)
   };
 
-  const addCommentAI = async (id) => {
-    console.log("addding");
-    let newArray = [...posts]
-    try {
-      const { data: newComment } = await autoFetch.put(
-        `api/question/add-comment-ai`,
-        {
-          text: input.text,
-          title: input.title,
-          // postId: posts[0]._id,
-          postId: id,
-
-          book,
-        }
-      );
-        newArray[0].comments = newComment.post.comments
-      setPosts(newArray)
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  const content = () => {
+  const Content = () => {
     if (loading) {
       return (
-        <div>
-          <LoadingPost />
+        <div className="w-full flex justify-center">
+          <ReactLoading type="spin" width={30} height={30} color="#7d838c" />
         </div>
       );
     }
-    if (error) {
-      return (
-        <div
-          className={`bg-white shadow-post
-                    dark:bg-[#242526] rounded-lg w-full text-center text-xl font-bold py-10 `}
-        >
-          <div>No post found... Try again!</div>
-        </div>
-      );
-    }
+
     if (posts.length === 0) {
       return (
-        <div className="w-full text-center text-xl font-semibold pt-[5vh] pb-[5vh] flex-col ">
-          <div>Nothing to display</div>
-        </div>
+          <div className='w-full text-center text-xl font-semibold pt-[5vh] pb-[5vh] flex-col '>
+              <div>
+                  There's nothing here at the momment
+              </div>
+          </div>
       );
-    }
+  }
     return (
-      // <InfiniteScroll
-      // className="!overflow-visible"
-      //     dataLength={posts.length}
-      //     next={getNewPosts}
-      //     hasMore={true}
-      //     loader={<LoadingPost />}>
       <div>
-
-{/* {posts.map((post) => (
-       <div>{post.comments[0]?.text || "Nothing"}</div>
-        ))} */}
-
-        
         {posts.map((post) => (
           <Post
             key={post._id}
@@ -150,7 +93,7 @@ const Question = ({
             book={book}
           />
         ))}
-        {moreTrades && (
+        {morePosts && (
           <div
             className="text-sm cursor-pointer text-smallText block w-[100px] text-center mx-auto "
             onClick={getNewPosts}
@@ -159,28 +102,16 @@ const Question = ({
           </div>
         )}
       </div>
-
-      // </InfiniteScroll>
-    );
-  };
-
-  const form = () => {
-    if (error) {
-      return <></>;
-    }
-    if (loading) return <LoadingForm />;
-    return (
-      <CreateBox
-        setAttachment={setAttachment}
-        setOpenForm={setOpenModal}
-        user={user}
-      />
     );
   };
 
   return (
     <div className="">
-      {form()}
+      <CreateBox
+        setAttachment={setAttachment}
+        setOpenForm={setOpenModal}
+        user={user}
+      />
 
       {openModal && (
         <QuestionForm
@@ -190,11 +121,16 @@ const Question = ({
           attachment={attachment}
           setAttachment={setAttachment}
           createNewPost={createNewQuestion}
-          addCommentAI={addCommentAI}
         />
       )}
-      {loadingCreateNewPost && <LoadingPost className="mb-4" />}
-      {content()}
+
+      {loadingCreateNewPost && (
+        <div className="flex justify-center main-bg">
+          <ReactLoading type="bubbles" width={64} height={64} color="white" />
+        </div>
+      )}
+
+      <Content/>
     </div>
   );
 };

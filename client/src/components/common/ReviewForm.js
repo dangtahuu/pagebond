@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAppContext } from "../../context/useContext";
 import { MdAddPhotoAlternate, MdCancel } from "react-icons/md";
 
@@ -12,6 +12,20 @@ import { AiOutlineInfoCircle } from "react-icons/ai";
 
 import useDebounce from "../../hooks/useDebounce";
 import useOnClickOutside from "../../hooks/useOnClickOutside";
+import "@mdxeditor/editor/style.css";
+import {
+  headingsPlugin, listsPlugin, thematicBreakPlugin,InsertThematicBreak,
+  MDXEditor,
+  toolbarPlugin,
+  BlockTypeSelect,
+  BoldItalicUnderlineToggles,
+  UndoRedo,
+  linkDialogPlugin,
+  ListsToggle,
+  CreateLink
+} from "@mdxeditor/editor";
+
+import "./common.css";
 
 const ReviewForm = ({
   input = "",
@@ -32,7 +46,7 @@ const ReviewForm = ({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
 
-  const pacingList = ["Slow","Medium","Fast"]
+  const pacingList = ["Slow", "Medium", "Fast"];
 
   const [tag, setTag] = useState("");
 
@@ -41,6 +55,8 @@ const ReviewForm = ({
   const [isSearchingTag, setIsSearchingTag] = useState(false);
 
   const searchTagRef = useRef();
+  const markdownRef = useRef();
+
 
   useOnClickOutside(searchTagRef, () => {
     setIsSearchingTag(false);
@@ -96,7 +112,8 @@ const ReviewForm = ({
   const handleTag = (e) => {
     const words = e.target.value.split(" ");
     if (words.length > 1) {
-      if(words[0]!=="") setInput((prev) => ({ ...prev, hashtag: [...prev.hashtag, words[0]] }));
+      if (words[0] !== "")
+        setInput((prev) => ({ ...prev, hashtag: [...prev.hashtag, words[0]] }));
       setTag(words[1]);
     } else {
       setTag(e.target.value);
@@ -300,28 +317,53 @@ const ReviewForm = ({
           </label>
           <textarea
             id="title"
-            value={input.title}
+            defaultValue={input.title}
             className={`standard-input`}
             placeholder={`Title`}
-            onChange={(e) => {
+            onBlur={(e) => {
               setInput((prev) => ({ ...prev, title: e.target.value }));
             }}
           />
 
-
           <label className="form-label" for="text">
             Write your thoughts *
           </label>
-
-          <textarea
-            id="text"
-            value={input.text}
-            className={`standard-input h-[120px]`}
+          <MDXEditor
+          ref={markdownRef}
+          id="text"
+            className="standard-input"
+            markdown={input.text}
             placeholder={`Review`}
-            onChange={(e) => {
+            onBlur={() => {
+              setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
+            }}
+            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),
+              toolbarPlugin({
+                toolbarContents: () => (
+                  <>
+                    {" "}
+                    <UndoRedo />
+                    <BoldItalicUnderlineToggles />
+                    <BlockTypeSelect />
+                    <CreateLink />
+                    <ListsToggle />
+                    <InsertThematicBreak/>
+                    {/* <ChangeAdmonitionType/> */}
+                  </>
+                ),
+              }),
+              headingsPlugin(),
+            ]}
+          />
+          {/* <textarea
+            id="text"
+            defaultValue={input.text}
+            className={`standard-input h-[120px]`}
+            
+            onBlur={(e) => {
               setInput((prev) => ({ ...prev, text: e.target.value }));
             }}
-          />
+          /> */}
 
           <label className="form-label" for="dateRead">
             You read this on
@@ -332,15 +374,15 @@ const ReviewForm = ({
             type="date"
             id="dateRead"
             name="datepicker"
-            value={input.dateRead}
+            defaultValue={input.dateRead}
             className={`standard-input mb-2`}
             // placeholder={`Review`}
-            onChange={(e) => {
+            onBlur={(e) => {
               setInput((prev) => ({ ...prev, dateRead: e.target.value }));
             }}
           />
 
-<label className="form-label" for="hashtag">
+          <label className="form-label" for="hashtag">
             Hashtag
           </label>
           <div className="standard-input h-[50px] flex items-center mb-2">
@@ -349,15 +391,17 @@ const ReviewForm = ({
                 {input.hashtag.map((one, index) => (
                   <div className="relative text-xs text-mainText inline-block rounded-full bg-dialogue px-2 py-1">
                     {one}
-                    <IoClose className="text-xs cursor-pointer bg-mainbg rounded-full absolute -top-[5px] -right-[2px]"
-                    onClick={()=>{
-                      // let hashtag = input.hashtag
-                      // hashtag = hashtag.splice(index, 1)
-                      setInput((prev) => {
-                         let hashtag = prev.hashtag
-                        hashtag.splice(index, 1)
-                        return ({ ...prev, hashtag })});
-                    }}
+                    <IoClose
+                      className="text-xs cursor-pointer bg-mainbg rounded-full absolute -top-[5px] -right-[2px]"
+                      onClick={() => {
+                        // let hashtag = input.hashtag
+                        // hashtag = hashtag.splice(index, 1)
+                        setInput((prev) => {
+                          let hashtag = prev.hashtag;
+                          hashtag.splice(index, 1);
+                          return { ...prev, hashtag };
+                        });
+                      }}
                     />
                   </div>
                 ))}

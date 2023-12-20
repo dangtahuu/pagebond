@@ -520,7 +520,7 @@ const listUserFollower = async (req, res) => {
 };
 
 const searchUser = async (req, res) => {
-  const term = req.query.term;
+  const term = JSON.parse(decodeURIComponent(req.query.term))
   const page = Number(req.query.page) || 1;
   const perPage = Number(req.query.perPage) || 20;
 
@@ -528,9 +528,16 @@ const searchUser = async (req, res) => {
     return res.status(400).json({ msg: "Search term is required!" });
   }
 
+  const regexPattern = term
+  .split(" ")
+  .map((word) => `(?=.*\\b${word}\\b)`)
+  .join("");
+
+const regex = new RegExp(regexPattern, "i");
+
   try {
     const users = await User.find({
-      $or: [{ name: { $regex: term, $options: "i" } }],
+      $or: [{ name: { $regex: regex } }, { email: { $regex: regex } }],
     })
       .select(
         "-password -secret -email -following -follower -createdAt -updatedAt"

@@ -2,34 +2,25 @@ import React, { useEffect, useRef, useReducer, useState } from "react";
 import { AiOutlineCamera, AiOutlineSend } from "react-icons/ai";
 import ReactLoading from "react-loading";
 import { toast } from "react-toastify";
-// import io from "socket.io-client";
 
 import { useNavigate, useLocation } from "react-router-dom";
 //components
 import { useAppContext } from "../../context/useContext";
 import BoxChat from "./components/BoxChat";
 import MainChat from "./components/MainChat.";
-import { MdOutlineLightbulb } from "react-icons/md";
+import { PiBroom } from "react-icons/pi";
 
-import { LoadingMessenger } from "../";
 import "./messenger.css";
 import { MdCancel } from "react-icons/md";
 import prompts from "../../consts/prompts";
 import shuffle from "../../utils/shuffle";
+import { HiLightBulb } from "react-icons/hi2";
+import useOnClickOutside from "../../hooks/useOnClickOutside";
 
-// // @ts-ignore
-// const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
-//   reconnection: true,
-
-
-// });
 const AI_ID = process.env.REACT_APP_AI_ID;
-
-
 
 const CHANGE_ALL_MESSAGES = "CHANGE_ALL_MESSAGES";
 const GET_DATA_SUCCESS = "GET_DATA_SUCCESS";
-const CLEAR_IN_NEW_MESSAGE = "CLEAR_IN_NEW_MESSAGE";
 const SET_LOADING = "SET_LOADING";
 const SET_AI_LOADING = "SET_AI_LOADING";
 
@@ -38,10 +29,6 @@ const HANDLE_SEND_MESSAGE = "HANDLE_SEND_MESSAGE";
 const HANDLE_DELETE_MESSAGE = "HANDLE_DELETE_MESSAGE";
 
 const CLICK_TO_BOX_MESSAGE = "CLICK_TO_BOX_MESSAGE";
-const SEARCH_USER_TO_NEW_MESSAGE = "SEARCH_USER_TO_NEW_MESSAGE";
-const ADD_USER_TO_SEND_NEW_MESSAGE = "ADD_USER_TO_SEND_NEW_MESSAGE";
-const IS_NEW_MESSAGE = "IS_NEW_MESSAGE";
-const CLEAR_WHEN_DUPLICATE = "CLEAR_WHEN_DUPLICATE";
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -53,13 +40,6 @@ const reducer = (state, action) => {
       };
     }
     case GET_DATA_SUCCESS: {
-      // if(state.isNewMessage)  return {
-      //     ...state,
-      //     sourceMessage: action.payload.allMessages,
-      //     receiveUser: state.listResultByPeopleSearch[0],
-      //     index: action.payload.index,
-      //     // isGroup: action.payload.isGroup,
-      // };
       return {
         ...state,
         allMessages: action.payload.allMessages,
@@ -67,20 +47,10 @@ const reducer = (state, action) => {
         receiveUser: action.payload.receiveUser,
         isNewMessage: action.payload.isNewMessage,
         index: action.payload.index,
-        // isGroup: action.payload.isGroup,
-        // listResultByPeopleSearch:
-        //     action.payload.listResultByPeopleSearch,
+        text: action.payload.text,
       };
     }
-    // case CLEAR_IN_NEW_MESSAGE: {
-    //     return {
-    //         ...state,
-    //         isNewMessage: false,
-    //         textSearchNewMessage: "",
-    //         listPeopleToNewMessage: [],
-    //         listResultByPeopleSearch: [],
-    //     };
-    // }
+
     case SET_LOADING: {
       return {
         ...state,
@@ -106,10 +76,10 @@ const reducer = (state, action) => {
         sourceMessage: action.payload.sourceMessage,
         index: action.payload.index,
         text: "",
-
         isNewMessage: false,
-        // textSearchNewMessage: "",
-        // textSearchPeople: "",
+        suggestedRes: action.payload.suggestedRes || [],
+        fullRes: action.payload.fullRes || null,
+        context: action.payload.context || true,
       };
     }
     case HANDLE_DELETE_MESSAGE: {
@@ -117,12 +87,6 @@ const reducer = (state, action) => {
         ...state,
         allMessages: action.payload.allMessages,
         sourceMessage: action.payload.sourceMessage,
-        //   index: action.payload.index,
-        //   text: "",
-
-        //   isNewMessage: false,
-        // textSearchNewMessage: "",
-        // textSearchPeople: "",
       };
     }
     case CLICK_TO_BOX_MESSAGE: {
@@ -130,48 +94,10 @@ const reducer = (state, action) => {
         ...state,
 
         index: action.payload.index,
-        // isGroup: action.payload.isGroup,
-        // listResultByPeopleSearch:
-        //     action.payload.listResultByPeopleSearch,
-
         isNewMessage: false,
-        // textSearchNewMessage: "",
-        // listPeopleToNewMessage: [],
       };
     }
-    // case SEARCH_USER_TO_NEW_MESSAGE: {
-    //     return {
-    //         ...state,
-    //         listPeopleToNewMessage: action.payload.listPeopleToNewMessage,
-    //     };
-    // }
-    // case ADD_USER_TO_SEND_NEW_MESSAGE: {
-    //     return {
-    //         ...state,
-    //         textSearchNewMessage: "",
-    //         listPeopleToNewMessage: [],
-    //         listResultByPeopleSearch:
-    //             action.payload.listResultByPeopleSearch,
-    //     };
-    // }
-    // case IS_NEW_MESSAGE: {
-    //     return {
-    //         ...state,
-    //         allMessages: [],
-    //         isNewMessage: true,
-    //         index: "",
-    //         textSearchPeople: "",
-    //         listResultByPeopleSearch: [],
-    //         isGroup: false,
-    //     };
-    // }
-    // case CLEAR_WHEN_DUPLICATE: {
-    //     return {
-    //         ...state,
-    //         listPeopleToNewMessage: [],
-    //         textSearchNewMessage: "",
-    //     };
-    // }
+
     default: {
       throw new Error("Invalid action");
     }
@@ -181,19 +107,19 @@ const reducer = (state, action) => {
 const initImage = { url: "", public_id: "" };
 
 const Message = () => {
-  const { user, unreadMessages, autoFetch, setOneState, socket} = useAppContext();
-    
+  const { user, unreadMessages, autoFetch, setOneState, socket } =
+    useAppContext();
+
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const dataString = queryParams.get("data");
   const newMessageData = JSON.parse(decodeURIComponent(dataString));
-  
-  const [promptOpen, setPromptOpen]= useState(false)
+
+  const [promptOpen, setPromptOpen] = useState(false);
 
   const initState = {
     receiveUser: {
-      /// receive user current
       name: "",
       _id: "",
       image: { url: "" },
@@ -201,40 +127,49 @@ const Message = () => {
     allMessages: [], // all message
     index: "", /// _id of that message is showing
     text: "", /// text in input send new message
-    // textSearch: "",
     loading: false, // loading
     AILoading: false,
     isNewMessage: false, // Mode new message
-    // textSearchNewMessage: "", // Text for search input to add people
-    // listPeopleToNewMessage: [],
-    // listResultByPeopleSearch: data? [{
-    //     /// receive user current
-    //     name: data.name,
-    //     _id: data._id,
-    //     image: {url: data.image.url},
-    // }] : [],
     sourceMessage: [],
-    // textSearchPeople: "",
+    suggestedRes: [],
+    context: true,
+    fullRes: null,
   };
 
   const [state, dispatch] = useReducer(reducer, initState);
   const [scrLoading, setScrLoading] = useState(false);
 
-//   useEffect(() => console.log(state), [state]);
+  //   useEffect(() => console.log(state), [state]);
 
   useEffect(() => {
-    console.log('index',state.index)
-    if(state.index) markasRead()
-}, [state.index]);
+    console.log("index", state.index);
+    if (state.index) markasRead();
+  }, [state.index]);
 
-    const markasRead = async() => {
-        try{
-            const {data} = await autoFetch.patch(`/api/message/mark-read/${state.index}`)
-            const {data: unreadData} = await autoFetch.get(`/api/message/unread`)
-            setOneState("unreadMessages", unreadData.unread);
-            console.log(data.msg)
-        } catch(e) {console.log(e)}
+  const promptRef = useRef();
+  const exceptRef = useRef();
+
+  useOnClickOutside(
+    promptRef,
+    () => {
+      console.log("qqqqqqq");
+      setPromptOpen(false);
+    },
+    exceptRef
+  );
+
+  const markasRead = async () => {
+    try {
+      const { data } = await autoFetch.patch(
+        `/api/message/mark-read/${state.index}`
+      );
+      const { data: unreadData } = await autoFetch.get(`/api/message/unread`);
+      setOneState("unreadMessages", unreadData.unread);
+      console.log(data.msg);
+    } catch (e) {
+      console.log(e);
     }
+  };
 
   const [image, setImage] = useState(initImage);
   const [formData, setFormData] = useState(null);
@@ -293,7 +228,7 @@ const Message = () => {
             }
             return d;
           });
-         if(document.visibilityState === 'visible') markasRead()
+          if (document.visibilityState === "visible") markasRead();
           // @ts-ignore
           dispatch({
             type: CHANGE_ALL_MESSAGES,
@@ -320,11 +255,10 @@ const Message = () => {
 
   const getData = async () => {
     setScrLoading(true);
+    let receiverData;
     try {
       const { data } = await autoFetch.get("api/message/get-all-messages");
 
-      console.log("aaaaa");
-      let receiverData;
       let isNewData = true;
       let indexOfNewData;
 
@@ -333,10 +267,9 @@ const Message = () => {
           name: newMessageData.name,
           _id: newMessageData._id,
           image: { url: newMessageData.image.url },
+          text: newMessageData.text || "",
         }; /// receive user current
-        console.log("aaa");
-        console.log(data);
-        console.log(data.messages);
+
         if (data.messages.length > 0) {
           data.messages.forEach(function (each) {
             if (
@@ -355,9 +288,7 @@ const Message = () => {
         if (user) {
           var us = data.messages[0].members.filter((m) => m._id !== user._id);
         }
-    }
-
-      console.log(data.messages);
+      }
 
       dispatch({
         type: GET_DATA_SUCCESS,
@@ -366,6 +297,7 @@ const Message = () => {
           receiveUser: receiverData ? receiverData : us[0],
           isNewMessage: receiverData ? isNewData : false,
           index: receiverData ? indexOfNewData : data.messages[0]._id,
+          text: receiverData?.text ? receiverData.text : "",
         },
       });
     } catch (error) {
@@ -375,6 +307,9 @@ const Message = () => {
       }
     }
     setScrLoading(false);
+    if (receiverData && receiverData._id === AI_ID && receiverData.text) {
+      await handleSendMess(AI_ID, receiverData.text);
+    }
   };
 
   useEffect(() => {
@@ -442,12 +377,9 @@ const Message = () => {
     // setLoading(false);
   };
 
-  const handleSendMess = async (receivedId) => {
+  const handleSendMess = async (receivedId, text) => {
     setLoading(true);
-    const { text } = state;
     try {
-    console.log('yeah')
-
       let imageUrl = image;
       if (imageUrl.url) {
         imageUrl = await handleUpImageToCloud();
@@ -457,7 +389,7 @@ const Message = () => {
           return;
         }
       }
-      const {data} = await autoFetch.put("/api/message/send-message", {
+      const { data } = await autoFetch.put("/api/message/send-message", {
         text,
         receivedId: receivedId,
         image: imageUrl,
@@ -492,26 +424,28 @@ const Message = () => {
         toast.error(error.response.data.msg);
       }
     }
-    console.log('aaaaa')
-    setLoading(false) ;
-    console.log(AI_ID)
-    console.log(receivedId)
-      if(AI_ID === receivedId) {
-        handleAIRes(text)
-      }
+    console.log("aaaaa");
+    setLoading(false);
+    console.log(AI_ID);
+    console.log(receivedId);
+    if (AI_ID === receivedId) {
+      handleAIRes(text);
+    }
   };
 
+  const handleAIRes = async (text) => {
+    setAILoading(true);
+    try {
+      let reqData;
+      if (state.fullRes && state.context) {
+        reqData = {
+          text,
+          prev: state.fullRes,
+        };
+      } else reqData = { text };
 
-  const handleAIRes = async(text)=>{
-    console.log('ai is repl')
-    setAILoading(true)
-    try{
-      const {data} = await autoFetch.put("/api/message/get-ai-res", {
-        text,
-        // receivedId: receivedId,
-        // image: imageUrl,
-      });
-      console.log(data)
+      const { data } = await autoFetch.put("/api/message/get-ai-res", reqData);
+      console.log(data);
       let id = "";
       let newSourceData = state.sourceMessage.filter((d) => {
         if (d._id === data.message._id) {
@@ -530,14 +464,17 @@ const Message = () => {
           allMessages: mainData,
           sourceMessage: mainData,
           index: data.message._id,
+          suggestedRes: data.suggestedRes,
+          fullRes: data.fullRes,
+          context: true,
         },
       });
-    }catch(error){
-      console.log(error)
+    } catch (error) {
+      console.log(error);
     }
-    setAILoading(false)
-
-  }
+    setAILoading(false);
+    setPromptOpen(true);
+  };
 
   // set image to show in form
   const handleImage = (e) => {
@@ -553,18 +490,24 @@ const Message = () => {
     setFormData(formData);
   };
 
-  const PromptSection = () => {
-    let shuffled = shuffle(prompts);
-    const data = shuffled.slice(0, 5);
-  
+  const PromptSection = ({ data }) => {
+    if (data.length === 0) {
+      let shuffled = shuffle(prompts);
+      data = shuffled.slice(0, 5);
+    }
+
     return (
-      <div className={`flex flex-col items-center py-4 bg-navBar justify-center rounded-lg absolute w-[450px] right-[25px] bottom-[50px] mb-5 gap-y-2
-      `}>
+      <div
+        className={`flex flex-col items-center py-4 bg-navBar justify-center rounded-lg w-[450px]  mb-5 gap-y-2
+      `}
+      >
         {data.map((one) => (
-          <div className="w-[400px] text-sm py-2 px-4 rounded-lg border-[1px] border-dialogue cursor-pointer"
-          onClick={()=>{setPageState("text", one)
-        setPromptOpen(false)
-        }}
+          <div
+            className="w-[400px] text-sm py-2 px-4 rounded-lg border-[1px] border-dialogue cursor-pointer"
+            onClick={() => {
+              setPageState("text", one);
+              setPromptOpen(false);
+            }}
           >
             <div>{one}</div>
           </div>
@@ -573,11 +516,14 @@ const Message = () => {
     );
   };
 
-
   if (scrLoading) {
-    return     <div className="w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden">
-        <div className="w-full h-full flex items-center justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
-</div>
+    return (
+      <div className="w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden">
+        <div className="w-full h-full flex items-center justify-center">
+          <ReactLoading type="spin" width={30} height={30} color="#7d838c" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -613,8 +559,8 @@ const Message = () => {
               className="flex-grow-0 py-3 px-4"
               onSubmit={(e) => {
                 e.preventDefault();
-           
-                handleSendMess(state.receiveUser._id);
+
+                handleSendMess(state.receiveUser._id, state.text);
               }}
             >
               <div className="w-full rounded-full flex gap-x-2 items-center relative ">
@@ -645,42 +591,57 @@ const Message = () => {
                     )}
                   </div>
                 )}
+                {state.receiveUser._id === AI_ID && (
+                  <PiBroom
+                    className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 cursor-pointer "
+                    onClick={() => {
+                      setPageState("context", false);
+                      toast.success("Context cleared!");
+                    }}
+                  />
+                )}
                 <input
                   type="text"
                   className="w-full bg-inherit first-line:focus:ring-0 focus:ring-white rounded-full border-[1px] border-[#8EABB4] flex px-4 items-center "
                   placeholder="Type your message"
                   value={state.text}
                   onChange={(e) => setPageState("text", e.target.value)}
-                  disabled={
-                    !state.receiveUser || state.loading
-                  }
+                  disabled={!state.receiveUser || state.loading}
                   ref={emailInputRef}
                 />
-                {state.receiveUser._id !== AI_ID &&
+                {state.receiveUser._id !== AI_ID && (
                   <label>
-                  <AiOutlineCamera className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 dark:text-[#b0b3b8] cursor-pointer " />
-                  <input
-                    onChange={handleImage}
-                    type="file"
-                    accept="image/*"
-                    name="avatar"
-                    hidden
-                  />
-                </label>}
+                    <AiOutlineCamera className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 dark:text-[#b0b3b8] cursor-pointer " />
+                    <input
+                      onChange={handleImage}
+                      type="file"
+                      accept="image/*"
+                      name="avatar"
+                      hidden
+                    />
+                  </label>
+                )}
 
-                {state.receiveUser._id === AI_ID &&
-                  <MdOutlineLightbulb  className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 cursor-pointer " 
-                  onClick={()=>{setPromptOpen((prev)=>(!prev))}}
-                  />
-                }
-              
-              {promptOpen && <PromptSection/>}
+                {state.receiveUser._id === AI_ID && (
+                  <div className="" ref={exceptRef}>
+                    <HiLightBulb
+                      className=" shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 cursor-pointer text-greenBtn "
+                      onClick={() => {
+                        setPromptOpen((prev) => !prev);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {promptOpen && (
+                  <div ref={promptRef} className="right-[25px] bottom-[50px] absolute">
+                    <PromptSection ref={promptRef} data={state.suggestedRes} />
+                  </div>
+                )}
                 <button
                   className="shrink-0 text-xl opacity-50 hover:opacity-80 cursor-pointer  "
                   type="submit"
-                  disabled={
-                    !state.receiveUser || state.loading || !state.text
-                  }
+                  disabled={!state.receiveUser || state.loading || !state.text}
                 >
                   {state.loading ? (
                     <ReactLoading

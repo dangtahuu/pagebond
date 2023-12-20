@@ -3,8 +3,6 @@ import { MdAddPhotoAlternate, MdCancel } from "react-icons/md";
 import { useAppContext } from "../../context/useContext";
 import ReactLoading from "react-loading";
 import { IoClose } from "react-icons/io5";
-import Rating from "@mui/material/Rating";
-import { IoIosHelpCircle } from "react-icons/io";
 import Tooltip from "@mui/material/Tooltip";
 import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 
@@ -12,6 +10,21 @@ import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 import useDebounce from "../../hooks/useDebounce";
 import useOnClickOutside from "../../hooks/useOnClickOutside";
 import { AiOutlineInfoCircle } from "react-icons/ai";
+
+import "@mdxeditor/editor/style.css";
+import {
+  headingsPlugin, listsPlugin, thematicBreakPlugin,InsertThematicBreak,
+  MDXEditor,
+  toolbarPlugin,
+  BlockTypeSelect,
+  BoldItalicUnderlineToggles,
+  UndoRedo,
+  linkDialogPlugin,
+  ListsToggle,
+  CreateLink
+} from "@mdxeditor/editor";
+
+import "./common.css";
 
 
 const conditionList = ["New", "Like new", "Good", "Worn", "Bad"];
@@ -47,6 +60,7 @@ const TradeForm = ({
   const [isSearchingTag, setIsSearchingTag] = useState(false);
 
   const searchTagRef = useRef();
+  const markdownRef = useRef();
 
   useOnClickOutside(searchTagRef, () => {
     setIsSearchingTag(false);
@@ -308,14 +322,32 @@ const TradeForm = ({
             Give a description *
           </label>
 
-          <textarea
-            id="text"
-            value={input.text}
-            className={`standard-input`}
-            placeholder={`Write your description`}
-            onChange={(e) => {
-              setInput((prev) => ({ ...prev, text: e.target.value }));
+          <MDXEditor
+          ref={markdownRef}
+          id="text"
+            className="standard-input"
+            markdown={input.text}
+            placeholder={`Review`}
+            onBlur={() => {
+              setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
             }}
+            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),
+              toolbarPlugin({
+                toolbarContents: () => (
+                  <>
+                    {" "}
+                    <UndoRedo />
+                    <BoldItalicUnderlineToggles />
+                    <BlockTypeSelect />
+                    <CreateLink />
+                    <ListsToggle />
+                    <InsertThematicBreak/>
+                    {/* <ChangeAdmonitionType/> */}
+                  </>
+                ),
+              }),
+              headingsPlugin(),
+            ]}
           />
 
           <label className="form-label" for="">

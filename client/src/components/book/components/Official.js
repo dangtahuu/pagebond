@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
+import ReactLoading from "react-loading";
 import {toast} from "react-toastify";
-import {Modal, Post, LoadingPost, LoadingForm, CreateBox, ReviewForm} from "../..";
-import InfiniteScroll from "react-infinite-scroll-component";
+import {Post, CreateBox} from "../..";
 import SpecialPostForm from "../../common/SpecialPostForm";
 
 const Official = ({
@@ -69,11 +69,11 @@ const Official = ({
         setLoadingCreateNewPost(false);
       };
 
-    const content = () => {
+    const Content = () => {
         if (loading) {
             return (
                 <div>
-                    <LoadingPost />
+                   <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
                 </div>
             );
         }
@@ -82,18 +82,12 @@ const Official = ({
             return (
                 <div className='w-full text-center text-xl font-semibold pt-[5vh] pb-[5vh] flex-col '>
                     <div>
-                        Nothing to display
+                        There's nothing here at the momment
                     </div>
                 </div>
             );
         }
         return (
-            // <InfiniteScroll
-            // className="!overflow-visible"
-            //     dataLength={posts.length}
-            //     next={getNewPosts}
-            //     hasMore={true}
-            //     loader={<LoadingPost />}>
             <div>
  {posts.map((post) => (
                     <Post
@@ -107,7 +101,6 @@ const Official = ({
                 {moreOfficial && (<div onClick={getNewPosts}>LOAD MORE</div>)}
             </div>
                
-            // </InfiniteScroll>
         );
     };
 
@@ -131,8 +124,12 @@ const Official = ({
         createNewPost={createNewSpecialPost}
       />
       )}
-            {loadingCreateNewPost && <LoadingPost className='mb-4' />}
-            {content()}
+            {loadingCreateNewPost && (
+        <div className="flex justify-center main-bg">
+          <ReactLoading type="bubbles" width={64} height={64} color="white" />
+        </div>
+      )}
+            <Content />
             
         </div>
     );

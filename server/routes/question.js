@@ -19,7 +19,8 @@ import {
   report,
   dismissReport,
   getAllReported,
-  search
+  search,
+  getAIRes
 } from "../controllers/question.js";
 import formidable from "express-formidable";
 import { canUpdateOrDeleteQuestion } from "../middleware/canUpdateOrDelete.js";
@@ -71,6 +72,9 @@ router.route("/report").patch(report);
 router.route("/unreport").patch(isAdmin,dismissReport);
 // get post with userID
 router.route("/withUser/:userId").get(getWithUser)
+
+router.route("/ai/:postId").get(getAIRes)
+
 
 router.route("/admin/delete/:id").delete(isAdmin, deleteOne);
 

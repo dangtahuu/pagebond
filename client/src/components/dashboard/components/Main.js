@@ -17,8 +17,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   const [attachment, setAttachment] = useState("");
   const [specialAttachment, setSpecialAttachment] = useState("");
 
-  
-
   const initInput = {
     text: "",
     title: "",

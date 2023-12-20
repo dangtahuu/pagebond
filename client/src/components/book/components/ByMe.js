@@ -1,14 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
 import {
-  Modal,
   Post,
-  LoadingPost,
-  LoadingForm,
-  CreateBox,
-  ReviewForm,
 } from "../..";
-import SpecialPostForm from "../../common/SpecialPostForm";
+import ReactLoading from "react-loading";
 
 const ByMe = ({
   posts,
@@ -27,45 +21,35 @@ const ByMe = ({
     }
   }, [book]);
 
- 
 
-  const content = () => {
-    if (loading) {
-      return (
-        <div>
-          <LoadingPost />
-        </div>
-      );
-    }
-    if (posts.length === 0) {
-      return (
-        <div className="w-full text-center text-xl font-semibold pt-[5vh] pb-[5vh] flex-col ">
-          <div>Nothing to display</div>
-        </div>
-      );
-    }
+  if (loading) {
     return (
-      <div>
-        {posts.map((post) => (
-          <Post
-            key={post._id}
-            currentPost={post}
-            className={"shadow-post"}
-            book={book}
-          />
-        ))}
-
-      </div>
-
+      <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
     );
-  };
+  }
 
+  if (posts.length === 0) {
+    return (
+        <div className='w-full text-center text-xl font-semibold pt-[5vh] pb-[5vh] flex-col '>
+            <div>
+                There's nothing here at the momment
+            </div>
+        </div>
+    );
+}
 
   return (
-    <div className="">
-      
-      {content()}
-    </div>
+    <div>
+    {posts.map((post) => (
+      <Post
+        key={post._id}
+        currentPost={post}
+        book={book}
+      />
+    ))}
+
+  </div>
+
   );
 };
 

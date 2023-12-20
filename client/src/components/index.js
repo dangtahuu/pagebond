@@ -32,7 +32,7 @@ import BookDetail from "./book/BookDetail";
 
 // import ModalReview from "./common/ModalReview";
 // import ModalExchange from "./common/ModalExchange";
-import ModalShelves from "./common/ModalShelves";
+import ShelvesForm from "./common/ShelvesForm";
 import ModalShelf from "./common/ShelfForm";
 // function
 import Search from "./search/Search";
@@ -42,7 +42,7 @@ export {
   Nav,
   Post,
   Modal,
-  ModalShelves,
+  ShelvesForm,
   ModalShelf,
   Comment,
   Dropdown,

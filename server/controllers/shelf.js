@@ -63,9 +63,7 @@ const bookToShelf = async (req, res) => {
     const shelves = await Shelf.find({
       $and: [
         { books: { $in: [book.id] } },
-        { type: 1 },
-        { name: { $ne: "to read" } },
-        { name: { $ne: "favorites" } },
+        { type: {$ne: 1} },
       ],
     });
 
@@ -80,9 +78,10 @@ const bookToShelf = async (req, res) => {
     );
 
     const newBook = await Book.findByIdAndUpdate(book.id, {
-      topShelves: sortedShelfNames.slice(0, 5),
+      topShelves: sortedShelfNames.slice(0, 10),
     });
 
+    console.log('aaaaa',newBook)
     return res.status(200).json({ selected });
   } catch (err) {
     console.log(err);

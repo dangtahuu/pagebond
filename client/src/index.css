@@ -151,7 +151,7 @@
 @layer components {
 
   .primary-btn {
-    @apply text-sm bg-greenBtn rounded-full py-1 px-3 flex justify-center items-center focus:outline-none font-semibold text-white;
+    @apply text-sm bg-greenBtn opacity-80 hover:opacity-100 transition-50 rounded-full py-2 px-3 flex justify-center items-center gap-x-2 focus:outline-none font-semibold text-white;
   }
 
   .checkbox {

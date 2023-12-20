@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useAppContext } from "../../context/useContext";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -6,7 +6,7 @@ import Review from "./components/Review";
 import ByMe from "./components/ByMe";
 import Trade from "./components/Trade";
 import { FiEdit2 } from "react-icons/fi";
-import ModalShelves from "../common/ModalShelves";
+import ShelvesForm from "../common/ShelvesForm";
 import { Rating, Tooltip } from "@mui/material";
 import Similar from "./components/Similar";
 import Official from "./components/Official";
@@ -16,6 +16,12 @@ import Post from "../common/Post";
 import ReactLoading from "react-loading";
 import { LuBadgeCheck } from "react-icons/lu";
 import HeaderMenu from "../common/HeaderMenu";
+import { AiOutlineMessage } from "react-icons/ai";
+import { toast } from "react-toastify";
+import BarsDataset from "./components/Chart";
+import { TbEyeglass } from "react-icons/tb";
+import { BsBookmarkPlus } from "react-icons/bs";
+import useOnClickOutside from "../../hooks/useOnClickOutside";
 
 function BookDetail() {
   const navigate = useNavigate();
@@ -37,7 +43,7 @@ function BookDetail() {
   const [moreTrades, setMoreTrades] = useState(true);
   const [moreOfficial, setMoreOfficial] = useState(true);
   const [moreQuestion, setMoreQuestion] = useState(true);
-
+  const [promptOpen, setPromptOpen] = useState(false);
   const [book, setBook] = useState({
     id: "",
     title: "",
@@ -50,12 +56,14 @@ function BookDetail() {
     previewLink: "",
     genres: [],
     postsCount: "",
-    ratingAvg: "",
-    contentAvg: "",
-    developmentAvg: "",
-    pacingAvg: "",
-    writingAvg: "",
-    insightsAvg: "",
+    rating: "",
+    content: "",
+    development: "",
+    pacing: "",
+    writing: "",
+    insights: "",
+    topShelves: [],
+    numberOfRating: 0,
   });
 
   const [booksByAuthor, setBooksByAuthor] = useState([]);
@@ -83,9 +91,26 @@ function BookDetail() {
   const [shelfForm, setShelfForm] = useState(false);
   const [similarBooks, setSimilarBooks] = useState([]);
   const [promptList, setPromptList] = useState([]);
+  const [chart, setChart] = useState([]);
+
 
   const [toRead, setToRead] = useState(false);
 
+  const promptRef = useRef();
+  const exceptRef = useRef();
+
+
+  useOnClickOutside(promptRef, () => {
+    setPromptOpen(false);
+  }, exceptRef);
+
+  let chatInfo = {
+    name: "Book Assistant",
+    _id: "6561e80e6dfae0a11ba298b6",
+    image: {
+      url: "http://res.cloudinary.com/dksyipjlk/image/upload/v1678289715/o4e7jk4wizov3cjcfdos.jpg",
+    },
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -94,7 +119,7 @@ function BookDetail() {
         getFeatured();
         getBoooksByAuthor();
         getSimilarBooks(data.author);
-        // getTopShelves();
+        getChart()
         getShelves();
         getSelectedShelves();
       } catch (error) {
@@ -137,6 +162,7 @@ function BookDetail() {
       writing: bookData.writing || "",
       insights: bookData.insights || "",
       topShelves: bookData.topShelves || [],
+      numberOfRating: bookData.numberOfRating || 0,
     });
     return bookData;
   };
@@ -144,12 +170,24 @@ function BookDetail() {
   const getPromptsForBook = async () => {
     setPromptLoading(true);
     try {
-      const {data} = await autoFetch.get(`/api/book/get-book-prompts/${id}`);
-      setPromptList(data.prompts)
+      const { data } = await autoFetch.get(`/api/book/get-book-prompts/${id}`);
+      setPromptList(data.prompts);
     } catch (error) {
       console.log(error);
     }
     setPromptLoading(false);
+  };
+
+  const getChart = async () => {
+    // setPromptLoading(true);
+    try {
+      const { data } = await autoFetch.get(`/api/review/book-chart/${id}`);
+      console.log(data.result)
+      setChart(data.result);
+    } catch (error) {
+      console.log(error);
+    }
+    // setPromptLoading(false);
   };
 
   const getNewReviews = async (sort = "popularity", filter = "All") => {
@@ -294,7 +332,6 @@ function BookDetail() {
         ...specialRes.posts,
       ];
       results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      // console.log(results);
       setMyPosts(results);
     } catch (error) {
       console.log(error);
@@ -336,7 +373,6 @@ function BookDetail() {
         `/api/shelf/get-selected-shelves/${id}`
       );
       setSelectedShelves(data.ids);
-      // console.log()
       if (data.names.includes("to read")) setToRead(true);
       else setToRead(false);
     } catch (error) {
@@ -348,20 +384,17 @@ function BookDetail() {
   };
 
   const submitShelves = async (shelves) => {
-    console.log("ssssssssssssss");
-    // setSelectedShelvesLoading(true);
     console.log(shelves);
     try {
-      const { data } = await autoFetch.post(
+      const { data } = await autoFetch.patch(
         `/api/shelf/book-to-shelf`,
         shelves
       );
       setSelectedShelves(data.selected);
+      toast.success("Modify shelves successfully");
     } catch (error) {
       console.log(error);
-      setError(true);
-      // } finally {
-      //   setSelectedShelvesLoading(false);
+      toast.error(error.response.data.msg || "Something went wrong");
     }
   };
 
@@ -416,10 +449,10 @@ function BookDetail() {
 
   const RatingDisplay = ({ value, label }) => {
     return (
-      <div className="inline-flex mb-1">
+      <div className="inline-flex">
         <p className="mr-3 w-[100px]">{label}</p>
         <Rating
-          name="half-rating-read"
+          className="!text-md flex-1"
           value={value}
           precision={0.1}
           readOnly
@@ -521,7 +554,9 @@ function BookDetail() {
           setPosts={setQuestion}
           getNewPosts={getNewQuestion}
           book={book}
-          moreTrades={moreQuestion}
+          morePosts={moreQuestion}
+          promptList={promptList}
+          promptLoading={promptLoading}
         />
       );
     }
@@ -537,6 +572,16 @@ function BookDetail() {
     <div
       className={`w-screen text-base min-h-screen bg-mainbg text-mainText pt-[65px] px-[3%] sm:px-[5%]`}
     >
+      {shelfForm && (
+        <ShelvesForm
+          shelves={shelves}
+          setShelves={setShelves}
+          selected={selectedShelves}
+          submitShelves={submitShelves}
+          setOpenModal={setShelfForm}
+          book={book}
+        ></ShelvesForm>
+      )}
       <div className="w-full mt-[3%] pt-3  md:grid grid-cols-10 items-start justify-center gap-x-8 py-16 px-4">
         <div className="col-span-2 md:pr-8 sticky top-[65px]">
           <img
@@ -545,76 +590,93 @@ function BookDetail() {
             alt={`${book.title} cover`}
           />
 
-          {book.topShelves?.length > 0 && (
-            <div className="mt-3">
-              <div className="serif-display mb-2">Top Shelves</div>
+          <div className="flex flex-col mt-4 gap-y-2">
+            <a
+              href={`${book.previewLink}&lpg=PP1&pg=PP1&output=embed`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <button
+                className={`primary-btn w-[200px]`}
+              >
+                <VscOpenPreview className="text-lg text-white" /> Preview
+              </button>
+            </a>
 
-              {book.topShelves.map((shelf) => (
-                <div
-                  className="cursor-pointer text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1"
-                  onClick={() => {
-                    navigate(
-                      `/browse/?genre=${encodeURIComponent(
-                        JSON.stringify(shelf)
-                      )}`
-                    );
-                  }}
-                >
-                  {shelf}
-                </div>
-              ))}
-            </div>
-          )}
+            <button
+              className={`primary-btn w-[200px]`}
+              onClick={() => handleToRead}
+            >
+              <TbEyeglass className="text-lg text-white" />{toRead ? "Remove from To read" : "Want to read"}
+            </button>
 
-          <button
-            className={`bg-[#00a11d] text-white text-sm block m-auto w-[200px] py-1.5 text-center rounded-full font-bold my-3`}
-            // disabled={!text || loading}
-            onClick={() => {
-              console.log(shelfForm);
-              setShelfForm(true);
-            }}
-            // onClick={handleButton}
-          >
-            Shelve this book
-          </button>
-
-          {shelfForm && (
-            <ModalShelves
-              shelves={shelves}
-              setShelves={setShelves}
-              selected={selectedShelves}
-              submitShelves={submitShelves}
-              setOpenModal={setShelfForm}
-              book={book}
-            ></ModalShelves>
-          )}
-
-          <button
-            className={`bg-[#00a11d] text-white text-sm block m-auto w-[200px] py-1.5 text-center rounded-full font-bold my-3`}
-            // disabled={!text || loading}
-            onClick={handleToRead}
-            // onClick={handleButton}
-          >
-            {toRead ? "Remove from To read" : "Want to read"}
-          </button>
+            <button
+              className={`primary-btn  w-[200px]`}
+              // disabled={!text || loading}
+              onClick={() => {
+                setShelfForm(true);
+              }}
+              // onClick={handleButton}
+            >
+             <BsBookmarkPlus className="text-lg text-white" /> Shelve this book
+            </button>
+          </div>
         </div>
 
         <div className="col-span-5">
           <div className="mb-8">
             <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-4xl font-bold serif-display text-white">
-                  {book.title}
-                </h1>
-                <h2 className="text-xl font-semibold">{book.author}</h2>
+              <h1 className="text-4xl font-bold serif-display text-white">
+                {book.title}
+              </h1>
+              <div className="relative" ref={exceptRef}>
+                <AiOutlineMessage
+                  className={`text-2xl ${
+                    !promptLoading ? `cursor-pointer` : `opacity-30`
+                  } `}
+                  onClick={() => {
+                    setPromptOpen((prev) => !prev);
+                  }}
+                />
+                {promptOpen && (
+                  <div
+                  ref={promptRef}
+                    className={`flex flex-col items-center py-4 bg-navBar justify-center rounded-lg absolute w-[450px] right-0 top-[40px] mb-5 gap-y-2
+                  `}
+                  >
+                    {promptList.map((one) => (
+                      <div
+                        className="w-[400px] text-sm py-2 px-4 rounded-lg border-[1px] border-dialogue cursor-pointer"
+                        onClick={() => {
+                          chatInfo = { ...chatInfo, text: one };
+                          navigate(
+                            `/messenger/?data=${encodeURIComponent(
+                              JSON.stringify(chatInfo)
+                            )}`
+                          );
+                          // setPageState("text", one)
+                        }}
+                      >
+                        <div>{one}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <a
-                href={`${book.previewLink}&lpg=PP1&pg=PP1&output=embed`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <VscOpenPreview className="text-2xl" />
-              </a>
+            </div>
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">{book.author}</h2>
+
+              <div>
+                {promptLoading && (
+                  <ReactLoading
+                    type="bubbles"
+                    width={20}
+                    height={20}
+                    color="white"
+                  />
+                )}
+              </div>
             </div>
 
             <div
@@ -643,17 +705,37 @@ function BookDetail() {
           {main()}
         </div>
         <div className="col-span-3 sticky top-[65px] max-h-[80vh] overflow-auto">
-          <div className="flex flex-col">
-            <div className="serif-display mb-2">
-              From {book.postsCount} reviews
+          {book.numberOfRating > 0 ? (
+            <div className="flex flex-col gap-y-2">
+              <div className="flex items-end py-2 border-b-[1px] border-dialogue ">
+                <div className="flex flex-col flex-1">
+                  <div className="text-4xl font-semibold serif-display text-white">
+                    {book.rating}
+                  </div>
+                  <div className="text-smallText text-base">
+                    {book.numberOfRating} reviews
+                  </div>
+                  <Rating
+                    className="!text-3xl"
+                    value={book.rating}
+                    precision={0.1}
+                    readOnly
+                  />
+                </div>
+                <div className="flex-0 border-smallText border-b-[1px]">
+                  <BarsDataset data={chart} />
+                </div>
+              </div>
+              <RatingDisplay value={book.content} label="Content" />
+              <RatingDisplay value={book.developement} label="Development" />
+              <RatingDisplay value={book.writing} label="Writing" />
+              <RatingDisplay value={book.insights} label="Insights" />
             </div>
-            <RatingDisplay value={book.rating} label="Rating" />
-            <RatingDisplay value={book.content} label="Content" />
-            <RatingDisplay value={book.developement} label="Development" />
-            {/* <RatingDisplay value={book.pacingAvg} label="Pacing" /> */}
-            <RatingDisplay value={book.writing} label="Writing" />
-            <RatingDisplay value={book.insights} label="Insights" />
-          </div>
+          ) : (
+            <div className="serif-display mb-2">
+              This book hasn't received any rating
+            </div>
+          )}
 
           {book.genres && (
             <div className="mt-3">
@@ -676,27 +758,24 @@ function BookDetail() {
             </div>
           )}
 
-          {promptLoading ? (
-            <div className="w-full flex justify-center">
-              <ReactLoading
-                type="spin"
-                width={30}
-                height={30}
-                color="#7d838c"
-              />
-            </div>
-          ) : (
-            <div>
-              {promptList.length > 0 && (
-                <div className="">
-                  <div>You could ask our assistant</div>
-                  <div className="flex flex-col">
-                    {promptList.map((one) => (
-                      <div className="bg-dialogue rounded-lg p-4">{one}</div>
-                    ))}
-                  </div>
+          {book.topShelves?.length > 0 && (
+            <div className="mt-3">
+              <div className="serif-display mb-2">Top Shelves</div>
+
+              {book.topShelves.map((shelf) => (
+                <div
+                  className="cursor-pointer text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1"
+                  onClick={() => {
+                    navigate(
+                      `/browse/?genre=${encodeURIComponent(
+                        JSON.stringify(shelf)
+                      )}`
+                    );
+                  }}
+                >
+                  {shelf}
                 </div>
-              )}
+              ))}
             </div>
           )}
         </div>

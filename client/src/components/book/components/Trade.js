@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {toast} from "react-toastify";
-import {Modal, Post, LoadingPost, LoadingForm, CreateBox, ReviewForm, TradeForm} from "../..";
-import InfiniteScroll from "react-infinite-scroll-component";
+import {Post, CreateBox, TradeForm} from "../..";
+import ReactLoading from "react-loading";
 
 const Trade = ({
     posts,
@@ -82,39 +82,23 @@ const Trade = ({
         }
     };
 
-    const content = () => {
+    const Content = () => {
         if (loading) {
             return (
-                <div>
-                    <LoadingPost />
-                </div>
+                <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
             );
         }
-        if (error) {
-            return (
-                <div
-                    className={`bg-white shadow-post
-                    dark:bg-[#242526] rounded-lg w-full text-center text-xl font-bold py-10 `}>
-                    <div>No post found... Try again!</div>
-                </div>
-            );
-        }
+      
         if (posts.length === 0) {
             return (
                 <div className='w-full text-center text-xl font-semibold pt-[5vh] pb-[5vh] flex-col '>
                     <div>
-                        Nothing to display
+                        There's nothing here at the momment
                     </div>
                 </div>
             );
         }
         return (
-            // <InfiniteScroll
-            // className="!overflow-visible"
-            //     dataLength={posts.length}
-            //     next={getNewPosts}
-            //     hasMore={true}
-            //     loader={<LoadingPost />}>
             <div>
  {posts.map((post) => (
                     <Post
@@ -128,27 +112,17 @@ const Trade = ({
 
             </div>
                
-            // </InfiniteScroll>
         );
     };
 
-    const form = () => {
-        if (error) {
-            return <></>;
-        }
-        if (loading) return <LoadingForm />;
-        return (
+
+    return (
+        <div className=''>
             <CreateBox
                 setAttachment={setAttachment}
                 setOpenForm={setOpenModal}
                 user={user}
             />
-        );
-    };
-
-    return (
-        <div className=''>
-            {form()}
 
             {openModal && (
                 <TradeForm
@@ -160,8 +134,12 @@ const Trade = ({
                     createNewPost={createNewTrade}
                 />
             )}
-            {loadingCreateNewPost && <LoadingPost className='mb-4' />}
-            {content()}
+            {loadingCreateNewPost && (
+        <div className="flex justify-center main-bg">
+          <ReactLoading type="bubbles" width={64} height={64} color="white" />
+        </div>
+      )}
+            <Content/>
         </div>
     );
 };

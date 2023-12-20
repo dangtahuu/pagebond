@@ -25,15 +25,13 @@ router.route("/").get(async (req, res) => {
 });
 
 router.route("/create-shelf").post(createShelf);
-router.route("/book-to-shelf").post(bookToShelf);
+router.route("/book-to-shelf").patch(bookToShelf);
 router.route("/edit-shelf").patch(canUpdateOrDeleteShelf, editShelf);
 router.route("/delete-shelf").post(canUpdateOrDeleteShelf, deleteShelf);
 
 router.route("/add-tbr").patch(addToTBR);
 router.route("/remove-tbr").patch(removeFromTBR);
 router.route("/remove").patch(removeFromShelf);
-
-
 
 router.route("/get-shelves/:userId").get(getShelves);
 router.route("/get-selected-shelves/:book").get(getSelectedShelves);

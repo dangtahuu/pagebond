@@ -21,7 +21,8 @@ import{
   dismissReport,
   getAllReported,
   search,
-  getRecent
+  getRecent,
+  calculateRatingChart
 } from "../controllers/review.js";
 import formidable from "express-formidable";
 import {canUpdateOrDeleteReview} from "../middleware/canUpdateOrDelete.js";
@@ -50,6 +51,8 @@ router.route("/discover").post(getDiscover);
 
 //book
 router.route("/book/:id").get(getAllWithBook);
+router.route("/book-chart/:id").get(calculateRatingChart);
+
 // router.route("/book-exchanges/:id").get(getExchanges);
 router.route("/book-my/:id").get(getMy);
 

@@ -11,6 +11,21 @@ import { AiOutlineInfoCircle } from "react-icons/ai";
 import useDebounce from "../../hooks/useDebounce";
 import useOnClickOutside from "../../hooks/useOnClickOutside";
 
+import "@mdxeditor/editor/style.css";
+import {
+  headingsPlugin, listsPlugin, thematicBreakPlugin,InsertThematicBreak,
+  MDXEditor,
+  toolbarPlugin,
+  BlockTypeSelect,
+  BoldItalicUnderlineToggles,
+  UndoRedo,
+  linkDialogPlugin,
+  ListsToggle,
+  CreateLink
+} from "@mdxeditor/editor";
+
+import "./common.css";
+
 const PostForm = ({
   input = "",
   setInput = (even) => {},
@@ -36,6 +51,7 @@ const PostForm = ({
 
   const searchTagRef = useRef();
   const tagExceptRef = useRef();
+  const markdownRef = useRef();
 
 
   useOnClickOutside(searchTagRef, () => {
@@ -242,14 +258,32 @@ const PostForm = ({
             Write your thoughts *
           </label>
 
-          <textarea
-            id="text"
-            value={input.text}
-            className={`standard-input h-[200px] `}
+          <MDXEditor
+          ref={markdownRef}
+          id="text"
+            className="standard-input"
+            markdown={input.text}
             placeholder={`Review`}
-            onChange={(e) => {
-              setInput((prev) => ({ ...prev, text: e.target.value }));
+            onBlur={() => {
+              setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
             }}
+            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),
+              toolbarPlugin({
+                toolbarContents: () => (
+                  <>
+                    {" "}
+                    <UndoRedo />
+                    <BoldItalicUnderlineToggles />
+                    <BlockTypeSelect />
+                    <CreateLink />
+                    <ListsToggle />
+                    <InsertThematicBreak/>
+                    {/* <ChangeAdmonitionType/> */}
+                  </>
+                ),
+              }),
+              headingsPlugin(),
+            ]}
           />
 
           <label className="form-label" for="hashtag">

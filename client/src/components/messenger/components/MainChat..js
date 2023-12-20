@@ -88,7 +88,7 @@ const MainChat = ({
                   }  px-3 py-2 ml-1 dark:text-white`}
                 >
                   <ReactMarkdown>
-                    {c.text.replace(/\[\^\d+\^\]/g, "")}
+                    {c.text ? c?.text.replace(/\[\^\d+\^\]/g, ""):""}
                   </ReactMarkdown>
                   {c.image?.url && (
                     <img

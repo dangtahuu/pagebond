@@ -1,4 +1,4 @@
-import React, { useEffect, useState,  } from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import ReactLoading from "react-loading";
@@ -15,30 +15,29 @@ import { MdCancel } from "react-icons/md";
 // component
 import Comment from "./Comment";
 import { useAppContext } from "../../context/useContext";
-import Modal from "./Modal";
 import PostLoading from "../loading/Loading.Post";
 import ReviewForm from "./ReviewForm";
-// const typeOfPost = ['post','review','trade','specialPost']
 import PostForm from "./PostForm";
 import TradeForm from "./TradeForm";
 import SpecialPostForm from "./SpecialPostForm";
 import { Rating } from "@mui/material";
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from "react-markdown";
 import QuestionForm from "./QuestionForm";
+import Modal from "./Modal";
 
-const typeDisplay={
+const typeDisplay = {
   post: "Post",
   review: "Review",
   special: "News",
   trade: "Trade",
-  question: "Question"
-}
+  question: "Question",
+};
 
 const Post = ({
   currentPost,
   className = "",
   book,
-  border=true,
+  border = true,
   getDeletePostId = (postId) => {},
 }) => {
   // const navigate = useNavigate();
@@ -71,16 +70,18 @@ const Post = ({
     condition: currentPost?.condition || "",
     address: currentPost?.address || "",
     location: currentPost?.location || "",
-    hashtag: currentPost?.hashtag?.map((one)=>one.name) || []
+    hashtag: currentPost?.hashtag?.map((one) => one.name) || [],
   });
 
   const [attachment, setAttachment] = useState(
     currentPost?.image ? "photo" : ""
   );
-  // const [imageEdit, setImageEdit] = useState(currentPost.image);
   const [loadingEdit, setLoadingEdit] = useState(false);
-  const navigate = useNavigate();
   const [type, setType] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [answerModalOpen, setAnswerModalOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     getType();
@@ -93,7 +94,7 @@ const Post = ({
     if (post?.rating) setType("review");
     else if (post?.address) setType("trade");
     else if (post?.type) setType("special");
-    else if (post?.book) setType("question")
+    else if (post?.book) setType("question");
     else setType("post");
   };
 
@@ -151,7 +152,11 @@ const Post = ({
       setShowComment(true);
       setTextComment("");
       setImageComment(null);
-      socket.emit("new-comment",{senderName: user.name, senderId: user._id, receivedId: post.postedBy._id })
+      socket.emit("new-comment", {
+        senderName: user.name,
+        senderId: user._id,
+        receivedId: post.postedBy._id,
+      });
     } catch (error) {
       console.log(error);
     }
@@ -208,10 +213,24 @@ const Post = ({
 
   const reportPost = async (postId) => {
     try {
-      const { data } = await autoFetch.patch(`api/${type}/report`,{
-        postId
+      const { data } = await autoFetch.patch(`api/${type}/report`, {
+        postId,
       });
       toast("Report succesfully! An admin will look into your request");
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.msg || "Something went wrong");
+    }
+  };
+
+  const getAIRes = async (postId) => {
+    toast(
+      "Please wait a few secs while the assistant generates the answer for you"
+    );
+    try {
+      const { data } = await autoFetch.get(`api/question/ai/${postId}`);
+      setAnswer(data.reply);
+      setAnswerModalOpen(true);
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
@@ -237,7 +256,7 @@ const Post = ({
           text: input.text,
           image: image,
           title: input.title,
-          hashtag: input.hashtag
+          hashtag: input.hashtag,
         });
         postData = data.post;
       } else if (type === "review") {
@@ -304,7 +323,7 @@ const Post = ({
         address: postData.address || "",
         location: postData.location || "",
         condition: postData.condition || "",
-        hashtag: postData.hashtag || []
+        hashtag: postData.hashtag || [],
       });
 
       setInput({
@@ -322,8 +341,7 @@ const Post = ({
         address: postData.address || "",
         location: postData.location || "",
         condition: postData.condition || "",
-        hashtag: postData.hashtag?.map((one)=>one.name) || []
-
+        hashtag: postData.hashtag?.map((one) => one.name) || [],
       });
 
       if (postData.image) {
@@ -353,7 +371,11 @@ const Post = ({
   }
 
   return (
-    <div className={` mb-3 pt-3 pb-2.5 ${border?`border-t-[1px] border-t-dialogue`:``} `}>
+    <div
+      className={` mb-3 pt-3 pb-2.5 ${
+        border ? `border-t-[1px] border-t-dialogue` : ``
+      } `}
+    >
       {openModal && type === "post" && (
         <PostForm
           setOpenModal={setOpenModal}
@@ -415,7 +437,7 @@ const Post = ({
         />
       )}
 
-{openModal && type === "question" && (
+      {openModal && type === "question" && (
         <QuestionForm
           setOpenModal={setOpenModal}
           input={input}
@@ -425,6 +447,14 @@ const Post = ({
           isEditPost={true}
           setFormDataEdit={setFormData}
           handleEditPost={updatePost}
+        />
+      )}
+
+      {answerModalOpen && (
+        <Modal
+          setOpenModal={setAnswerModalOpen}
+          name="Here's your answer"
+          text={answer}
         />
       )}
 
@@ -456,76 +486,94 @@ const Post = ({
             )}
           </div>
 
-          <div className="text-[10px] flex items-center gap-x-1 cursor-pointer hover:underline" 
-          // style={{"text-decoration": "underline"}}
-           onClick={() => {
-            navigate(`/detail/${type}/${post?._id}`);
-          }}
+          <div
+            className="text-[10px] flex items-center gap-x-1 cursor-pointer hover:underline"
+            // style={{"text-decoration": "underline"}}
+            onClick={() => {
+              navigate(`/detail/${type}/${post?._id}`);
+            }}
           >
             {moment(post?.createdAt).fromNow()} • {typeDisplay[type]}
           </div>
         </div>
         {/* Edit or delete posts */}
-        
-          <div
-            className="ml-auto text-[25px] transition-50 cursor-pointer font-bold w-[35px] h-[35px] rounded-full hover:bg-dialogue flex flex-row items-center justify-center group relative "
-            onClick={() => {
-              setShowOption(!showOption);
+
+        <div
+          className="ml-auto text-[25px] transition-50 cursor-pointer font-bold w-[35px] h-[35px] rounded-full hover:bg-dialogue flex flex-row items-center justify-center group relative "
+          onClick={() => {
+            setShowOption(!showOption);
+          }}
+        >
+          <div className="translate-y-[-6px] z-[99] ">...</div>
+          <ul
+            className={`text-xs absolute -left-[120%] top-[110%] text-center ${
+              !showOption ? "hidden" : "flex flex-col"
+            }   `}
+            onMouseLeave={() => {
+              setShowOption(false);
             }}
           >
-            <div className="translate-y-[-6px] z-[99] ">...</div>
-            <ul
-              className={`text-xs absolute -left-[120%] top-[110%] text-center ${
-                !showOption ? "hidden" : "flex flex-col"
-              }   `}
-              onMouseLeave={() => {
-                setShowOption(false);
-              }}
-            >
-              {(user?._id === post?.postedBy?._id)&& <>
+            {user?._id === post?.postedBy?._id && (
+              <>
                 <li
-                className="px-3 py-1 bg-navBar rounded-md"
-                onClick={() => {
-                  setOpenModal(true);
-                }}
-              >
-                Edit
-              </li>
+                  className="px-3 py-1 bg-navBar rounded-md"
+                  onClick={() => {
+                    setOpenModal(true);
+                  }}
+                >
+                  Edit
+                </li>
+                <li
+                  className="mt-1 px-3 py-1 bg-navBar rounded-md"
+                  onClick={() => {
+                    if (window.confirm("Do you want to delete this post?")) {
+                      deletePost(post?._id);
+                    }
+                  }}
+                >
+                  Delete
+                </li>
+              </>
+            )}
+
+            {user?._id !== post?.postedBy?._id &&
+              post?.postedBy?.type !== 1 && (
+                <li
+                  className="mt-1 px-3 py-1 bg-navBar rounded-md"
+                  onClick={() => {
+                    if (window.confirm("Do you want to report this post?")) {
+                      reportPost(post?._id);
+                    }
+                  }}
+                >
+                  Report
+                </li>
+              )}
+
+            {type === "question" && (
               <li
                 className="mt-1 px-3 py-1 bg-navBar rounded-md"
                 onClick={() => {
-                  if (window.confirm("Do you want to delete this post?")) {
-                    deletePost(post?._id);
-                  }
+                  getAIRes(post?._id);
                 }}
               >
-                Delete
-              </li></>}
-            
-                {(user?._id !== post?.postedBy?._id && post?.postedBy?.type !== 1) && <li
-                className="mt-1 px-3 py-1 bg-navBar rounded-md"
-                onClick={() => {
-                  if (window.confirm("Do you want to report this post?")) {
-                    reportPost(post?._id);
-                  }
-                }}
-              >
-                Report
-              </li>}
-             
-            </ul>
-          </div>
-        
-
+                Ask AI
+              </li>
+            )}
+          </ul>
+        </div>
       </div>
 
       {post.address && (
-        <div className="content mt-3 font-bold text-gray-500 text-xs" onClick={()=>console.log(post)}>
-          {post?.address?.slice(0,80)}...
+        <div
+          className="content mt-3 font-bold text-gray-500 text-xs"
+          onClick={() => console.log(post)}
+        >
+          {post?.address?.slice(0, 80)}...
         </div>
       )}
 
-    {post.condition && (
+      {post.condition && (
         <div className="content mt-2 font-bold text-gray-500 text-xs">
           Condition: {post?.condition}{" "}
         </div>
@@ -536,7 +584,8 @@ const Post = ({
           {/* avatar */}
           <img
             src={
-              post?.book?.thumbnail || "https://sciendo.com/product-not-found.png"
+              post?.book?.thumbnail ||
+              "https://sciendo.com/product-not-found.png"
             }
             alt="avatar"
             className="max-h-20 rounded-md cursor-pointer "
@@ -560,32 +609,25 @@ const Post = ({
             </div>
             {post?.rating && (
               <div className="flex items-center gap-x-1  cursor-pointer mt-2">
-                   <Rating
-                   className="!text-[16px]"
-          value={post?.rating}
-          precision={0.5}
-          readOnly
-        />
-               
+                <Rating
+                  className="!text-[16px]"
+                  value={post?.rating}
+                  precision={0.5}
+                  readOnly
+                />
               </div>
             )}
           </div>
         </div>
       ) : post?.rating ? (
         <div className="content mt-[11px]">
-             <Rating
-          value={post?.rating}
-          precision={0.5}
-          readOnly
-        />
+          <Rating value={post?.rating} precision={0.5} readOnly />
         </div>
       ) : (
         <></>
       )}
       {post?.title && (
-        <div className="content mt-3 serif-display text-xl">
-          {post?.title}
-        </div>
+        <div className="content mt-3 serif-display text-xl">{post?.title}</div>
       )}
 
       <div
@@ -593,25 +635,27 @@ const Post = ({
           post?.image || post?.text?.length > 60 ? "text-sm" : "text-base "
         } `}
       >
-        {post?.text}
+        <ReactMarkdown>{post?.text}</ReactMarkdown>
       </div>
 
-      {post?.hashtag && <div className="">
-        {post?.hashtag?.map((one) => (
-                <div
-                  className="cursor-pointer text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1"
-                  onClick={() => {
-                    navigate(
-                      `/search/?q=${encodeURIComponent(
-                        JSON.stringify(`#${one?.name}`)
-                      )}&searchType=${type}`
-                    );
-                  }}
-                >
-                  {one?.name}
-                </div>
-              ))}
-        </div>}
+      {post?.hashtag && (
+        <div className="">
+          {post?.hashtag?.map((one) => (
+            <div
+              className="cursor-pointer text-xs inline-block rounded-full bg-dialogue px-2 py-1 my-1 mr-1"
+              onClick={() => {
+                navigate(
+                  `/search/?q=${encodeURIComponent(
+                    JSON.stringify(`#${one?.name}`)
+                  )}&searchType=${type}`
+                );
+              }}
+            >
+              {one?.name}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* when has image */}
       {post?.image && (
@@ -691,75 +735,82 @@ const Post = ({
       )}
 
       {/* form add comment */}
-      <div className="flex gap-x-1.5 px-2 py-1 mt-1 items-center ">
+      <div className="flex gap-x-1.5 px-2 py-1 mt-1 items-start">
         <img
           src={user?.image?.url || "/images/avatar.png"}
           alt="user_avatar"
-          className="w-7 h-7 object-cover shrink-0 rounded-full "
+          className="w-8 h-8 object-cover shrink-0 rounded-full "
         />
-        <form
-          className="flex px-2 rounded-full bg-[#2c3440] w-full items-center "
-          onSubmit={(e) => {
-            e.preventDefault();
-            addComment(post?._id);
-          }}
-        >
-          <input
-            type="text"
-            className="px-2 py-1 text-sm sm:py-1.5 border-none focus:ring-0 bg-inherit rounded-full w-full font-medium dark:placeholder:text-[#b0b3b8] "
-            placeholder="Write a comment..."
-            value={textComment}
-            disabled={commentLoading}
-            onChange={(e) => {
-              setTextComment(e.target.value);
+        <div className="w-full flex flex-col">
+          <form
+            className="flex w-full px-2  rounded-lg bg-[#2c3440] items-start "
+            onSubmit={(e) => {
+              e.preventDefault();
+              addComment(post?._id);
             }}
-          />
-          {!commentLoading && (
-            <label>
-              <AiOutlineCamera className="shrink-0 text-[18px] transition-50 mr-2 opacity-60 hover:opacity-100 dark:text-[#b0b3b8] cursor-pointer " />
-              <input
-                onChange={handleImage}
-                type="file"
-                accept="image/*"
-                name="avatar"
-                hidden
-              />
-            </label>
-          )}
-          <button type="submit" disabled={commentLoading || !textComment}>
-            {commentLoading ? (
-              <ReactLoading
-                type="spin"
-                width={20}
-                height={20}
-                color="#7d838c"
-              />
-            ) : (
-              <AiOutlineSend className="shrink-0 text-[18px] transition-50 cursor-pointer opacity-60 hover:opacity-100 dark:text-[#b0b3b8]" />
+          >
+            <textarea
+              type="text"
+              className="px-2 py-1 text-sm sm:py-1.5 border-none focus:ring-0 bg-inherit rounded-lg w-full font-medium dark:placeholder:text-[#b0b3b8] "
+              placeholder="Write a comment..."
+              value={textComment}
+              disabled={commentLoading}
+              onChange={(e) => {
+                setTextComment(e.target.value);
+              }}
+            />
+            {!commentLoading && (
+              <label className="py-2">
+                <AiOutlineCamera className="shrink-0 text-[18px] transition-50 mr-2 opacity-60 hover:opacity-100 dark:text-[#b0b3b8] cursor-pointer " />
+                <input
+                  onChange={handleImage}
+                  type="file"
+                  accept="image/*"
+                  name="avatar"
+                  hidden
+                />
+              </label>
             )}
-          </button>
-        </form>
+            <button
+              className="py-2"
+              type="submit"
+              disabled={commentLoading || !textComment}
+            >
+              {commentLoading ? (
+                <ReactLoading
+                  type="spin"
+                  width={20}
+                  height={20}
+                  color="#7d838c"
+                />
+              ) : (
+                <AiOutlineSend className="shrink-0 text-[18px] transition-50 cursor-pointer opacity-60 hover:opacity-100 dark:text-[#b0b3b8]" />
+              )}
+            </button>
+          </form>
+
+          <div className="transition-50 flex items-start justify-start w-full group ">
+            {imageComment && (
+              <div className="relative ">
+                <img
+                  // @ts-ignore
+                  src={imageComment?.url}
+                  alt="image_comment"
+                  className="h-20 w-auto rounded-lg object-contain "
+                />
+                {!commentLoading && (
+                  <MdCancel
+                    className="absolute hidden group-hover:flex top-1 right-1 text-xl transition-50 cursor-pointer "
+                    onClick={deleteImageComment}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* image when comment have image */}
-      <div className="transition-50 flex items-start justify-start w-full px-20 group ">
-        {imageComment && (
-          <div className="relative ">
-            <img
-              // @ts-ignore
-              src={imageComment?.url}
-              alt="image_comment"
-              className="h-20 w-auto object-contain "
-            />
-            {!commentLoading && (
-              <MdCancel
-                className="absolute hidden group-hover:flex top-1 right-1 text-xl transition-50 cursor-pointer "
-                onClick={deleteImageComment}
-              />
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 };
