@@ -336,7 +336,7 @@ const TradeForm = ({
             ref={markdownRef}
             id="text"
             className="standard-input"
-            markdown={input.text}
+            markdown={input.text|| "Text here"}
             placeholder={`Review`}
             onBlur={() => {
               setInput((prev) => ({
@@ -415,7 +415,7 @@ const TradeForm = ({
             />
 
             {isSearching && (isEmpty || listSearchResult.length > 0) && (
-              <div className="scroll-bar -top-[180px] text-xs p-2 absolute bg-altDialogue max-h-[300px] rounded-lg overflow-y-auto overflow-x-hidden">
+              <div className="scroll-bar top-[76px] z-[500] text-xs p-2 absolute bg-altDialogue max-h-[300px] rounded-lg overflow-y-auto overflow-x-hidden">
                 {isEmpty && <div className="">No address found!</div>}
                 {listSearchResult.length > 0 && <ResultList />}
               </div>
@@ -426,7 +426,7 @@ const TradeForm = ({
             Hashtag
           </label>
           <div className="standard-input h-[50px] flex items-center mb-2">
-            {input.hashtag.length > 0 && (
+            {input?.hashtag?.length > 0 && (
               <div className="flex items-center gap-x-1 mr-2">
                 {input.hashtag.map((one, index) => (
                   <div className="relative text-xs text-mainText inline-block rounded-full bg-dialogue px-2 py-1">

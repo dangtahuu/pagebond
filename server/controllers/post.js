@@ -3,7 +3,7 @@ import User from "./../models/user.js";
 import Book from "../models/book.js";
 import Review from "../models/review.js";
 import Trade from "../models/trade.js";
-import SpecialPost from "../models/specialPost.js";
+import News from "../models/news.js";
 import cloudinary from "cloudinary";
 import mongoose from "mongoose";
 import Log from "../models/log.js";

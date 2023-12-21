@@ -20,14 +20,14 @@ const Question = ({
 }) => {
   const [attachment, setAttachment] = useState("");
 
-  const [input, setInput] = useState({
+  const initInput = {
     title: "",
     text: "",
     image: "",
     hashtag: [],
     spoiler: false,
-
-  });
+  }
+  const [input, setInput] = useState(initInput);
 
   const [openModal, setOpenModal] = useState(false);
   const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
@@ -125,6 +125,7 @@ const Question = ({
           attachment={attachment}
           setAttachment={setAttachment}
           createNewPost={createNewQuestion}
+          initInput={initInput}
         />
       )}
 

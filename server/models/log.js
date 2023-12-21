@@ -19,7 +19,7 @@ const logSchema = new mongoose.Schema(
     },
     typeOfLink: {
         type: String,
-        enum: ['User','Post', 'Trade','Review',"SpecialPost","Question","Voucher"]
+        enum: ['User','Post', 'Trade','Review',"News","Question","Voucher"]
       },
     linkTo: { type: mongoose.Schema.Types.ObjectId},
     note: {

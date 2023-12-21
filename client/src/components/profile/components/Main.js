@@ -6,7 +6,7 @@ import {toast} from "react-toastify";
 // components
 import {LoadingPost, Modal, Post, LoadingForm, CreateBox, PostForm} from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
-import SpecialPostForm from "../../common/SpecialPostForm";
+import NewsForm from "../../common/NewsForm";
 
 const Main = ({
     own,
@@ -22,7 +22,7 @@ const Main = ({
       };
       const [input, setInput] = useState(initInput);
 
-      const [specialInput, setSpecialInput] = useState({
+      const [newsInput, setNewsInput] = useState({
         text: "",
         title: "",
         image: "",
@@ -31,10 +31,10 @@ const Main = ({
     
       });
       const [postOpen, setPostOpen] = useState(false);
-      const [specialPostOpen, setSpecialPostOpen] = useState(false);
+      const [newsOpen, setNewsOpen] = useState(false);
     
       const [attachment, setAttachment] = useState("");
-      const [specialAttachment, setSpecialAttachment] = useState("");
+      const [newsAttachment, setNewsAttachment] = useState("");
     const [loading, setLoading] = useState(false)
 
     const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
@@ -51,7 +51,7 @@ const Main = ({
     const [moreTrades, setMoreTrades] = useState(true);
     const [moreQuestions, setMoreQuestions] = useState(true);
   
-    const [moreSpecialPosts, setMoreSpecialPosts] = useState(true)
+    const [moreNewss, setMoreNewss] = useState(true)
 
     useEffect(()=>{
         getFirstData()
@@ -60,14 +60,14 @@ const Main = ({
     const getFirstData = async () => {
         setLoading(true)
         try {
-          const [posts, reviews, trades, special, questions] = await Promise.all([
+          const [posts, reviews, trades, news, questions] = await Promise.all([
             getPosts(),
             getReviews(),
             getTrades(),
-            getSpecial(),
+            getNews(),
             getQuestions()
           ]);
-          let data = [...posts, ...reviews, ...trades, ...special,...questions];
+          let data = [...posts, ...reviews, ...trades, ...news,...questions];
           data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           let firstData = data.splice(0, 10);
           setActivePosts(firstData);
@@ -83,11 +83,11 @@ const Main = ({
     
       const getMoreData = async () => {
         try {
-          const [posts, reviews, trades, special, questions] = await Promise.all([
+          const [posts, reviews, trades, news, questions] = await Promise.all([
             getPosts(),
             getReviews(),
             getTrades(),
-            getSpecial(),
+            getNews(),
             getQuestions()
           ]);
           let data = [
@@ -95,7 +95,7 @@ const Main = ({
             ...posts,
             ...reviews,
             ...trades,
-            ...special,
+            ...news,
             ...questions
           ];
           setPage((prev) => prev++);
@@ -143,12 +143,12 @@ const Main = ({
         return data.posts;
       };
     
-      const getSpecial = async () => {
-        if (!moreSpecialPosts) return [];
+      const getNews= async () => {
+        if (!moreNewss) return [];
         const { data } = await autoFetch.get(
-          `/api/special/withUser/${user._id}?page=${page + 1}`
+          `/api/news/withUser/${user._id}?page=${page + 1}`
         );
-        if (data.posts.length < 10) setMoreSpecialPosts(false);
+        if (data.posts.length < 10) setMoreNewss(false);
         if (data.posts.length === 0) return [];
         return data.posts;
       };
@@ -192,7 +192,7 @@ const Main = ({
         }
       };
     
-      const createNewSpecialPost = async (formData) => {
+      const createNewNews = async (formData) => {
         setLoadingCreateNewPost(true);
         try {
           let image = null;
@@ -204,21 +204,21 @@ const Main = ({
             image = { url: data.url, public_id: data.public_id };
           }
           console.log(user.role);
-          const { data } = await autoFetch.post(`api/special/create`, {
-            text: specialInput.text,
-            title: specialInput.title,
+          const { data } = await autoFetch.post(`api/news/create`, {
+            text: newsInput.text,
+            title: newsInput.title,
             image,
-            hashtag: specialInput.hashtag,
+            hashtag: newsInput.hashtag,
             type: user.role === 1 ? 1 : 0,
             spoiler: input.spoiler
           });
           setActivePosts((prev) => [data.post, ...prev]);
     
           if (user.role === 1)
-            toast.success("Create new special post successfully!");
+            toast.success("Create news successfully!");
           else
             toast.success(
-              "An admin will verify your special post before it gets promoted"
+              "An admin will verify your news before it gets promoted"
             );
         } catch (error) {
           console.log(error);
@@ -273,23 +273,23 @@ const Main = ({
         />
       )}
 
-      {specialPostOpen && (
-        <SpecialPostForm
-          setOpenModal={setSpecialPostOpen}
-          input={specialInput}
-          setInput={setSpecialInput}
-          attachment={specialAttachment}
-          setAttachment={setSpecialAttachment}
-          createNewPost={createNewSpecialPost}
+      {newsOpen && (
+        <NewsForm
+          setOpenModal={setNewsOpen}
+          input={newsInput}
+          setInput={setNewsInput}
+          attachment={newsAttachment}
+          setAttachment={setNewsAttachment}
+          createNewPost={createNewNews}
         />
       )}
 
             {user._id === own._id && 
              <CreateBox
              setOpenForm={setPostOpen}
-             setOpenSpecial={setSpecialPostOpen}
+             setOpenNews={setNewsOpen}
              user={user}
-             allowSpecialPost={true}
+             allowNews={true}
              text="post"
            />}
 

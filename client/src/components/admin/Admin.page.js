@@ -3,7 +3,7 @@ import { useAppContext } from "../../context/useContext";
 import UserGrid from "./components/UserGrid";
 import PostGrid from "./components/PostGrid";
 import HeaderMenu from "../common/HeaderMenu";
-import SpecialGrid from "./components/SpecialGrid";
+import News from "./components/News";
 import Voucher from "./components/Voucher";
 
 const Admin = () => {
@@ -14,13 +14,13 @@ const Admin = () => {
     "Reviews",
     "Trades",
     "Questions",
-    "Special Posts",
+    "News",
     "Vouchers",
   ];
 
   const userList = ["All", "Pending", "Reported", "Blocked"];
   const postList = ["All", "Reported"];
-  const specialList = ["All", "Pending", "Reported"];
+  const newsList = ["All", "Pending", "Reported"];
   const [menu, setMenu] = useState("All");
 
   return (
@@ -46,20 +46,20 @@ const Admin = () => {
         {bigMenu === "Users" && (
           <HeaderMenu list={userList} menu={menu} handler={setMenu} />
         )}
-        {bigMenu === "Special Posts" && (
-          <HeaderMenu list={specialList} menu={menu} handler={setMenu} />
+        {bigMenu === "News" && (
+          <HeaderMenu list={newsList} menu={menu} handler={setMenu} />
         )}
-        {bigMenu !== "Users" && bigMenu !== "Special Posts" && bigMenu !== "Vouchers" && (
+        {bigMenu !== "Users" && bigMenu !== "News" && bigMenu !== "Vouchers" && (
           <HeaderMenu list={postList} menu={menu} handler={setMenu} />
         )}
 
         {bigMenu === "Users" && <UserGrid option={menu} />}
-        {bigMenu === "Special Posts" && <SpecialGrid option={menu} />}
+        {bigMenu === "News" && <News option={menu} />}
         
         {bigMenu === "Vouchers" && <Voucher />}
 
 
-        {bigMenu !== "Users" && bigMenu !== "Special Posts" && bigMenu !== "Vouchers" && (
+        {bigMenu !== "Users" && bigMenu !== "News" && bigMenu !== "Vouchers" && (
           <PostGrid option={menu} menu={bigMenu} />
         )}
       </div>

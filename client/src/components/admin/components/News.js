@@ -21,11 +21,11 @@ const darkTheme = createTheme({
 });
 
 
-const SpecialGrid = ({ menu, option }) => {
+const News = ({ menu, option }) => {
   const apis = {
-    All: `/api/special/all`,
-    Pending: `/api/special/all-pending`,
-    Reported: `/api/special/all-reported`,
+    All: `/api/news/all`,
+    Pending: `/api/news/all-pending`,
+    Reported: `/api/news/all-reported`,
   };
 
   const { autoFetch } = useAppContext();
@@ -144,7 +144,7 @@ const SpecialGrid = ({ menu, option }) => {
 
     try {
       const { data } = await autoFetch.delete(
-        `/api/special/admin/delete/${id}`
+        `/api/news/admin/delete/${id}`
       );
       toast("Delete successfully!");
       getAllPosts();
@@ -156,7 +156,7 @@ const SpecialGrid = ({ menu, option }) => {
 
   const handleDismiss = async (id) => {
     try {
-      const { data } = await autoFetch.patch(`/api/special/unreport`, {
+      const { data } = await autoFetch.patch(`/api/news/unreport`, {
         postId: id,
       });
       toast("Dismiss report successfully!");
@@ -169,7 +169,7 @@ const SpecialGrid = ({ menu, option }) => {
 
   const handleVerify = async (id) => {
     try {
-      const { data } = await autoFetch.patch(`/api/special/verify`, {
+      const { data } = await autoFetch.patch(`/api/news/verify`, {
         postId: id,
       });
       toast("Verify successfully!");
@@ -228,4 +228,4 @@ const SpecialGrid = ({ menu, option }) => {
   );
 };
 
-export default SpecialGrid;
+export default News;

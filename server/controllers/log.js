@@ -60,13 +60,13 @@ const getNotifications = async (req, res) => {
     });
 
     
-    const specialPostLogs = notifications.filter(
-      (one) => one.typeOfLink === "SpecialPost"
+    const newsLogs = notifications.filter(
+      (one) => one.typeOfLink === "News"
     );
 
-    const specialPostDetailLogs = await Log.populate(specialPostLogs, {
+    const newsDetailLogs = await Log.populate(newsLogs, {
       path: "linkTo",
-      model: "SpecialPost",
+      model: "News",
     });
 
     const questionLogs = notifications.filter(
@@ -83,7 +83,7 @@ const getNotifications = async (req, res) => {
       ...postDetailLogs,
       ...reviewDetailLogs,
       ...tradeDetailLogs,
-      ...specialPostDetailLogs,
+      ...newsDetailLogs,
       ...questionDetailLogs
     ];
 
@@ -181,13 +181,13 @@ const getLogs = async (req, res) => {
       });
   
       
-      const specialPostLogs = logs.filter(
-        (one) => one.typeOfLink === "SpecialPost"
+      const newsLog = logs.filter(
+        (one) => one.typeOfLink === "News"
       );
   
-      const specialPostDetailLogs = await Log.populate(specialPostLogs, {
+      const newsDetailLogs = await Log.populate(newsLog, {
         path: "linkTo",
-        model: "SpecialPost",
+        model: "News",
       });
 
       const voucherLogs = logs.filter(
@@ -204,7 +204,7 @@ const getLogs = async (req, res) => {
         ...postDetailLogs,
         ...reviewDetailLogs,
         ...tradeDetailLogs,
-        ...specialPostDetailLogs,
+        ...newsDetailLogs,
         ...voucherDetailLogs
       ];
   

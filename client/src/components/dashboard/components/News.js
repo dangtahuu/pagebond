@@ -36,7 +36,7 @@ const News = ({ autoFetch, name = "", url = ""}) => {
                   <div
                     className="w-full bg-dialogue cursor-pointer rounded-lg mt-4"
                     key={a._id}
-                    onClick={() => navigate(`/detail/special/${a._id}`)}
+                    onClick={() => navigate(`/detail/news/${a._id}`)}
                   >
                     <img
                       className="rounded-t-lg max-h-32 w-full object-cover"

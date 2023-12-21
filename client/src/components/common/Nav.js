@@ -48,9 +48,9 @@ const Nav = () => {
   const exceptionRef = useRef();
   useOnClickOutside(notiRef, () => setNotiMenu(false), exceptionRef);
 
-  useEffect(()=>{
-    console.log(location.pathname)
-  },[location])
+  useEffect(() => {
+    console.log(location.pathname);
+  }, [location]);
 
   const getUnreadMessages = async () => {
     try {
@@ -62,7 +62,6 @@ const Nav = () => {
   };
 
   const getNotifications = async () => {
-
     try {
       const { data } = await autoFetch.get(`api/log/noti`);
       setNotifications(data.notifications);
@@ -111,10 +110,13 @@ const Nav = () => {
 
       socket.on("new-follower", (data) => {
         const { newFollower, receivedId } = data;
-
-        if (receivedId !== user._id) return;
-        toast.success(`${newFollower.name} have followed you`);
-        getNotifications();
+        console.log(receivedId);
+        console.log(user._id);
+        console.log(receivedId === user._id)
+        if (receivedId === user._id) {
+          toast.success(`${newFollower.name} have followed you`);
+          getNotifications();
+        }
       });
 
       socket.on("new-comment", (data) => {

@@ -392,7 +392,7 @@ useEffect(()=>{
             }}
           />
 <div className="mt-3 flex items-center gap-x-3">
-              <input type="checkbox" name="official" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
+              <input type="checkbox" name="" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
               <label className="text-xs md:text-sm">This contains spoiler of content?</label>
               </div>
           <label className="form-label" for="hashtag">

@@ -230,7 +230,7 @@ const PostForm = ({
           }
         }}
       ></div>
-      <div className="mx-auto w-[60%] bg-dialogue rounded-xl px-4 z-[202] box-shadow relative ">
+      <div className="mx-auto w-[60%] bg-dialogue max-h-[80vh] overflow-auto style-3 rounded-xl px-4 z-[202] box-shadow relative ">
         <IoClose
           className="absolute top-4 right-6 text-lg opacity-50 hover:opacity-100 cursor-pointer transition-50 "
           onClick={() => {
@@ -288,7 +288,7 @@ const PostForm = ({
           />
 
 <div className="mt-3 flex items-center gap-x-3">
-              <input type="checkbox" name="official" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
+              <input type="checkbox" name="" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
               <label className="text-xs md:text-sm">This contains spoiler of content?</label>
               </div>
 

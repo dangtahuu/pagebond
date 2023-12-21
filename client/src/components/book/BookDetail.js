@@ -9,7 +9,7 @@ import { FiEdit2 } from "react-icons/fi";
 import ShelvesForm from "../common/ShelvesForm";
 import { Rating, Tooltip } from "@mui/material";
 import Similar from "./components/Similar";
-import Official from "./components/Official";
+import News from "./components/News";
 import Question from "./components/Question";
 import { VscOpenPreview } from "react-icons/vsc";
 import Post from "../common/Post";
@@ -34,14 +34,14 @@ function BookDetail() {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [myPostLoading, setMyPostLoading] = useState(false);
   const [exchangeLoading, setExchangeLoading] = useState(false);
-  const [officialLoading, setOfficialLoading] = useState(false);
+  const [newsLoading, setNewsLoading] = useState(false);
   const [questionLoading, setQuestionLoading] = useState(false);
 
   const [shelvesLoading, setShelvesLoading] = useState(false);
   const [selectedShelvesLoading, setSelectedShelvesLoading] = useState(false);
   const [moreReviews, setMoreReviews] = useState(true);
   const [moreTrades, setMoreTrades] = useState(true);
-  const [moreOfficial, setMoreOfficial] = useState(true);
+  const [moreNews, setMoreNews] = useState(true);
   const [moreQuestion, setMoreQuestion] = useState(true);
   const [promptOpen, setPromptOpen] = useState(false);
   const [book, setBook] = useState({
@@ -71,7 +71,7 @@ function BookDetail() {
   const [myPosts, setMyPosts] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [exchange, setExchange] = useState([]);
-  const [official, setOfficial] = useState([]);
+  const [news, setNews] = useState([]);
   const [question, setQuestion] = useState([]);
   const [featured, setFeatured] = useState({});
 
@@ -81,11 +81,11 @@ function BookDetail() {
 
   const [reviewPage, setReviewPage] = useState(1);
   const [exchangePage, setExchangePage] = useState(1);
-  const [officialPage, setOfficialPage] = useState(1);
+  const [newsPage, setNewsPage] = useState(1);
   const [questionPage, setQuestionPage] = useState(1);
 
   const [error, setError] = useState("");
-  const list = ["By me", "Reviews", "Tradings", "Official", "Questions"];
+  const list = ["By me", "Reviews", "Tradings", "News", "Questions"];
   const [menu, setMenu] = useState("Reviews");
   const [openModal, setOpenModal] = useState(false);
   const [shelfForm, setShelfForm] = useState(false);
@@ -105,10 +105,10 @@ function BookDetail() {
   }, exceptRef);
 
   let chatInfo = {
-    name: "Book Assistant",
-    _id: "6561e80e6dfae0a11ba298b6",
+    name: "Assistant",
+    _id: "658370b92d1567e8c71e3f39",
     image: {
-      url: "http://res.cloudinary.com/dksyipjlk/image/upload/v1678289715/o4e7jk4wizov3cjcfdos.jpg",
+      url: "http://res.cloudinary.com/dksyipjlk/image/upload/v1703112987/u30vyxopnjiwhbeso75w.webp",
     },
   };
   useEffect(() => {
@@ -258,33 +258,33 @@ function BookDetail() {
     }
   };
 
-  const getNewOfficial = async () => {
-    setOfficialLoading(true);
+  const getNewNews = async () => {
+    setNewsLoading(true);
     try {
       const { data } = await autoFetch.get(
-        `/api/special/book/${id}?page=${officialPage + 1}`
+        `/api/news/book/${id}?page=${newsPage + 1}`
       );
-      setExchangePage(officialPage + 1);
-      setExchange([...official, ...data.posts]);
-      if (data.posts.length < 10) setMoreOfficial(false);
+      setExchangePage(newsPage + 1);
+      setExchange([...news, ...data.posts]);
+      if (data.posts.length < 10) setMoreNews(false);
     } catch (error) {
       console.log(error);
       setError(true);
     }
-    setOfficialLoading(false);
+    setNewsLoading(false);
   };
 
-  const getFirstOfficial = async () => {
-    setMoreOfficial(true);
-    setOfficialLoading(true);
+  const getFirstNews = async () => {
+    setMoreNews(true);
+    setNewsLoading(true);
     try {
-      const { data } = await autoFetch.get(`/api/special/book/${id}?page=1`);
-      if (data.posts) setOfficial(data.posts);
-      if (data.posts.length < 10) setMoreOfficial(false);
+      const { data } = await autoFetch.get(`/api/news/book/${id}?page=1`);
+      if (data.posts) setNews(data.posts);
+      if (data.posts.length < 10) setMoreNews(false);
     } catch (error) {
       console.log(error);
     }
-    setOfficialLoading(false);
+    setNewsLoading(false);
   };
 
   const getNewQuestion = async () => {
@@ -294,7 +294,7 @@ function BookDetail() {
         `/api/question/book/${id}?page=${questionPage + 1}`
       );
       setQuestionPage(questionPage + 1);
-      setExchange([...official, ...data.posts]);
+      setExchange([...news, ...data.posts]);
       if (data.posts.length < 10) setMoreQuestion(false);
     } catch (error) {
       console.log(error);
@@ -320,16 +320,16 @@ function BookDetail() {
   const getMyPosts = async () => {
     setMyPostLoading(true);
     try {
-      const [{ data: reviewRes }, { data: tradeRes }, { data: specialRes }] =
+      const [{ data: reviewRes }, { data: tradeRes }, { data: newsRes }] =
         await Promise.all([
           autoFetch.get(`/api/review/book-my/${id}`),
           autoFetch.get(`/api/trade/book-my/${id}`),
-          autoFetch.get(`/api/special/book-my/${id}`),
+          autoFetch.get(`/api/news/book-my/${id}`),
         ]);
       let results = [
         ...reviewRes.posts,
         ...tradeRes.posts,
-        ...specialRes.posts,
+        ...newsRes.posts,
       ];
       results.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setMyPosts(results);
@@ -358,7 +358,7 @@ function BookDetail() {
 
   const getFeatured = async () => {
     try {
-      const { data } = await autoFetch.get(`/api/special/book-featured/${id}`);
+      const { data } = await autoFetch.get(`/api/news/book-featured/${id}`);
       setFeatured(data.post);
     } catch (error) {
       console.log(error);
@@ -402,8 +402,10 @@ function BookDetail() {
     try {
       if (toRead) {
         const { data } = await autoFetch.patch(`/api/shelf/remove-tbr`, { id });
+        toast.success("Remove from to read successfully")
       } else {
         const { data } = await autoFetch.patch(`/api/shelf/add-tbr`, { id });
+        toast.success("Add to to read successfully")
       }
       await getSelectedShelves();
     } catch (error) {
@@ -527,19 +529,19 @@ function BookDetail() {
           moreTrades={moreTrades}
         />
       );
-    } else if (menu === "Official") {
+    } else if (menu === "News") {
       return (
-        <Official
-          posts={official}
-          loading={officialLoading}
+        <News
+          posts={news}
+          loading={newsLoading}
           token={token}
           autoFetch={autoFetch}
           user={user}
-          getAllPosts={getFirstOfficial}
-          setPosts={setOfficial}
-          getNewPosts={getNewOfficial}
+          getAllPosts={getFirstNews}
+          setPosts={setNews}
+          getNewPosts={getNewNews}
           book={book}
-          moreTrades={moreOfficial}
+          moreTrades={moreNews}
         />
       );
     } else if (menu === "Questions") {
@@ -605,7 +607,7 @@ function BookDetail() {
 
             <button
               className={`primary-btn w-[200px]`}
-              onClick={() => handleToRead}
+              onClick={() => handleToRead()}
             >
               <TbEyeglass className="text-lg text-white" />{toRead ? "Remove from To read" : "Want to read"}
             </button>

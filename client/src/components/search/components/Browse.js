@@ -152,7 +152,7 @@ function Browse() {
       );
 
     return (
-      <div className="grid grid-cols-5 gap-x-3">
+      <div className="grid grid-cols-5 gap-x-3 gap-y-3">
         {popularUsers.map((person) => {
           return (
           <UserCard person={person}/>

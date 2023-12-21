@@ -63,7 +63,6 @@ const userSchema = new mongoose.Schema(
     featuredShelf:   {
       type: mongoose.Types.ObjectId,
       ref: "Shelf",
-      required: true
     },
     blocked: {
       type: String,

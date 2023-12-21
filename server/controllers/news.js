@@ -1,4 +1,4 @@
-import SpecialPost from "../models/specialPost.js";
+import News from "../models/news.js";
 import cloudinary from "cloudinary";
 import User from "../models/user.js";
 import Log from "../models/log.js";
@@ -35,7 +35,7 @@ const create = async (req, res) => {
     }
 
     if (book) {
-      post = await SpecialPost.create({
+      post = await News.create({
         text,
         book: book.id,
         postedBy: req.user.userId,
@@ -46,7 +46,7 @@ const create = async (req, res) => {
         spoiler
       });
     } else {
-      post = await SpecialPost.create({
+      post = await News.create({
         text,
         postedBy: req.user.userId,
         image,
@@ -56,7 +56,7 @@ const create = async (req, res) => {
       });
     }
 
-    const postWithUser = await SpecialPost.findById(post._id)
+    const postWithUser = await News.findById(post._id)
       .populate("postedBy", "-password -secret")
       .populate("hashtag");
 
@@ -71,14 +71,14 @@ const create = async (req, res) => {
 
 const getAll = async (req, res) => {
   try {
-    const posts = await SpecialPost.find({})
+    const posts = await News.find({})
       .populate("postedBy", "-password -secret")
       .populate("hashtag")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
     }
-    const postsCount = await SpecialPost.find({}).estimatedDocumentCount();
+    const postsCount = await News.find({}).estimatedDocumentCount();
     return res.status(200).json({ posts, postsCount });
   } catch (error) {
     console.log(error);
@@ -99,7 +99,7 @@ const search = async (req, res) => {
 
     if (term.startsWith("#")) {
       const hashtag = await Hashtag.findOne({ name: term.slice(1) });
-      results = await SpecialPost.aggregate([
+      results = await News.aggregate([
         { $match: { hashtag: { $in: [hashtag._id] } } },
         {
           $addFields: {
@@ -126,7 +126,7 @@ const search = async (req, res) => {
       const regex = new RegExp(regexPattern, "i");
 
       const hashtag = await Hashtag.findOne({ name: term.slice(1) });
-      results = await SpecialPost.aggregate([
+      results = await News.aggregate([
         {
           $match: {
             $or: [{ title: { $regex: regex } }, { text: { $regex: regex } }],
@@ -153,7 +153,7 @@ const search = async (req, res) => {
     let posts = [];
     if (results.length > 0) {
       for (const id of results) {
-        const post = await SpecialPost.findById(id)
+        const post = await News.findById(id)
           .populate("postedBy", "-password -secret")
           .populate("comments.postedBy", "-password -secret")
           .populate("hashtag")
@@ -171,7 +171,7 @@ const search = async (req, res) => {
 const getOne = async (req, res) => {
   try {
     const postId = req.params.id;
-    const post = await SpecialPost.findById(postId)
+    const post = await News.findById(postId)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("hashtag")
@@ -193,7 +193,7 @@ const edit = async (req, res) => {
       return res.status(400).json({ msg: "Content and title are required!" });
     }
 
-    const oldPost = await SpecialPost.findById(postId).populate("hashtag");
+    const oldPost = await News.findById(postId).populate("hashtag");
 
     if (!oldPost) {
       return res.status(400).json({ msg: "No post found!" });
@@ -222,7 +222,7 @@ const edit = async (req, res) => {
         }
       }
     }
-    const post = await SpecialPost.findByIdAndUpdate(
+    const post = await News.findByIdAndUpdate(
       postId,
       {
         text,
@@ -249,7 +249,7 @@ const edit = async (req, res) => {
 const deleteOne = async (req, res) => {
   try {
     const postId = req.params.id;
-    const post = await SpecialPost.findByIdAndDelete(postId);
+    const post = await News.findByIdAndDelete(postId);
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
     }
@@ -276,7 +276,7 @@ const deleteOne = async (req, res) => {
 const like = async (req, res) => {
   try {
     const postId = req.body.postId;
-    const post = await SpecialPost.findByIdAndUpdate(
+    const post = await News.findByIdAndUpdate(
       postId,
       {
         $addToSet: { likes: req.user.userId },
@@ -293,7 +293,7 @@ const like = async (req, res) => {
       toUser: post.postedBy,
       fromUser: req.user.userId,
       linkTo: post._id,
-      typeOfLink: "SpecialPost",
+      typeOfLink: "News",
       type: 3,
       points: 5,
     });
@@ -307,7 +307,7 @@ const like = async (req, res) => {
 const unlike = async (req, res) => {
   try {
     const postId = req.body.postId;
-    const post = await SpecialPost.findByIdAndUpdate(
+    const post = await News.findByIdAndUpdate(
       postId,
       {
         $pull: { likes: req.user.userId },
@@ -324,7 +324,7 @@ const unlike = async (req, res) => {
       toUser: post.postedBy,
       fromUser: req.user.userId,
       linkTo: post._id,
-      typeOfLink: "SpecialPost",
+      typeOfLink: "News",
       type: 4,
       points: -5,
     });
@@ -337,7 +337,7 @@ const unlike = async (req, res) => {
 const addComment = async (req, res) => {
   try {
     const { postId, comment, image } = req.body;
-    const post = await SpecialPost.findByIdAndUpdate(
+    const post = await News.findByIdAndUpdate(
       postId,
       {
         $push: {
@@ -363,7 +363,7 @@ const addComment = async (req, res) => {
       toUser: post.postedBy,
       fromUser: req.user.userId,
       linkTo: post._id,
-      typeOfLink: "SpecialPost",
+      typeOfLink: "News",
       type: 5,
       points: 20,
     });
@@ -377,7 +377,7 @@ const addComment = async (req, res) => {
 const removeComment = async (req, res) => {
   try {
     const { postId, commentId } = req.body;
-    const post = await SpecialPost.findByIdAndUpdate(
+    const post = await News.findByIdAndUpdate(
       postId,
       {
         $pull: { comments: { _id: commentId } },
@@ -397,7 +397,7 @@ const removeComment = async (req, res) => {
       toUser: post.postedBy,
       fromUser: req.user.userId,
       linkTo: post._id,
-      typeOfLink: "SpecialPost",
+      typeOfLink: "News",
       type: 6,
       points: -20,
     });
@@ -413,7 +413,7 @@ const getWithUser = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
     const userId = req.params.userId;
-    const posts = await SpecialPost.find({ postedBy: { _id: userId } })
+    const posts = await News.find({ postedBy: { _id: userId } })
     .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
@@ -433,7 +433,7 @@ const getWithUser = async (req, res) => {
 
 const getAdmin = async (req, res) => {
   try {
-    const posts = await SpecialPost.find({ type: 1 })
+    const posts = await News.find({ type: 1 })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
@@ -450,12 +450,12 @@ const getAdmin = async (req, res) => {
   }
 };
 
-const getOfficial = async (req, res) => {
+const getFromOfficial = async (req, res) => {
   try {
     const days = new Date();
     days.setDate(days.getDate() - 7);
 
-    const randomPostIds = await SpecialPost.aggregate([
+    const randomPostIds = await News.aggregate([
       {
         $match: {
           type: 2,
@@ -467,7 +467,7 @@ const getOfficial = async (req, res) => {
 
     const postIds = randomPostIds.map((post) => post._id);
 
-    const posts = await SpecialPost.find({ _id: { $in: postIds } })
+    const posts = await News.find({ _id: { $in: postIds } })
       .populate("postedBy", "-password -secret")
       .populate("hashtag");
 
@@ -493,7 +493,7 @@ const getFollowing = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
 
-    const posts = await SpecialPost.find({ postedBy: { $in: following } })
+    const posts = await News.find({ postedBy: { $in: following } })
       .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
@@ -516,7 +516,7 @@ const getAllWithBook = async (req, res) => {
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
 
-    const posts = await SpecialPost.find({
+    const posts = await News.find({
       $and: [{ book: id }, { type: { $ne: 0 } }],
     })
       .skip((page - 1) * perPage)
@@ -537,7 +537,7 @@ const getFeatured = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const posts = await SpecialPost.find({
+    const posts = await News.find({
       $and: [{ book: id }, { type: { $ne: 0 } }],
     })
       .populate("postedBy", "-password -secret")
@@ -558,7 +558,7 @@ const getMy = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.userId;
 
-    const posts = await SpecialPost.find({
+    const posts = await News.find({
       $and: [{ book: id }, { postedBy: userId }],
     })
       .populate("postedBy", "-password -secret")
@@ -579,7 +579,7 @@ const getPopular = async (req, res) => {
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(today.getDate() - 7);
 
-    const aggregated = await SpecialPost.aggregate([
+    const aggregated = await News.aggregate([
       {
         $match: {
           createdAt: { $gt: sevenDaysAgo },
@@ -608,7 +608,7 @@ const getPopular = async (req, res) => {
       idsList.push(one._id);
     });
 
-    const posts = await SpecialPost.find({ _id: { $in: idsList } })
+    const posts = await News.find({ _id: { $in: idsList } })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
@@ -624,7 +624,7 @@ const getPopular = async (req, res) => {
 const report = async (req, res) => {
   try {
     const postId = req.body.postId;
-    const post = await SpecialPost.findByIdAndUpdate(
+    const post = await News.findByIdAndUpdate(
       postId,
       {
         reported: true,
@@ -644,7 +644,7 @@ const report = async (req, res) => {
 const dismissReport = async (req, res) => {
   try {
     const postId = req.body.postId;
-    const post = await SpecialPost.findByIdAndUpdate(
+    const post = await News.findByIdAndUpdate(
       postId,
       {
         reported: false,
@@ -664,7 +664,7 @@ const dismissReport = async (req, res) => {
 const verify = async (req, res) => {
   try {
     const postId = req.body.postId;
-    const post = await SpecialPost.findByIdAndUpdate(
+    const post = await News.findByIdAndUpdate(
       postId,
       {
         type: 2,
@@ -683,14 +683,14 @@ const verify = async (req, res) => {
 
 const getAllReported = async (req, res) => {
   try {
-    const posts = await SpecialPost.find({ reported: true })
+    const posts = await News.find({ reported: true })
       .populate("postedBy", "-password -secret")
       .populate("hashtag")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
     }
-    const postsCount = await SpecialPost.find({}).estimatedDocumentCount();
+    const postsCount = await News.find({}).estimatedDocumentCount();
     return res.status(200).json({ posts, postsCount });
   } catch (error) {
     console.log(error);
@@ -700,14 +700,14 @@ const getAllReported = async (req, res) => {
 
 const getAllPending = async (req, res) => {
   try {
-    const posts = await SpecialPost.find({ type: 0 })
+    const posts = await News.find({ type: 0 })
       .populate("postedBy", "-password -secret")
       .populate("hashtag")
       .sort({ createdAt: -1 });
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
     }
-    const postsCount = await SpecialPost.find({}).estimatedDocumentCount();
+    const postsCount = await News.find({}).estimatedDocumentCount();
     return res.status(200).json({ posts, postsCount });
   } catch (error) {
     console.log(error);
@@ -732,7 +732,7 @@ export {
   getFeatured,
   getMy,
   getAdmin,
-  getOfficial,
+  getFromOfficial,
   report,
   dismissReport,
   getAllReported,

@@ -54,9 +54,9 @@ const MainChat = ({
       return currentMessenger.content.map((c) => {
         return (
           <div
-            key={c._id}
+            key={c?._id}
             className={`chat-message w-full group chat-message-${
-              c.sentBy._id === user._id ? "right" : "left mb-2"
+              c?.sentBy?._id === user?._id ? "right" : "left mb-2"
             } flex items-center `}
           >
             {c.sentBy._id === user._id ? (

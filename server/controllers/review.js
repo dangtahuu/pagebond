@@ -817,7 +817,6 @@ const getFollowing = async (req, res) => {
       .populate("comments.postedBy", "-password -secret")
       .populate("book")
       .populate("hashtag")
-
       .sort({ createdAt: -1 })
       .limit(perPage);
     return res.status(200).json({ posts });

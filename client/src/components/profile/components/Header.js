@@ -242,6 +242,9 @@ const Header = ({
               {user.role === 1 && (
                 <TiTick className="text-[20px] text-white rounded-full bg-greenBtn ml-2" />
               )}
+                {user.role === 2 && (
+                <TiTick className="text-[20px] text-white rounded-full bg-sky-700 ml-2" />
+              )}
               <div className="ml-4"> {btn()}</div>
             </div>
             {user.about && (

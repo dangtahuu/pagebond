@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { SlArrowDown } from "react-icons/sl";
 
-const CreateBox = ({ user, setOpenForm, setOpenSpecial, allowSpecialPost, text }) => {
-  const [specialMenu, setSpecialMenu] = useState(false);
+const CreateBox = ({ user, setOpenForm, setOpenNews, allowNews, text }) => {
+  const [newsMenu, setNewsMenu] = useState(false);
 
   return (
     <div className={`relative mb-3`}>
@@ -24,17 +24,17 @@ const CreateBox = ({ user, setOpenForm, setOpenSpecial, allowSpecialPost, text }
           Create {text}
         </button>
 
-        {specialMenu && (
+        {newsMenu && (
           <button
             className={`bg-greenBtn w-[140px] text-white text-sm block absolute top-10 right-1 mr-0 py-1.5 text-center rounded-full font-bold my-3`}
-            onClick={() => setOpenSpecial(true)}
+            onClick={() => setOpenNews(true)}
           >
-            Create special post
+            Create news
           </button>
         )}
-        {allowSpecialPost && user.role !== 2 &&  <SlArrowDown
+        {allowNews && (user.role === 1 || user.role===2) &&  <SlArrowDown
           className="cursor-pointer"
-          onClick={() => setSpecialMenu((prev) => !prev)}
+          onClick={() => setNewsMenu((prev) => !prev)}
         />}
       
       </div>

@@ -1,6 +1,6 @@
 import Post from "./../models/post.js";
 import Review from "../models/review.js";
-import SpecialPost from "../models/specialPost.js";
+import News from "../models/news.js";
 import Trade from "../models/trade.js";
 import Question from "../models/question.js";
 
@@ -58,13 +58,13 @@ const canUpdateOrDeleteTrade = async (req, res, next) => {
   }
 };
 
-const canUpdateOrDeleteSpecialPost = async (req, res, next) => {
+const canUpdateOrDeleteNews = async (req, res, next) => {
   try {
     const post_id = req.params.id;
     const { userId } = req.user;
-    const post = await SpecialPost.findById(post_id);
+    const post = await News.findById(post_id);
     if (!post) {
-      return res.status(400).json({ msg: "No special post found!" });
+      return res.status(400).json({ msg: "No news found!" });
     }
     if (userId !== post.postedBy.toString()) {
       return res.status(401).json({ msg: "Authentication invalid!" });
@@ -100,6 +100,6 @@ export {
   canUpdateOrDeletePost,
   canUpdateOrDeleteReview,
   canUpdateOrDeleteTrade,
-  canUpdateOrDeleteSpecialPost,
+  canUpdateOrDeleteNews,
   canUpdateOrDeleteQuestion
 };

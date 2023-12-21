@@ -23,7 +23,7 @@ const Dashboard = () => {
               autoFetch={autoFetch}
               token={token}
               name="News"
-              url="api/special/admin"
+              url="api/news/admin"
             />
             </div>
 
@@ -32,7 +32,7 @@ const Dashboard = () => {
                 autoFetch={autoFetch}
                 token={token}
                 name="From verified accounts"
-                url="api/special/official"
+                url="api/news/official"
               />
             </div>
         </div>

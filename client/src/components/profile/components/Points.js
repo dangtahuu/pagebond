@@ -145,8 +145,8 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
         case "Question":
           navigate(`/detail/question/${data.linkTo._id}`);
           break;
-        case "SpecialPost":
-          navigate(`/detail/special/${data.linkTo._id}`);
+        case "News":
+          navigate(`/detail/news/${data.linkTo._id}`);
           break;
         default:
           break;
@@ -284,7 +284,7 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
                   </span>
                   <span className="font-semibold">
                     {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
-                      noti?.linkTo?.text}
+                      noti?.linkTo?.text.slice(0,20)}
                   </span>
                   <span className="font-semibold">
                     {(noti.type === 7 ||noti.type === 8) && Math.abs(noti?.points)} points to {" "}

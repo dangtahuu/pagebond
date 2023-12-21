@@ -15,11 +15,10 @@ import { MdCancel } from "react-icons/md";
 // component
 import Comment from "./Comment";
 import { useAppContext } from "../../context/useContext";
-import PostLoading from "../loading/Loading.Post";
 import ReviewForm from "./ReviewForm";
 import PostForm from "./PostForm";
 import TradeForm from "./TradeForm";
-import SpecialPostForm from "./SpecialPostForm";
+import NewsForm from "./NewsForm";
 import { Rating } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import QuestionForm from "./QuestionForm";
@@ -29,7 +28,7 @@ import formatDate from "../../utils/formatDate";
 const typeDisplay = {
   post: "Post",
   review: "Review",
-  special: "News",
+  news: "News",
   trade: "Trade",
   question: "Question",
 };
@@ -85,6 +84,9 @@ const Post = ({
 
   const [viewMoreRating, setViewMoreRating] = useState(false);
   const [spoilerView, setSpoilerView] = useState(false);
+
+const [showFullText, setShowFullText]= useState(false)
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -97,7 +99,7 @@ const Post = ({
   const getType = () => {
     if (post?.rating) setType("review");
     else if (post?.address) setType("trade");
-    else if (post?.type) setType("special");
+    else if (post?.type) setType("news");
     else if (post?.book) setType("question");
     else setType("post");
   };
@@ -228,13 +230,12 @@ const Post = ({
   };
 
   const getAIRes = async (postId) => {
-    toast(
-      "Please wait a few secs while the assistant generates the answer for you"
-    );
+    toast("Please wait...")
     try {
       const { data } = await autoFetch.get(`api/question/ai/${postId}`);
       setAnswer(data.reply);
       setAnswerModalOpen(true);
+      // toast.update(toastId, { render: "The answer is here!", type: "success", isLoading: false, autoClose: 2000, });
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
@@ -293,9 +294,9 @@ const Post = ({
           image,
         });
         postData = data.post;
-      } else if (type === "special") {
+      } else if (type === "news") {
         const { data } = await autoFetch.patch(
-          `api/special/${currentPost._id}`,
+          `api/news/${currentPost._id}`,
           {
             text: input.text,
             image: image,
@@ -380,13 +381,13 @@ const Post = ({
         )}
 
         <div
-          className={`content mt-[11px] ${
-            post?.image || post?.text?.length > 60 ? "text-sm" : "text-base "
+          className={`content mt-[11px] text-sm "
           } `}
         >
-          <ReactMarkdown>{post?.text}</ReactMarkdown>
+          <ReactMarkdown>{post?.text.length< 1000 ? post?.text: showFullText? post?.text: post?.text.slice(0,1000)}</ReactMarkdown>
         </div>
 
+         {post?.text.length>500&&<div className="font-semibold text-sm cursor-pointer" onClick={()=>{setShowFullText(prev=>!prev)}}>{showFullText? "Show less": "Show more"}</div> }
         {post?.hashtag && (
           <div className="">
             {post?.hashtag?.map((one) => (
@@ -412,7 +413,7 @@ const Post = ({
             <img
               src={post?.image?.url}
               alt="img_content"
-              className="w-full rounded-lg h-auto max-h-[300px] sm:max-h-[350px] object-contain bg-[#F0F2F5] dark:bg-[#18191A]"
+              className="w-full rounded-lg h-auto max-h-[300px] sm:max-h-[350px] object-contain bg-navBar"
               onClick={() => {
                 navigate(`/detail/${type}/${post?._id}`);
               }}
@@ -434,7 +435,7 @@ const Post = ({
   }
 
   if (loadingEdit) {
-    return <PostLoading className="mb-4" />;
+    return <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
   }
 
   return (
@@ -491,8 +492,8 @@ const Post = ({
         />
       )}
 
-      {openModal && type === "special" && (
-        <SpecialPostForm
+      {openModal && type === "news" && (
+        <NewsForm
           setOpenModal={setOpenModal}
           input={input}
           setInput={setInput}
@@ -845,7 +846,7 @@ const Post = ({
       )}
 
       {/* form add comment */}
-      <div className="flex gap-x-1.5 px-2 py-1 mt-1 items-start">
+      <div className="flex gap-x-1.5 py-1 mt-1 items-start">
         <img
           src={user?.image?.url || "/images/avatar.png"}
           alt="user_avatar"

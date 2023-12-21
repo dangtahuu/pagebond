@@ -5,11 +5,15 @@ import { nanoid, random } from "nanoid";
 const newFormat = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
 import Post from "../models/post.js";
 import Review from "../models/review.js";
-import SpecialPost from "../models/specialPost.js";
+import News from "../models/news.js";
 import Trade from "../models/trade.js";
 import shuffle from "../utils/shuffle.js";
 import sortObjectDes from "../utils/sortObjectDes.js";
 import Log from "../models/log.js";
+import Shelf from "../models/shelf.js";
+import { listShelf1,listShelf2 } from "../consts/listShelf.js";
+
+
 const register = async (req, res) => {
   try {
     const { name, email, password, rePassword, secret, official } = req.body;
@@ -50,7 +54,7 @@ const register = async (req, res) => {
       public_id: nanoid(),
     };
 
-    await User.create({
+    const user = await User.create({
       name,
       email,
       password,
@@ -58,13 +62,35 @@ const register = async (req, res) => {
       image,
       role: official ? 0 : 3,
     });
+    
+      const newShelf = await Shelf.create({
+        name: "favorites",
+        owner: user._id,
+        type:1,
+      });
+
+      await User.findByIdAndUpdate(user._id,{featuredShelf: newShelf._id})
+
+      await Shelf.create({
+        name: "to read",
+        owner: user._id,
+        type:1,
+      });
+
+    for (const shelf of listShelf2) {
+      const newShelf = await Shelf.create({
+        name: shelf,
+        owner: user._id,
+        type:2,
+      });
+    }
 
     return res.status(200).json({
       msg: "Register successfully. Let's login!",
     });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ msg: "REGISTER ERROR. Try again!" });
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
   }
 };
 
@@ -338,6 +364,8 @@ const findPeopleToFollow = async (req, res) => {
       ],
     });
 
+    console.log(posts)
+
     const reviews = await Review.find({
       $and: [
         {
@@ -364,7 +392,7 @@ const findPeopleToFollow = async (req, res) => {
       ],
     });
 
-    const specialPosts = await SpecialPost.find({
+    const news = await News.find({
       $and: [
         {
           $or: [
@@ -379,7 +407,7 @@ const findPeopleToFollow = async (req, res) => {
       ],
     });
 
-    const totalPosts = [...posts, ...reviews, ...trades, ...specialPosts];
+    const totalPosts = [...posts, ...reviews, ...trades, ...news];
     const idsCount = {};
 
     posts.forEach((post) => {
@@ -437,14 +465,14 @@ const findPeopleWithMostInteraction = async (req, res) => {
       ],
     });
 
-    const specialPosts = await SpecialPost.find({
+    const news = await News.find({
       $or: [
         { likes: { $in: [user._id] } },
         { comments: { $elemMatch: { postedBy: user._id } } },
       ],
     });
 
-    const totalPosts = [...posts, ...reviews, ...trades, ...specialPosts];
+    const totalPosts = [...posts, ...reviews, ...trades, ...news];
     const idsCount = {};
 
     posts.forEach((post) => {

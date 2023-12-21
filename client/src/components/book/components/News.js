@@ -2,9 +2,9 @@ import React, {useEffect, useState} from "react";
 import ReactLoading from "react-loading";
 import {toast} from "react-toastify";
 import {Post, CreateBox} from "../..";
-import SpecialPostForm from "../../common/SpecialPostForm";
+import NewsForm from "../../common/NewsForm";
 
-const Official = ({
+const News = ({
     posts,
     loading,
     token,
@@ -14,7 +14,7 @@ const Official = ({
     setPosts,
     getNewPosts,
     book,
-    moreOfficial
+    moreNews
 }) => {
     const [attachment, setAttachment] = useState("");
 
@@ -37,7 +37,7 @@ const Official = ({
         }
     }, [book]);
 
-    const createNewSpecialPost = async (formData) => {
+    const createNewNews = async (formData) => {
         setLoadingCreateNewPost(true);
         try {
           let image = null;
@@ -48,7 +48,7 @@ const Official = ({
             );
             image = { url: data.url, public_id: data.public_id };
           }
-          const { data } = await autoFetch.post(`api/special/create`, {
+          const { data } = await autoFetch.post(`api/news/create`, {
             text: input.text,
             title: input.title,
             book,
@@ -61,10 +61,10 @@ const Official = ({
           setPosts((prev) => [data.post, ...prev]);
     
           if (user.role === 1)
-            toast.success("Create new special post successfully!");
+            toast.success("Create news successfully!");
           else
             toast.success(
-              "An admin will verify your special post before it gets promoted"
+              "An admin will verify your news before it gets promoted"
             );
         } catch (error) {
           console.log(error);
@@ -102,7 +102,7 @@ const Official = ({
                     />
                 ))}
 
-                {moreOfficial && (<div onClick={getNewPosts}>LOAD MORE</div>)}
+                {moreNews && (<div onClick={getNewPosts}>LOAD MORE</div>)}
             </div>
                
         );
@@ -114,18 +114,18 @@ const Official = ({
            {user.role!==3 &&  <CreateBox
         setOpenForm={setOpenModal}
         user={user}
-        text="special post"
+        text="news"
       />}
         
 
       {openModal && (
-        <SpecialPostForm
+        <NewsForm
         setOpenModal={setOpenModal}
         input={input}
         setInput={setInput}
         attachment={attachment}
         setAttachment={setAttachment}
-        createNewPost={createNewSpecialPost}
+        createNewPost={createNewNews}
       />
       )}
             {loadingCreateNewPost && (
@@ -139,4 +139,4 @@ const Official = ({
     );
 };
 
-export default Official;
+export default News;

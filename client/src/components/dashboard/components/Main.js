@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useMemo  } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import { Post, CreateBox, PostForm } from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 import shuffle from "../../../utils/shuffle";
-import SpecialPostForm from "../../common/SpecialPostForm";
+import NewsForm from "../../common/NewsForm";
 import ReactLoading from "react-loading";
 import HeaderMenu from "../../common/HeaderMenu";
 
@@ -12,26 +12,25 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   const list = ["Following", "Discover"];
 
   const [postOpen, setPostOpen] = useState(false);
-  const [specialPostOpen, setSpecialPostOpen] = useState(false);
+  const [newsOpen, setNewsOpen] = useState(false);
 
   const [attachment, setAttachment] = useState("");
-  const [specialAttachment, setSpecialAttachment] = useState("");
+  const [newsAttachment, setNewsAttachment] = useState("");
 
   const initInput = {
     text: "",
     title: "",
     image: "",
     hashtag: [],
-    spoiler: false
+    spoiler: false,
   };
   const [input, setInput] = useState(initInput);
-  const [specialInput, setSpecialInput] = useState({
+  const [newsInput, setNewsInput] = useState({
     text: "",
     title: "",
     image: "",
     hashtag: [],
-    spoiler: false
-
+    spoiler: false,
   });
 
   const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
@@ -50,7 +49,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   const [moreTrades, setMoreTrades] = useState(true);
   const [moreQuestions, setMoreQuestions] = useState(true);
 
-  const [moreSpecialPosts, setMoreSpecialPosts] = useState(true);
+  const [moreNews, setMoreNews] = useState(true);
 
   const [popularReviews, setPopularReviews] = useState([]);
   const [popularPosts, setPopularPosts] = useState([]);
@@ -77,6 +76,10 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     getDiscover();
   }, []);
 
+  useEffect(()=>{
+    console.log(page)
+  },[page])
+
   useEffect(() => {
     if (location) getNearby();
   }, [location]);
@@ -98,7 +101,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         image,
         title: input.title,
         hashtag: input.hashtag,
-        spoiler: input.spoiler
+        spoiler: input.spoiler,
       });
       setActivePosts((prev) => [data.post, ...prev]);
       toast.success("Create new post successfully!");
@@ -110,7 +113,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
   };
 
-  const createNewSpecialPost = async (formData) => {
+  const createNewNews = async (formData) => {
     setLoadingCreateNewPost(true);
     try {
       let image = null;
@@ -122,21 +125,20 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         image = { url: data.url, public_id: data.public_id };
       }
       console.log(user.role);
-      const { data } = await autoFetch.post(`api/special/create`, {
-        text: specialInput.text,
-        title: specialInput.title,
+      const { data } = await autoFetch.post(`api/news/create`, {
+        text: newsInput.text,
+        title: newsInput.title,
         image,
-        hashtag: specialInput.hashtag,
+        hashtag: newsInput.hashtag,
         type: user.role === 1 ? 1 : 0,
-        spoiler: input.spoiler
+        spoiler: input.spoiler,
       });
       setActivePosts((prev) => [data.post, ...prev]);
 
-      if (user.role === 1)
-        toast.success("Create new special post successfully!");
+      if (user.role === 1) toast.success("Create new news post successfully!");
       else
         toast.success(
-          "An admin will verify your special post before it gets promoted"
+          "An admin will verify your news post before it gets promoted"
         );
     } catch (error) {
       console.log(error);
@@ -148,20 +150,27 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getFirstData = async () => {
     try {
-      const [posts, reviews, trades, special, questions] = await Promise.all([
+      setPage((prev) => prev+1);
+      const [posts, reviews, trades, news, questions] = await Promise.all([
         getPosts(),
         getReviews(),
         getTrades(),
-        getSpecial(),
-        getQuestions()
+        getNews(),
+        getQuestions(),
       ]);
-      let data = [...posts, ...reviews, ...trades, ...special,...questions];
+      let data = [...posts, ...reviews, ...trades, ...news, ...questions];
       data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      console.log(posts)
+      console.log(reviews)
+      console.log(trades)
+      console.log(news)
+      console.log(questions)
+
       let firstData = data.splice(0, 10);
       setActivePosts(firstData);
       setReservedPosts(data);
-      setPage((prev) => prev++);
       if (!data.length) setmoreData(false);
+
     } catch (e) {
       console.log(e);
     } finally {
@@ -171,22 +180,27 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const getMoreData = async () => {
     try {
-      const [posts, reviews, trades, special, questions] = await Promise.all([
+      setPage((prev) => prev+1);
+      const [posts, reviews, trades, news, questions] = await Promise.all([
         getPosts(),
         getReviews(),
         getTrades(),
-        getSpecial(),
-        getQuestions()
+        getNews(),
+        getQuestions(),
       ]);
       let data = [
         ...reservedPosts,
         ...posts,
         ...reviews,
         ...trades,
-        ...special,
-        ...questions
+        ...news,
+        ...questions,
       ];
-      setPage((prev) => prev++);
+      console.log(posts)
+      console.log(reviews)
+      console.log(trades)
+      console.log(news)
+      console.log(questions)
       data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       let firstData = data.splice(0, 10);
       setActivePosts((prev) => [...prev, ...firstData]);
@@ -198,9 +212,10 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   };
 
   const getPosts = async () => {
+    console.log(page)
     if (!morePosts) return [];
     const { data } = await autoFetch.get(
-      `/api/post/following?page=${page + 1}`
+      `/api/post/following?page=${page+1}`
     );
     if (data.posts.length < 10) setMorePosts(false);
     if (data.posts.length === 0) return [];
@@ -208,6 +223,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   };
 
   const getReviews = async () => {
+    console.log(page)
+
     if (!moreReviews) return [];
     const { data } = await autoFetch.get(
       `/api/review/following?page=${page + 1}`
@@ -219,6 +236,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   };
 
   const getTrades = async () => {
+    console.log(page)
+
     if (!moreTrades) return [];
     const { data } = await autoFetch.get(
       `/api/trade/following?page=${page + 1}`
@@ -229,17 +248,21 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     return data.posts;
   };
 
-  const getSpecial = async () => {
-    if (!moreSpecialPosts) return [];
+  const getNews = async () => {
+    console.log(page)
+
+    if (!moreNews) return [];
     const { data } = await autoFetch.get(
-      `/api/special/following?page=${page + 1}`
+      `/api/news/following?page=${page + 1}`
     );
-    if (data.posts.length < 10) setMoreSpecialPosts(false);
+    if (data.posts.length < 10) setMoreNews(false);
     if (data.posts.length === 0) return [];
     return data.posts;
   };
 
   const getQuestions = async () => {
+    console.log(page)
+
     if (!moreQuestions) return [];
     const { data } = await autoFetch.get(
       `/api/question/following?page=${page + 1}`
@@ -259,28 +282,24 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       const [
         { data: reviewDis },
         { data: postDis },
-        { data: tradeDis },
         { data: postPop },
         { data: reviewPop },
       ] = await Promise.all([
         autoFetch.post(`/api/review/discover`, { suggestion: people }),
         autoFetch.post(`/api/post/discover`, { suggestion: people }),
-        autoFetch.post(`/api/trade/discover`, { suggestion: people }),
         autoFetch.get("/api/post/popular"),
         autoFetch.get("/api/review/popular"),
       ]);
 
-      console.log(reviewDis.posts);
-      console.log(postDis.posts);
-      console.log(tradeDis.posts);
-      console.log(postPop.posts);
-      console.log(reviewPop.posts);
+      console.log('pop',reviewPop)
+
 
       const popular_reviews = reviewPop.posts;
       const popular_posts = postPop.posts;
-      const discover_reviews = reviewDis.posts;
-      const discover_posts = postDis.posts;
+      const discover_reviews = reviewDis.posts || [];
+      const discover_posts = postDis.posts || [];
       // const discover_trades = tradeDis.posts
+      console.log(popular_reviews)
 
       const filtered_discover_reviews = discover_reviews.filter(
         (bItem) => !popular_reviews.some((aItem) => aItem._id === bItem._id)
@@ -304,6 +323,10 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
   };
 
+  useEffect(()=>{
+    console.log("222")
+    console.log(popularReviews)
+  },[popularReviews])
   const getNearby = async () => {
     try {
       const { data } = await autoFetch.get(
@@ -314,7 +337,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       console.log(e);
     }
   };
-
 
   const Following = () => {
     if (loading) {
@@ -341,12 +363,11 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         {activePosts.map((post) => (
           <Post key={post._id} currentPost={post} />
         ))}
-
       </InfiniteScroll>
       // <div>{childComponent}</div>
     );
   };
-  const childComponent = useMemo(() => <Following/>, [activePosts]);
+  const childComponent = useMemo(() => <Following />, [activePosts]);
 
   const Discover = () => {
     if (loading) {
@@ -383,9 +404,9 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     <div className="">
       <CreateBox
         setOpenForm={setPostOpen}
-        setOpenSpecial={setSpecialPostOpen}
+        setOpenNews={setNewsOpen}
         user={user}
-        allowSpecialPost={true}
+        allowNews={true}
         text="post"
       />
 
@@ -401,14 +422,14 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         />
       )}
 
-      {specialPostOpen && (
-        <SpecialPostForm
-          setOpenModal={setSpecialPostOpen}
-          input={specialInput}
-          setInput={setSpecialInput}
-          attachment={specialAttachment}
-          setAttachment={setSpecialAttachment}
-          createNewPost={createNewSpecialPost}
+      {newsOpen && (
+        <NewsForm
+          setOpenModal={setNewsOpen}
+          input={newsInput}
+          setInput={setNewsInput}
+          attachment={newsAttachment}
+          setAttachment={setNewsAttachment}
+          createNewPost={createNewNews}
         />
       )}
 

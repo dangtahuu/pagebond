@@ -307,9 +307,9 @@ const Message = () => {
       }
     }
     setScrLoading(false);
-    if (receiverData && receiverData._id === AI_ID && receiverData.text) {
-      await handleSendMess(AI_ID, receiverData.text);
-    }
+    // if (receiverData && receiverData._id === AI_ID && receiverData.text) {
+    //   await handleSendMess(AI_ID, receiverData.text);
+    // }
   };
 
   useEffect(() => {

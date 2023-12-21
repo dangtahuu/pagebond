@@ -36,8 +36,8 @@ const App = () => {
         closeOnClick
         rtl={false}
         pauseOnFocusLoss
-        draggable
         pauseOnHover={false}
+        theme="dark"
       />
 
       <BrowserRouter>

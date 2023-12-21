@@ -12,7 +12,10 @@ import useOnClickOutside from "../../hooks/useOnClickOutside";
 
 import "@mdxeditor/editor/style.css";
 import {
-  headingsPlugin, listsPlugin, thematicBreakPlugin,InsertThematicBreak,
+  headingsPlugin,
+  listsPlugin,
+  thematicBreakPlugin,
+  InsertThematicBreak,
   MDXEditor,
   toolbarPlugin,
   BlockTypeSelect,
@@ -22,7 +25,6 @@ import {
   ListsToggle,
   CreateLink,
   linkPlugin,
-
 } from "@mdxeditor/editor";
 
 import "./common.css";
@@ -38,6 +40,7 @@ const QuestionForm = ({
   isEditPost = false,
   setFormDataEdit = (event) => {},
   addCommentAI = (event) => {},
+  initInput
 }) => {
   const { autoFetch } = useAppContext();
 
@@ -56,9 +59,13 @@ const QuestionForm = ({
 
   const markdownRef = useRef();
 
-  useOnClickOutside(searchTagRef, () => {
-    setIsSearchingTag(false);
-  },tagExceptRef);
+  useOnClickOutside(
+    searchTagRef,
+    () => {
+      setIsSearchingTag(false);
+    },
+    tagExceptRef
+  );
 
   useEffect(() => {
     searchHashtag();
@@ -91,8 +98,7 @@ const QuestionForm = ({
 
   const ResultList = () => {
     return (
-      <div className=""
-      ref={tagExceptRef}>
+      <div className="" ref={tagExceptRef}>
         {listTagSearch.map((item) => {
           return (
             <div
@@ -155,7 +161,7 @@ const QuestionForm = ({
     }
     // setText("");
     // setTitle("");
-    setInput("");
+    setInput(initInput);
     setOpenModal(false);
     setAttachment("");
     setFormData(null);
@@ -262,15 +268,22 @@ const QuestionForm = ({
           </label>
 
           <MDXEditor
-          ref={markdownRef}
-          id="text"
+            ref={markdownRef}
+            id="text"
             className="standard-input"
-            markdown={input.text}
+            markdown={input.text|| " "}
             placeholder={`Review`}
             onBlur={() => {
-              setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
+              setInput((prev) => ({
+                ...prev,
+                text: markdownRef.current?.getMarkdown(),
+              }));
             }}
-            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),linkPlugin(),
+            plugins={[
+              listsPlugin(),
+              linkDialogPlugin(),
+              thematicBreakPlugin(),
+              linkPlugin(),
               toolbarPlugin({
                 toolbarContents: () => (
                   <>
@@ -280,7 +293,7 @@ const QuestionForm = ({
                     <BlockTypeSelect />
                     <CreateLink />
                     <ListsToggle />
-                    <InsertThematicBreak/>
+                    <InsertThematicBreak />
                     {/* <ChangeAdmonitionType/> */}
                   </>
                 ),
@@ -288,15 +301,25 @@ const QuestionForm = ({
               headingsPlugin(),
             ]}
           />
-<div className="mt-3 flex items-center gap-x-3">
-              <input type="checkbox" name="official" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
-              <label className="text-xs md:text-sm">This contains spoiler of content?</label>
-              </div>
+          <div className="mt-3 flex items-center gap-x-3">
+            <input
+              type="checkbox"
+              name=""
+              class="checkbox"
+              checked={input.spoiler}
+              onChange={(e) => {
+                setInput({ ...input, spoiler: e.target.checked });
+              }}
+            />
+            <label className="text-xs md:text-sm">
+              This contains spoiler of content?
+            </label>
+          </div>
           <label className="form-label" for="hashtag">
             Hashtag
           </label>
           <div className="standard-input h-[50px] flex items-center mb-2">
-            {input.hashtag.length > 0 && (
+            {input?.hashtag.length > 0 && (
               <div className="flex items-center gap-x-1 mr-2">
                 {input.hashtag.map((one, index) => (
                   <div className="relative text-xs text-mainText inline-block rounded-full bg-dialogue px-2 py-1">

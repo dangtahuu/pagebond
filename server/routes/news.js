@@ -15,7 +15,7 @@ import {
   getAllWithBook,
   getMy,
   getAdmin,
-  getOfficial,
+  getFromOfficial,
   report,
   dismissReport,
   getAllReported,
@@ -23,15 +23,15 @@ import {
   getAllPending,
   search,
   getFeatured
-} from "../controllers/specialPost.js";
+} from "../controllers/news.js";
 import formidable from "express-formidable";
-import { canUpdateOrDeleteSpecialPost } from "../middleware/canUpdateOrDelete.js";
+import { canUpdateOrDeleteNews } from "../middleware/canUpdateOrDelete.js";
 import isAdmin from "../middleware/isAdmin.js";
 
 const router = express.Router();
 
 router.route("/").get(async (req, res) => {
-  res.json({ msg: "Special Post" });
+  res.json({ msg: "News" });
 });
 
 router.route("/create").post(create);
@@ -73,7 +73,7 @@ router.route("/remove-comment").put(removeComment);
 // get post with userID
 router.route("/withUser/:userId").get(getWithUser);
 router.route("/admin").get(getAdmin);
-router.route("/official").get(getOfficial);
+router.route("/official").get(getFromOfficial);
 
 router.route("/report").patch(report);
 router.route("/unreport").patch(isAdmin,dismissReport);
@@ -85,7 +85,7 @@ router.route("/admin/delete/:id").delete(isAdmin, deleteOne);
 router
   .route("/:id")
   .get(getOne)
-  .patch(canUpdateOrDeleteSpecialPost, edit)
-  .delete(canUpdateOrDeleteSpecialPost, deleteOne);
+  .patch(canUpdateOrDeleteNews, edit)
+  .delete(canUpdateOrDeleteNews, deleteOne);
 
 export default router;

@@ -28,7 +28,7 @@ const Result = ({ text, setText, searchType, hasSearched, setHasSearched, result
     { display: "Posts", value: "post" },
     { display: "Reviews", value: "review" },
     { display: "Questions", value: "question" },
-    { display: "News", value: "special" },
+    { display: "News", value: "news" },
     { display: "Tradings", value: "trade" },
   ];
 

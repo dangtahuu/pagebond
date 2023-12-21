@@ -1,7 +1,7 @@
 import Hashtag from "../models/hashtag.js";
 import Review from "../models/review.js";
 import Trade from "../models/trade.js";
-import SpecialPost from "../models/specialPost.js";
+import News from "../models/news.js";
 import Question from "../models/question.js";
 import Post from "../models/post.js";
 
@@ -38,10 +38,10 @@ const search = async (req, res) => {
       const posts = await Post.find({createdAt: {$gte: daysAgo}})
       const reviews = await Review.find({createdAt: {$gte: daysAgo}})
       const trades = await Trade.find({createdAt: {$gte: daysAgo}})
-      const special = await SpecialPost.find({createdAt: {$gte: daysAgo}})
+      const news = await News.find({createdAt: {$gte: daysAgo}})
       const questions = await Question.find({createdAt: {$gte: daysAgo}})
 
-      const allData = [...posts,...reviews,...trades,...special,...questions]
+      const allData = [...posts,...reviews,...trades,...news,...questions]
   
       const hashtagsCount = {};
 

@@ -30,12 +30,13 @@ const ChatBotBanner = ({
 //     }
 //     setLoading(false);
 //   };
-  const chatInfo={
-    name: "Book Assistant",
-    _id: "6561e80e6dfae0a11ba298b6",
-    image: { url: "http://res.cloudinary.com/dksyipjlk/image/upload/v1678289715/o4e7jk4wizov3cjcfdos.jpg" },
-  
-  }
+let chatInfo = {
+  name: "Assistant",
+  _id: "658370b92d1567e8c71e3f39",
+  image: {
+    url: "http://res.cloudinary.com/dksyipjlk/image/upload/v1703112987/u30vyxopnjiwhbeso75w.webp",
+  },
+};
  
   return (
     <div

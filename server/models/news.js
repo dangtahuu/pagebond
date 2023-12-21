@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const specialPostSchema = new mongoose.Schema(
+const newsSchema = new mongoose.Schema(
   {
     text: {
       type: String,
@@ -62,4 +62,4 @@ const specialPostSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("SpecialPost", specialPostSchema);
+export default mongoose.model("News", newsSchema);
