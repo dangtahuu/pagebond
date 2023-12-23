@@ -283,7 +283,7 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
                     {noti.type === 9 && `${noti?.linkTo?.name} - ${noti?.note}`}
                   </span>
                   <span className="font-semibold">
-                    {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
+                    {(noti.type === 3 || noti.type === 5 || noti.type === 10) &&
                       noti?.linkTo?.text.slice(0,20)}
                   </span>
                   <span className="font-semibold">

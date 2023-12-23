@@ -86,7 +86,7 @@ const Notification = ({
               {noti.type === 7 && noti.points}
             </span>
             <div className="text-smallText">
-              {(noti.type === 3 || noti.type === 5 || noti.type === 9) &&
+              {(noti.type === 3 || noti.type === 5 || noti.type === 10) &&
                 noti?.linkTo?.text.slice(0,20)}
             </div>
           </div>
