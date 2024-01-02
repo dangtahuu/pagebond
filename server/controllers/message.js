@@ -4,6 +4,7 @@ import cloudinary from "cloudinary";
 import { BingChat } from "bing-chat-rnz";
 // import { BingAIClient } from "@waylaidwanderer/chatgpt-api";
 import mongoose from "mongoose";
+import { OpenAIAssistantRunnable } from "langchain/experimental/openai_assistant"
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -147,13 +148,23 @@ const getAIRes = async (req, res) => {
 
     let reply 
 
-    if(!prev) {
-      reply = await api.sendMessage(text)
-    }
-    else reply = await api.sendMessage(text, prev);
+    // if(!prev) {
+    //   reply = await api.sendMessage(text)
+    // }
+    // else reply = await api.sendMessage(text, prev);
+
+    const assistant = new OpenAIAssistantRunnable({
+      assistantId: "asst_cYRFEk1dboldcEihCqsgsk2P"
+      // process.env.ASSISSTANT_ID,
+    });
+  
+    const result = await assistant.invoke({
+      content: text,
+    })
+    const replyText= result[0].content[0].text.value
 
     const botReponse = {
-      text: reply.text,
+      text: replyText,
       sentBy: process.env.AI_ID,
       readBy: [process.env.AI_ID],
     };
@@ -280,6 +291,37 @@ const markRead = async (req, res) => {
   }
 };
 
+const getAssistant =  async (req, res) => {
+  const body = req.body;
+  const message = body.message;
+
+
+  if (!(message)) {
+    return res.status(400).send({ error: "Data not formatted properly" });
+  }
+
+
+  const assistant = new OpenAIAssistantRunnable({
+    assistantId: "asst_cYRFEk1dboldcEihCqsgsk2P"
+    // process.env.ASSISSTANT_ID,
+  });
+
+  await assistant.invoke({
+    content: message,
+  }).then((result) => {
+    console.log("load chain");
+    console.log(result);
+    res.status(200).send({
+      message: result[0].content[0].text.value,
+    });
+  }).catch((err) => {
+    console.log(err);
+    res.status(200).send({
+      message: "Hệ thống đang bận, vui lòng thử lại sau.",
+    });
+  });
+};
+
 export {
   getAllMessages,
   sendMessage,
@@ -287,4 +329,5 @@ export {
   getUnread,
   markRead,
   getAIRes,
+  getAssistant
 };

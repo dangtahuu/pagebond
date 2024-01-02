@@ -1,6 +1,6 @@
 import express from "express";
 
-import { deleteMessage, getAIRes, getAllMessages, getUnread, markRead, sendMessage } from "../controllers/message.js";
+import { deleteMessage, getAIRes, getAllMessages, getAssistant, getUnread, markRead, sendMessage } from "../controllers/message.js";
 
 const router = express.Router();
 
@@ -13,6 +13,9 @@ router.route("/unread").get(getUnread);
 
 router.route("/send-message").put(sendMessage);
 router.route("/get-ai-res").put(getAIRes);
+
+router.route("/get-assistant").post(getAssistant);
+
 
 router.route("/delete-message").patch(deleteMessage);
 router.route("/mark-read/:id").patch(markRead);
