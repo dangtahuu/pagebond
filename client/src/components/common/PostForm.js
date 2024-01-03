@@ -13,7 +13,10 @@ import useOnClickOutside from "../../hooks/useOnClickOutside";
 
 import "@mdxeditor/editor/style.css";
 import {
-  headingsPlugin, listsPlugin, thematicBreakPlugin,InsertThematicBreak,
+  headingsPlugin,
+  listsPlugin,
+  thematicBreakPlugin,
+  InsertThematicBreak,
   MDXEditor,
   toolbarPlugin,
   BlockTypeSelect,
@@ -22,7 +25,7 @@ import {
   linkDialogPlugin,
   ListsToggle,
   CreateLink,
-  linkPlugin
+  linkPlugin,
 } from "@mdxeditor/editor";
 
 import "./common.css";
@@ -43,7 +46,7 @@ const PostForm = ({
   const [image, setImage] = useState(input.image);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState(null);
-  
+
   const [tag, setTag] = useState("");
 
   const hashtagDebounce = useDebounce(tag, 500);
@@ -54,10 +57,13 @@ const PostForm = ({
   const tagExceptRef = useRef();
   const markdownRef = useRef();
 
-
-  useOnClickOutside(searchTagRef, () => {
-    setIsSearchingTag(false);
-  }, tagExceptRef);
+  useOnClickOutside(
+    searchTagRef,
+    () => {
+      setIsSearchingTag(false);
+    },
+    tagExceptRef
+  );
 
   useEffect(() => {
     searchHashtag();
@@ -90,18 +96,15 @@ const PostForm = ({
 
   const ResultList = () => {
     return (
-      <div className=""
-      ref={tagExceptRef}
-      >
+      <div className="" ref={tagExceptRef}>
         {listTagSearch.map((item) => {
           return (
             <div
               className="py-2 cursor-pointer hover:font-bold"
               key={item._id}
               onClick={() => {
-                handleClickResult(item)
-              }
-              }
+                handleClickResult(item);
+              }}
             >
               #{item.name} - {item.numberOfPosts} posts
             </div>
@@ -114,7 +117,8 @@ const PostForm = ({
   const handleTag = (e) => {
     const words = e.target.value.split(" ");
     if (words.length > 1) {
-      if(words[0]!=="") setInput((prev) => ({ ...prev, hashtag: [...prev.hashtag, words[0]] }));
+      if (words[0] !== "")
+        setInput((prev) => ({ ...prev, hashtag: [...prev.hashtag, words[0]] }));
       setTag(words[1]);
     } else {
       setTag(e.target.value);
@@ -242,33 +246,27 @@ const PostForm = ({
             {isEditPost ? "Edit post" : "Create Post"}
           </div>
 
-          <label className="form-label mt-3" for="title">
-            Give it a title
-          </label>
-          <textarea
-            id="title"
-            value={input.title}
-            className={`standard-input`}
-            placeholder={`Title`}
-            onChange={(e) => {
-              setInput((prev) => ({ ...prev, title: e.target.value }));
-            }}
-          />
-
           <label className="form-label" for="text">
             Write your thoughts *
           </label>
 
           <MDXEditor
-          ref={markdownRef}
-          id="text"
+            ref={markdownRef}
+            id="text"
             className="standard-input"
             markdown={input.text}
             placeholder={`Review`}
             onBlur={() => {
-              setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
+              setInput((prev) => ({
+                ...prev,
+                text: markdownRef.current?.getMarkdown(),
+              }));
             }}
-            plugins={[listsPlugin(),linkPlugin(), linkDialogPlugin(),thematicBreakPlugin(),
+            plugins={[
+              listsPlugin(),
+              linkPlugin(),
+              linkDialogPlugin(),
+              thematicBreakPlugin(),
               toolbarPlugin({
                 toolbarContents: () => (
                   <>
@@ -278,7 +276,7 @@ const PostForm = ({
                     <BlockTypeSelect />
                     <CreateLink />
                     <ListsToggle />
-                    <InsertThematicBreak/>
+                    <InsertThematicBreak />
                     {/* <ChangeAdmonitionType/> */}
                   </>
                 ),
@@ -287,10 +285,20 @@ const PostForm = ({
             ]}
           />
 
-<div className="mt-3 flex items-center gap-x-3">
-              <input type="checkbox" name="" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
-              <label className="text-xs md:text-sm">This contains spoiler of content?</label>
-              </div>
+          <div className="mt-3 flex items-center gap-x-3">
+            <input
+              type="checkbox"
+              name=""
+              class="checkbox"
+              checked={input.spoiler}
+              onChange={(e) => {
+                setInput({ ...input, spoiler: e.target.checked });
+              }}
+            />
+            <label className="text-xs md:text-sm">
+              This contains spoiler of content?
+            </label>
+          </div>
 
           <label className="form-label" for="hashtag">
             Hashtag
@@ -301,15 +309,17 @@ const PostForm = ({
                 {input.hashtag.map((one, index) => (
                   <div className="relative text-xs text-mainText inline-block rounded-full bg-dialogue px-2 py-1">
                     {one}
-                    <IoClose className="text-xs cursor-pointer bg-mainbg rounded-full absolute -top-[5px] -right-[2px]"
-                    onClick={()=>{
-                      // let hashtag = input.hashtag
-                      // hashtag = hashtag.splice(index, 1)
-                      setInput((prev) => {
-                         let hashtag = prev.hashtag
-                        hashtag.splice(index, 1)
-                        return ({ ...prev, hashtag })});
-                    }}
+                    <IoClose
+                      className="text-xs cursor-pointer bg-mainbg rounded-full absolute -top-[5px] -right-[2px]"
+                      onClick={() => {
+                        // let hashtag = input.hashtag
+                        // hashtag = hashtag.splice(index, 1)
+                        setInput((prev) => {
+                          let hashtag = prev.hashtag;
+                          hashtag.splice(index, 1);
+                          return { ...prev, hashtag };
+                        });
+                      }}
                     />
                   </div>
                 ))}

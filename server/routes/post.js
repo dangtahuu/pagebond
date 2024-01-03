@@ -15,7 +15,6 @@ import {
     removeComment,
     totalPosts,
     getPostsWithUserId,
-    getDetailPost,
     getDiscover,
     getPopular,
     report,

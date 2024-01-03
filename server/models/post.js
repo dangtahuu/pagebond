@@ -6,10 +6,6 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    title: {
-      type: String,
-    },
-
     postedBy: {
       type: mongoose.Types.ObjectId,
       ref: "User",
@@ -38,23 +34,18 @@ const postSchema = new mongoose.Schema(
       },
     ],
     hashtag: [{ type: mongoose.Types.ObjectId, ref: "Hashtag" }],
-    docModel: {
+    postType: {
       type: String,
       required: true,
-      enum: ['BlogPost', 'Product']
+      default:"Post",
+      enum: ['Post', 'Review','Trade','Question','News']
     },
-    doc: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      // Instead of a hardcoded model name in `ref`, `refPath` means Mongoose
-      // will look at the `docModel` property to find the right model.
-      refPath: 'docModel'
+    detail: {
+      type: mongoose.Types.ObjectId,
+      refPath: 'postType'
     },
     spoiler: { type: Boolean, default: false },
-    reported: {
-      type: Boolean,
-      default: false,
-    },
+    reportedBy: [{ type: mongoose.Types.ObjectId, ref: "User" }]
   },
   { timestamps: true }
 );

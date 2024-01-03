@@ -336,7 +336,7 @@ const TradeForm = ({
             ref={markdownRef}
             id="text"
             className="standard-input"
-            markdown={input.text|| "Text here"}
+            markdown={input.text || "Text here"}
             placeholder={`Review`}
             onBlur={() => {
               setInput((prev) => ({

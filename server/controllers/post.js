@@ -17,7 +17,7 @@ cloudinary.v2.config({
 });
 
 const createPost = async (req, res) => {
-  const { text, image, title, hashtag, spoiler } = req.body;
+  const { text, image, hashtag, spoiler, postType = "Post", detail } = req.body;
 
   if (!text.length) {
     return res.status(400).json({ msg: "You need to provide some content!" });
@@ -44,14 +44,20 @@ const createPost = async (req, res) => {
       text,
       postedBy: req.user.userId,
       image,
-      title,
       hashtag: hashtagsIds,
       spoiler,
+      postType,
+      detail,
     });
 
     const postWithUser = await Post.findById(post._id)
       .populate("postedBy", "-password -secret")
-      .populate("hashtag");
+      .populate("hashtag")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      });
+
     return res
       .status(200)
       .json({ post: postWithUser, msg: "Create new post succesfully" });
@@ -62,11 +68,29 @@ const createPost = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
+  const { postType } = req.params;
   try {
-    const posts = await Post.find({})
-      .populate("postedBy", "-password -secret")
-      .populate("hashtag")
-      .sort({ createdAt: -1 });
+    let posts;
+    if (!postType) {
+      posts = await Post.find({})
+        .populate("postedBy", "-password -secret")
+        .populate("hashtag")
+        .populate({
+          path: "detail",
+          populate: { path: "book" },
+        })
+        .sort({ createdAt: -1 });
+    } else {
+      posts = await Post.find({ postType })
+        .populate("postedBy", "-password -secret")
+        .populate("hashtag")
+        .populate({
+          path: "detail",
+          populate: { path: "book" },
+        })
+        .sort({ createdAt: -1 });
+    }
+
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
     }
@@ -79,10 +103,31 @@ const getAll = async (req, res) => {
 };
 
 const getAllReported = async (req, res) => {
+  const { postType } = req.params;
   try {
-    const posts = await Post.find({ reported: true })
-      .populate("postedBy", "-password -secret")
-      .sort({ createdAt: -1 });
+    let posts;
+    if (!postType) {
+      posts = await Post.find({ reportedBy: { $ne: [] } })
+        .populate("postedBy", "-password -secret")
+        .populate("hashtag")
+        .populate({
+          path: "detail",
+          populate: { path: "book" },
+        })
+        .sort({ createdAt: -1 });
+    } else {
+      posts = await Post.find({
+        $and: [{ postType }, { reportedBy: { $ne: [] } }],
+      })
+        .populate("postedBy", "-password -secret")
+        .populate("hashtag")
+        .populate({
+          path: "detail",
+          populate: { path: "book" },
+        })
+        .sort({ createdAt: -1 });
+    }
+
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
     }
@@ -138,7 +183,7 @@ const search = async (req, res) => {
       results = await Post.aggregate([
         {
           $match: {
-            $or: [{ title: { $regex: regex } }, { text: { $regex: regex } }],
+            text: { $regex: regex },
           },
         },
         {
@@ -165,7 +210,11 @@ const search = async (req, res) => {
         const post = await Post.findById(id)
           .populate("postedBy", "-password -secret")
           .populate("comments.postedBy", "-password -secret")
-          .populate("hashtag");
+          .populate("hashtag")
+          .populate({
+            path: "detail",
+            populate: { path: "book" },
+          });
 
         posts.push(post);
       }
@@ -199,6 +248,10 @@ const getPost = async (req, res) => {
     const post = await Post.findById(postId)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
       .populate("hashtag");
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
@@ -229,6 +282,10 @@ const getFollowing = async (req, res) => {
       .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
       .populate("hashtag")
       .sort({ createdAt: -1 })
       .limit(perPage);
@@ -239,10 +296,10 @@ const getFollowing = async (req, res) => {
   }
 };
 
-const editPost = async (req, res) => {
+const editPost = async (req, res, next) => {
   try {
     const postId = req.params.id;
-    const { text, image, title, hashtag, spoiler } = req.body;
+    const { text, image, hashtag, spoiler } = req.body;
     if (!text.length) {
       return res.status(400).json({ msg: "You need to provide some content!" });
     }
@@ -281,12 +338,16 @@ const editPost = async (req, res) => {
       {
         text,
         image,
-        title,
         hashtag: hashtagIds,
-        spoiler
-      },
-      { new: true, populate: { path: "hashtag" } }
+        spoiler,
+      }
+      // { new: true, populate: { path: "hashtag" } }
     );
+
+    if (post.detail) {
+      req.body = { ...req.body, postId, detail: post.detail };
+      next();
+    }
 
     return res.status(200).json({ msg: "Updated posts!", post: post });
   } catch (error) {
@@ -295,7 +356,7 @@ const editPost = async (req, res) => {
   }
 };
 
-const deletePost = async (req, res) => {
+const deletePost = async (req, res, next) => {
   try {
     const postId = req.params.id;
     const post = await Post.findByIdAndDelete(postId);
@@ -316,8 +377,13 @@ const deletePost = async (req, res) => {
       }
     }
 
+    if (post.detail) {
+      req.detailId = post.detail;
+      next();
+    }
     return res.status(200).json({ msg: "Deleted post!" });
   } catch (error) {
+    console.log(error);
     return res.status(400).json({ msg: error });
   }
 };
@@ -408,6 +474,10 @@ const addComment = async (req, res) => {
     )
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
       .populate("hashtag");
 
     const user = await User.findByIdAndUpdate(post.postedBy, {
@@ -443,6 +513,10 @@ const removeComment = async (req, res) => {
     )
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
       .populate("hashtag");
 
     const user = await User.findByIdAndUpdate(post.postedBy, {
@@ -484,6 +558,10 @@ const getPostsWithUserId = async (req, res) => {
       .skip((page - 1) * perPage)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
       .populate("hashtag")
       .sort({
         createdAt: -1,
@@ -491,23 +569,6 @@ const getPostsWithUserId = async (req, res) => {
       .limit(perPage);
 
     return res.status(200).json({ posts });
-  } catch (error) {
-    console.log(error);
-    return res.status(400).json({ msg: error });
-  }
-};
-
-const getDetailPost = async (req, res) => {
-  try {
-    const postId = req.params.postId;
-    const post = await Post.findById(postId)
-      .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret")
-      .populate("hashtag")
-      .sort({
-        createdAt: -1,
-      });
-    return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -618,8 +679,6 @@ const getDiscover = async (req, res) => {
       .populate("comments.postedBy", "-password -secret")
       .populate("hashtag");
 
-    // .populate("book");
-
     if (post.length > 0) result = [...result, ...post];
 
     return res.status(200).json({ posts: result });
@@ -632,13 +691,13 @@ const getDiscover = async (req, res) => {
 const getPopular = async (req, res) => {
   try {
     const today = new Date();
-    const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 7);
+    const daysAgo = new Date(today);
+    daysAgo.setDate(today.getDate() - 1);
 
     const aggregated = await Post.aggregate([
       {
         $match: {
-          createdAt: { $gt: sevenDaysAgo },
+          createdAt: { $gte: daysAgo },
         },
       },
       {
@@ -654,7 +713,7 @@ const getPopular = async (req, res) => {
         },
       },
       {
-        $limit: 20,
+        $limit: 50,
       },
       { $project: { _id: 1 } },
     ]);
@@ -667,6 +726,10 @@ const getPopular = async (req, res) => {
     const posts = await Post.find({ _id: { $in: idsList } })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
       .populate("hashtag");
 
     // .populate("book");
@@ -681,10 +744,12 @@ const getPopular = async (req, res) => {
 const report = async (req, res) => {
   try {
     const postId = req.body.postId;
+    const userId = req.user.userId;
+
     const post = await Post.findByIdAndUpdate(
       postId,
       {
-        reported: true,
+        $addToSet: { reportedBy: userId },
       },
       {
         new: true,
@@ -704,7 +769,7 @@ const dismissReport = async (req, res) => {
     const post = await Post.findByIdAndUpdate(
       postId,
       {
-        reported: false,
+        reportedBy: [],
       },
       {
         new: true,
@@ -734,7 +799,6 @@ export {
   removeComment,
   totalPosts,
   getPostsWithUserId,
-  getDetailPost,
   getDiscover,
   getPopular,
   report,

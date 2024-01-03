@@ -14,7 +14,10 @@ import useDebounce from "../../hooks/useDebounce";
 import useOnClickOutside from "../../hooks/useOnClickOutside";
 import "@mdxeditor/editor/style.css";
 import {
-  headingsPlugin, listsPlugin, thematicBreakPlugin,InsertThematicBreak,
+  headingsPlugin,
+  listsPlugin,
+  thematicBreakPlugin,
+  InsertThematicBreak,
   MDXEditor,
   toolbarPlugin,
   BlockTypeSelect,
@@ -23,8 +26,7 @@ import {
   linkDialogPlugin,
   ListsToggle,
   CreateLink,
-  linkPlugin
-
+  linkPlugin,
 } from "@mdxeditor/editor";
 
 import "./common.css";
@@ -61,14 +63,17 @@ const ReviewForm = ({
 
   const markdownRef = useRef();
 
-useEffect(()=>{
+  useEffect(() => {
+    console.log(input.hashtag);
+  }, [input]);
 
-  console.log(input.hashtag)
-},[input])
-
-  useOnClickOutside(searchTagRef, () => {
-    setIsSearchingTag(false);
-  },tagExceptRef);
+  useOnClickOutside(
+    searchTagRef,
+    () => {
+      setIsSearchingTag(false);
+    },
+    tagExceptRef
+  );
 
   useEffect(() => {
     searchHashtag();
@@ -101,8 +106,7 @@ useEffect(()=>{
 
   const ResultList = () => {
     return (
-      <div className=""
-      ref={tagExceptRef}>
+      <div className="" ref={tagExceptRef}>
         {listTagSearch.map((item) => {
           return (
             <div
@@ -244,7 +248,7 @@ useEffect(()=>{
         <Tooltip title="aaaa" placement="top-start">
           <div className="flex items-center w-[130px]">
             <label className="form-label">
-              {criteria.charAt(0).toUpperCase() + criteria.slice(1)+" *"}
+              {criteria.charAt(0).toUpperCase() + criteria.slice(1) + " *"}
             </label>
             <IoIosHelpCircle className="text-lg ml-2 cursor-pointer" />
           </div>
@@ -322,32 +326,26 @@ useEffect(()=>{
             ))}
           </div>
 
-          <label className="form-label" for="title">
-            Give it a title *
-          </label>
-          <textarea
-            id="title"
-            defaultValue={input.title}
-            className={`standard-input`}
-            placeholder={`Title`}
-            onBlur={(e) => {
-              setInput((prev) => ({ ...prev, title: e.target.value }));
-            }}
-          />
-
           <label className="form-label" for="text">
             Write your thoughts *
           </label>
           <MDXEditor
-          ref={markdownRef}
-          id="text"
+            ref={markdownRef}
+            id="text"
             className="standard-input h-[200px]"
             markdown={input.text}
             placeholder={`Review`}
             onBlur={() => {
-              setInput((prev) => ({ ...prev, text: markdownRef.current?.getMarkdown() }));
+              setInput((prev) => ({
+                ...prev,
+                text: markdownRef.current?.getMarkdown(),
+              }));
             }}
-            plugins={[listsPlugin(),linkDialogPlugin(),thematicBreakPlugin(),linkPlugin(),
+            plugins={[
+              listsPlugin(),
+              linkDialogPlugin(),
+              thematicBreakPlugin(),
+              linkPlugin(),
               toolbarPlugin({
                 toolbarContents: () => (
                   <>
@@ -357,7 +355,7 @@ useEffect(()=>{
                     <BlockTypeSelect />
                     <CreateLink />
                     <ListsToggle />
-                    <InsertThematicBreak/>
+                    <InsertThematicBreak />
                     {/* <ChangeAdmonitionType/> */}
                   </>
                 ),
@@ -391,10 +389,20 @@ useEffect(()=>{
               setInput((prev) => ({ ...prev, dateRead: e.target.value }));
             }}
           />
-<div className="mt-3 flex items-center gap-x-3">
-              <input type="checkbox" name="" class="checkbox" checked={input.spoiler} onChange={(e)=>{setInput({ ...input, spoiler: e.target.checked })}}/>
-              <label className="text-xs md:text-sm">This contains spoiler of content?</label>
-              </div>
+          <div className="mt-3 flex items-center gap-x-3">
+            <input
+              type="checkbox"
+              name=""
+              class="checkbox"
+              checked={input.spoiler}
+              onChange={(e) => {
+                setInput({ ...input, spoiler: e.target.checked });
+              }}
+            />
+            <label className="text-xs md:text-sm">
+              This contains spoiler of content?
+            </label>
+          </div>
           <label className="form-label" for="hashtag">
             Hashtag
           </label>
@@ -473,7 +481,6 @@ useEffect(()=>{
               className={`primary-btn w-[100px] block`}
               disabled={
                 !input.text ||
-                !input.title ||
                 !input.rating ||
                 !input.content ||
                 !input.development ||

@@ -250,19 +250,6 @@ const QuestionForm = ({
             {isEditPost ? "Edit question" : "Create question"}
           </div>
 
-          <label className="form-label mt-3" for="title">
-            Give it a title *
-          </label>
-          <textarea
-            id="title"
-            value={input.title}
-            className={`standard-input`}
-            placeholder={`Title`}
-            onChange={(e) => {
-              setInput((prev) => ({ ...prev, title: e.target.value }));
-            }}
-          />
-
           <label className="form-label" for="text">
             Write your thoughts *
           </label>
@@ -301,6 +288,23 @@ const QuestionForm = ({
               headingsPlugin(),
             ]}
           />
+          
+          <label className="form-label mt-3" for="progress">
+            Progress
+          </label>
+          <textarea
+            id="progress"
+            value={input.progress}
+            className={`standard-input`}
+            placeholder={`This question is for what page of the book?`}
+            onChange={(e) => {
+              setInput((prev) => {
+                const newValue = e.target.value.replace(/[^0-9]/g, '');
+              
+              return  ({ ...prev, progress: newValue })});
+            }}
+          />
+
           <div className="mt-3 flex items-center gap-x-3">
             <input
               type="checkbox"
@@ -391,7 +395,7 @@ const QuestionForm = ({
             </Tooltip>
             <button
               className={`primary-btn w-[100px] block`}
-              disabled={!input.text || !input.title || loading}
+              disabled={!input.text || loading}
               onClick={handleButton}
             >
               {isEditPost ? "Save" : "Post"}

@@ -21,7 +21,7 @@ const Question = ({
   const [attachment, setAttachment] = useState("");
 
   const initInput = {
-    title: "",
+    progress: "",
     text: "",
     image: "",
     hashtag: [],
@@ -53,7 +53,7 @@ const Question = ({
 
       const { data } = await autoFetch.post(`api/question/create`, {
         text: input.text,
-        title: input.title,
+        progress: input.progress,
         book,
         image,
         hashtag: input.hashtag,

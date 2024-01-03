@@ -36,16 +36,10 @@ const search = async (req, res) => {
 
     try {
       const posts = await Post.find({createdAt: {$gte: daysAgo}})
-      const reviews = await Review.find({createdAt: {$gte: daysAgo}})
-      const trades = await Trade.find({createdAt: {$gte: daysAgo}})
-      const news = await News.find({createdAt: {$gte: daysAgo}})
-      const questions = await Question.find({createdAt: {$gte: daysAgo}})
-
-      const allData = [...posts,...reviews,...trades,...news,...questions]
   
       const hashtagsCount = {};
 
-      allData.forEach((post) => {
+      posts.forEach((post) => {
         post.hashtag.forEach((tag)=>{
           hashtagsCount[tag] = (hashtagsCount[tag] || 0) + 1;
         }) 

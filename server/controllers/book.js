@@ -6,6 +6,7 @@ import removeHtmlTags from "../utils/removeHtml.js";
 import sortObjectDes from "../utils/sortObjectDes.js";
 import shuffle from "../utils/shuffle.js";
 import { BingChat } from "bing-chat-rnz";
+import mongoose from "mongoose";
 
 const api = new BingChat({
   cookie:
@@ -250,32 +251,45 @@ const getSimilarBooksForMultipleBooks = async (req, res) => {
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
+    const posts = await Post.aggregate([
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          $and: [
+            {
+              "data.rating": { $gt: 3 },
+            },
+            
+            { 
+              postedBy: mongoose.Types.ObjectId(userId)
+            }
+          ]
+        }
+      },
+      { $sample: { size: 5 } },
+    ]);
 
-    const posts = await Review.find({
-      $and: [{ postedBy: userId }, { rating: { $gt: 3 } }],
-    })
-      .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret");
+    console.log(posts)
 
-    const uniqueBookIds = new Set();
+    const ids = new Set();
 
     for (const obj of posts) {
-      if (!uniqueBookIds.has(obj.book)) {
-        uniqueBookIds.add(obj.book.toString());
-      }
+        ids.add(obj.data.book.toString());
     }
 
-    const uniqueBookIdsArray = Array.from(uniqueBookIds);
-    console.log("aaaaaa");
-    console.log(uniqueBookIds);
-    const shuffledBookIds = shuffle(uniqueBookIdsArray);
-    const idsList = shuffledBookIds.splice(0, limit);
-
     let similarIds = [];
-    let original = [];
 
-    console.log(idsList);
-    for (const id of idsList) {
+    for (const id of ids) {
       const response = await fetch(
         `${process.env.MODEL_URL}/predict?book_id=${id}`
       );

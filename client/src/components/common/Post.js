@@ -25,14 +25,6 @@ import QuestionForm from "./QuestionForm";
 import Modal from "./Modal";
 import formatDate from "../../utils/formatDate";
 
-const typeDisplay = {
-  post: "Post",
-  review: "Review",
-  news: "News",
-  trade: "Trade",
-  question: "Question",
-};
-
 const Post = ({
   currentPost,
   className = "",
@@ -57,21 +49,22 @@ const Post = ({
   const [openModal, setOpenModal] = useState(false);
 
   const [input, setInput] = useState({
-    title: currentPost?.title || "",
+    title: currentPost?.detail?.title || "",
     text: currentPost?.text || "",
-    rating: currentPost?.rating || "",
-    content: currentPost?.content || "",
-    development: currentPost?.development || "",
-    pacing: currentPost?.pacing || "",
-    writing: currentPost?.writing || "",
-    insights: currentPost?.insights || "",
-    dateRead: currentPost?.dateRead || "",
+    rating: currentPost?.detail?.rating || "",
+    content: currentPost?.detail?.content || "",
+    development: currentPost?.detail?.development || "",
+    pacing: currentPost?.detail?.pacing || "",
+    writing: currentPost?.detail?.writing || "",
+    insights: currentPost?.detail?.insights || "",
+    dateRead: currentPost?.detail?.dateRead || "",
     image: currentPost?.image || "",
-    condition: currentPost?.condition || "",
-    address: currentPost?.address || "",
-    location: currentPost?.location || "",
+    condition: currentPost?.detail?.condition || "",
+    address: currentPost?.detail?.address || "",
+    location: currentPost?.detail?.location || "",
     hashtag: currentPost?.hashtag?.map((one) => one.name) || [],
     spoiler: currentPost?.spoiler || false,
+    postType: currentPost?.postType || "",
   });
 
   const [attachment, setAttachment] = useState(
@@ -85,7 +78,7 @@ const Post = ({
   const [viewMoreRating, setViewMoreRating] = useState(false);
   const [spoilerView, setSpoilerView] = useState(false);
 
-const [showFullText, setShowFullText]= useState(false)
+  const [showFullText, setShowFullText] = useState(false);
 
   const navigate = useNavigate();
 
@@ -97,11 +90,8 @@ const [showFullText, setShowFullText]= useState(false)
   let commentCount = post?.comments?.length || 0;
 
   const getType = () => {
-    if (post?.rating) setType("review");
-    else if (post?.address) setType("trade");
-    else if (post?.type) setType("news");
-    else if (post?.book) setType("question");
-    else setType("post");
+    const postType = currentPost?.postType?.toLowerCase();
+    setType(postType);
   };
 
   // set image to show in form
@@ -149,7 +139,7 @@ const [showFullText, setShowFullText]= useState(false)
           return;
         }
       }
-      const { data } = await autoFetch.put(`/api/${type}/add-comment`, {
+      const { data } = await autoFetch.put(`/api/post/add-comment`, {
         postId,
         comment: textComment,
         image,
@@ -172,7 +162,7 @@ const [showFullText, setShowFullText]= useState(false)
   const unlike = async (postId) => {
     setLikeLoading(true);
     try {
-      const { data } = await autoFetch.put(`/api/${type}/unlike`, {
+      const { data } = await autoFetch.put(`/api/post/unlike`, {
         postId,
       });
       setPost({ ...post, likes: data.post.likes });
@@ -185,7 +175,7 @@ const [showFullText, setShowFullText]= useState(false)
   const like = async (postId) => {
     setLikeLoading(true);
     try {
-      const { data } = await autoFetch.put(`/api/${type}/like`, { postId });
+      const { data } = await autoFetch.put(`/api/post/like`, { postId });
       setPost({ ...post, likes: data.post.likes });
     } catch (error) {
       console.log(error);
@@ -195,7 +185,7 @@ const [showFullText, setShowFullText]= useState(false)
 
   const deleteComment = async (commentId) => {
     try {
-      const { data } = await autoFetch.put(`/api/${type}/remove-comment`, {
+      const { data } = await autoFetch.put(`/api/post/remove-comment`, {
         postId: post._id,
         commentId,
       });
@@ -219,7 +209,7 @@ const [showFullText, setShowFullText]= useState(false)
 
   const reportPost = async (postId) => {
     try {
-      const { data } = await autoFetch.patch(`api/${type}/report`, {
+      const { data } = await autoFetch.patch(`api/post/report`, {
         postId,
       });
       toast("Report succesfully! An admin will look into your request");
@@ -230,7 +220,7 @@ const [showFullText, setShowFullText]= useState(false)
   };
 
   const getAIRes = async (postId) => {
-    toast("Please wait...")
+    toast("Please wait...");
     try {
       const { data } = await autoFetch.get(`api/question/ai/${postId}`);
       setAnswer(data.reply);
@@ -295,16 +285,13 @@ const [showFullText, setShowFullText]= useState(false)
         });
         postData = data.post;
       } else if (type === "news") {
-        const { data } = await autoFetch.patch(
-          `api/news/${currentPost._id}`,
-          {
-            text: input.text,
-            image: image,
-            title: input.title,
-            hashtag: input.hashtag,
-            spoiler: input.spoiler,
-          }
-        );
+        const { data } = await autoFetch.patch(`api/news/${currentPost._id}`, {
+          text: input.text,
+          image: image,
+          title: input.title,
+          hashtag: input.hashtag,
+          spoiler: input.spoiler,
+        });
         postData = data.post;
       } else if (type === "question") {
         const { data } = await autoFetch.patch(
@@ -324,37 +311,37 @@ const [showFullText, setShowFullText]= useState(false)
       setPost({
         ...post,
         text: postData.text,
-        title: postData.title || "",
-        rating: postData.rating || "",
-        content: postData.content || "",
-        development: postData.development || "",
-        pacing: postData.pacing || "",
-        writing: postData.writing || "",
-        insights: postData.insights || "",
-        dateRead: postData.dateRead || "",
-        image: postData.image || "",
-        address: postData.address || "",
-        location: postData.location || "",
-        condition: postData.condition || "",
-        hashtag: postData.hashtag || [],
-        spoiler: postData.spoiler || false,
+        title: postData?.detail?.title || "",
+        rating: postData?.detail?.rating || "",
+        content: postData?.detail?.content || "",
+        development: postData?.detail?.development || "",
+        pacing: postData?.detail?.pacing || "",
+        writing: postData?.detail?.writing || "",
+        insights: postData?.detail?.insights || "",
+        dateRead: postData?.detail?.dateRead || "",
+        image: postData?.image || "",
+        address: postData?.detail?.address || "",
+        location: postData?.detail?.location || "",
+        condition: postData?.detail?.condition || "",
+        hashtag: postData?.hashtag || [],
+        spoiler: postData?.spoiler || false,
       });
 
       setInput({
         // ...post,
         text: postData.text,
-        title: postData.title || "",
-        rating: postData.rating || "",
-        content: postData.content || "",
-        development: postData.development || "",
-        pacing: postData.pacing || "",
-        writing: postData.writing || "",
-        insights: postData.insights || "",
-        dateRead: postData.dateRead || "",
-        image: postData.image || "",
-        address: postData.address || "",
-        location: postData.location || "",
-        condition: postData.condition || "",
+        title: postData?.detail?.title || "",
+        rating: postData?.detail?.rating || "",
+        content: postData?.detail?.content || "",
+        development: postData?.detail?.development || "",
+        pacing: postData?.detail?.pacing || "",
+        writing: postData?.detail?.writing || "",
+        insights: postData?.detail?.insights || "",
+        dateRead: postData?.detail?.dateRead || "",
+        image: postData?.image || "",
+        address: postData?.detail?.address || "",
+        location: postData?.detail?.location || "",
+        condition: postData?.detail?.condition || "",
         hashtag: postData.hashtag?.map((one) => one.name) || [],
         spoiler: postData.spoiler || false,
       });
@@ -374,9 +361,9 @@ const [showFullText, setShowFullText]= useState(false)
   const MainContent = () => {
     return (
       <div>
-        {post?.title && (
+        {post?.detail?.title && (
           <div className="content mt-3 serif-display font-semibold text-2xl">
-            {post?.title}
+            {post?.detail?.title}
           </div>
         )}
 
@@ -384,10 +371,25 @@ const [showFullText, setShowFullText]= useState(false)
           className={`content mt-[11px] text-sm "
           } `}
         >
-          <ReactMarkdown>{post?.text.length< 1000 ? post?.text: showFullText? post?.text: post?.text.slice(0,1000)}</ReactMarkdown>
+          <ReactMarkdown>
+            {post?.text.length < 1000
+              ? post?.text
+              : showFullText
+              ? post?.text
+              : post?.text.slice(0, 1000)}
+          </ReactMarkdown>
         </div>
 
-         {post?.text.length>500&&<div className="font-semibold text-sm cursor-pointer" onClick={()=>{setShowFullText(prev=>!prev)}}>{showFullText? "Show less": "Show more"}</div> }
+        {post?.text.length > 500 && (
+          <div
+            className="font-semibold text-sm cursor-pointer"
+            onClick={() => {
+              setShowFullText((prev) => !prev);
+            }}
+          >
+            {showFullText ? "Show less" : "Show more"}
+          </div>
+        )}
         {post?.hashtag && (
           <div className="">
             {post?.hashtag?.map((one) => (
@@ -435,7 +437,11 @@ const [showFullText, setShowFullText]= useState(false)
   }
 
   if (loadingEdit) {
-    return <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
+    return (
+      <div className="w-full flex justify-center">
+        <ReactLoading type="spin" width={30} height={30} color="#7d838c" />
+      </div>
+    );
   }
 
   return (
@@ -561,7 +567,7 @@ const [showFullText, setShowFullText]= useState(false)
               navigate(`/detail/${type}/${post?._id}`);
             }}
           >
-            {moment(post?.createdAt).fromNow()} • {typeDisplay[type]}
+            {moment(post?.createdAt).fromNow()} • {post.postType}
           </div>
         </div>
         {/* Edit or delete posts */}
@@ -632,75 +638,81 @@ const [showFullText, setShowFullText]= useState(false)
         </div>
       </div>
 
-      {post.address && (
+      {post?.detail?.address && (
         <div
           className="content mt-3 font-bold text-gray-500 text-xs"
           onClick={() => console.log(post)}
         >
-          {post?.address?.slice(0, 80)}...
+          {post?.detail?.address?.slice(0, 80)}...
         </div>
       )}
 
-      {post.condition && (
+      {post?.detail?.condition && (
         <div className="content mt-2 font-bold text-gray-500 text-xs">
-          Condition: {post?.condition}{" "}
+          Condition: {post?.detail?.condition}{" "}
         </div>
       )}
 
-      {post?.book && !book && (
-        <div className="flex items-center mt-2 pr-3">
+      {post?.detail?.book && !book && (
+        <div className="flex items-center mt-2 pr-3 gap-y-2">
           {/* avatar */}
           <img
             src={
-              post?.book?.thumbnail ||
+              post?.detail?.book?.thumbnail ||
               "https://sciendo.com/product-not-found.png"
             }
             alt="avatar"
             className="max-h-20 rounded-md cursor-pointer "
             onClick={() => {
-              navigate(`/book/${post?.book?._id}`);
+              navigate(`/book/${post?.detail?.book?._id}`);
             }}
           />
           {/* name and time post */}
-          <div className={`ml-2 `}>
+          <div className={`ml-2 flex flex-col gap-y-1`}>
             <div
               className="flex items-center font-bold text-sm gap-x-1 cursor-pointer "
               onClick={() => {
-                navigate(`/book/${post?.book?._id}`);
+                navigate(`/book/${post?.detail?.book?._id}`);
               }}
             >
-              {post?.book?.title}
+              {post?.detail?.book?.title}
             </div>
 
             <div className="text-xs dark:text-[#B0B3B8] flex items-center gap-x-1 ">
-              {post?.book?.author}
+              {post?.detail?.book?.author}
             </div>
-            {post?.rating && (
+            {post?.detail?.rating && (
               <div className="flex items-center gap-x-1  cursor-pointer mt-2">
                 <Rating
                   className="!text-[16px]"
-                  value={post?.rating}
+                  value={post?.detail?.rating}
                   precision={0.5}
                   readOnly
                 />
+              </div>
+            )}
+            {post?.detail?.progress && (
+              <div className="text-xs text-smallText flex items-center gap-x-1 ">
+                At page{" "}
+                <span className="font-semibold">{post?.detail?.progress}</span>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {post?.rating && book && (
+      {post?.detail?.rating && book && (
         <div>
           <div className="content mt-[11px]">
             <div className="flex items-center gap-x-2">
               <div className="">Overall</div>
-              <Rating value={post?.rating} precision={0.5} readOnly />
+              <Rating value={post?.detail?.rating} precision={0.5} readOnly />
             </div>
           </div>
         </div>
       )}
 
-      {post?.rating && (
+      {post?.detail?.rating && (
         <div
           className={`text-xs text-smallText cursor-pointer ${
             viewMoreRating && `hidden`
@@ -720,7 +732,7 @@ const [showFullText, setShowFullText]= useState(false)
               <div className="text-sm">Content</div>
               <Rating
                 className="!text-lg"
-                value={post?.content}
+                value={post?.detail?.content}
                 precision={0.5}
                 readOnly
               />
@@ -730,7 +742,7 @@ const [showFullText, setShowFullText]= useState(false)
               <div className="text-sm">Development</div>
               <Rating
                 className="!text-lg"
-                value={post?.development}
+                value={post?.detail?.development}
                 precision={0.5}
                 readOnly
               />
@@ -740,7 +752,7 @@ const [showFullText, setShowFullText]= useState(false)
               <div className="text-sm">Writing</div>
               <Rating
                 className="!text-lg"
-                value={post?.writing}
+                value={post?.detail?.writing}
                 precision={0.5}
                 readOnly
               />
@@ -750,7 +762,7 @@ const [showFullText, setShowFullText]= useState(false)
               <div className="text-sm">Insights</div>
               <Rating
                 className="!text-lg"
-                value={post?.insights}
+                value={post?.detail?.insights}
                 precision={0.5}
                 readOnly
               />
@@ -759,14 +771,18 @@ const [showFullText, setShowFullText]= useState(false)
 
           {post?.dateRead && (
             <div className="content mt-2 font-bold text-gray-500 text-xs">
-              Read on: {formatDate(post?.dateRead)}
+              Read on: {formatDate(post?.detail?.dateRead)}
             </div>
           )}
         </div>
       )}
 
       {post?.spoiler && (
-        <div className={`${spoilerView && `hidden`} flex flex-col items-center gap-y-2 my-2`}>
+        <div
+          className={`${
+            spoilerView && `hidden`
+          } flex flex-col items-center gap-y-2 my-2`}
+        >
           <div className="font-semibold">Warning! Spoiler ahead!</div>
           <button
             className="primary-btn bg-black"

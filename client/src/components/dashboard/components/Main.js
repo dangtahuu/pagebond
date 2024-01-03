@@ -39,17 +39,8 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
 
   const [loading, setLoading] = useState(true);
 
-  const [activePosts, setActivePosts] = useState([]);
-  const [reservedPosts, setReservedPosts] = useState([]);
-
-  const [moreData, setmoreData] = useState(true);
-
+  const [posts, setPosts] = useState([]);
   const [morePosts, setMorePosts] = useState(true);
-  const [moreReviews, setMoreReviews] = useState(true);
-  const [moreTrades, setMoreTrades] = useState(true);
-  const [moreQuestions, setMoreQuestions] = useState(true);
-
-  const [moreNews, setMoreNews] = useState(true);
 
   const [popularReviews, setPopularReviews] = useState([]);
   const [popularPosts, setPopularPosts] = useState([]);
@@ -72,8 +63,10 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   }, []);
 
   useEffect(() => {
-    getFirstData();
-    getDiscover();
+    setLoading(true)
+    getPosts();
+    // getDiscover();
+    setLoading(false)
   }, []);
 
   useEffect(()=>{
@@ -103,7 +96,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         hashtag: input.hashtag,
         spoiler: input.spoiler,
       });
-      setActivePosts((prev) => [data.post, ...prev]);
+      setPosts((prev) => [data.post, ...prev]);
       toast.success("Create new post successfully!");
     } catch (error) {
       console.log(error);
@@ -133,7 +126,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         type: user.role === 1 ? 1 : 0,
         spoiler: input.spoiler,
       });
-      setActivePosts((prev) => [data.post, ...prev]);
+      setPosts((prev) => [data.post, ...prev]);
 
       if (user.role === 1) toast.success("Create new news post successfully!");
       else
@@ -148,128 +141,20 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
   };
 
-  const getFirstData = async () => {
-    try {
-      setPage((prev) => prev+1);
-      const [posts, reviews, trades, news, questions] = await Promise.all([
-        getPosts(),
-        getReviews(),
-        getTrades(),
-        getNews(),
-        getQuestions(),
-      ]);
-      let data = [...posts, ...reviews, ...trades, ...news, ...questions];
-      data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      console.log(posts)
-      console.log(reviews)
-      console.log(trades)
-      console.log(news)
-      console.log(questions)
-
-      let firstData = data.splice(0, 10);
-      setActivePosts(firstData);
-      setReservedPosts(data);
-      if (!data.length) setmoreData(false);
-
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getMoreData = async () => {
-    try {
-      setPage((prev) => prev+1);
-      const [posts, reviews, trades, news, questions] = await Promise.all([
-        getPosts(),
-        getReviews(),
-        getTrades(),
-        getNews(),
-        getQuestions(),
-      ]);
-      let data = [
-        ...reservedPosts,
-        ...posts,
-        ...reviews,
-        ...trades,
-        ...news,
-        ...questions,
-      ];
-      console.log(posts)
-      console.log(reviews)
-      console.log(trades)
-      console.log(news)
-      console.log(questions)
-      data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      let firstData = data.splice(0, 10);
-      setActivePosts((prev) => [...prev, ...firstData]);
-      setReservedPosts(data);
-      if (!data.length) setmoreData(false);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
   const getPosts = async () => {
-    console.log(page)
+   try{
     if (!morePosts) return [];
     const { data } = await autoFetch.get(
       `/api/post/following?page=${page+1}`
     );
+    setPage((prev) => prev+1);
     if (data.posts.length < 10) setMorePosts(false);
-    if (data.posts.length === 0) return [];
-    return data.posts;
-  };
+    setPosts((prev)=> ([...prev,...data.posts]))
 
-  const getReviews = async () => {
-    console.log(page)
-
-    if (!moreReviews) return [];
-    const { data } = await autoFetch.get(
-      `/api/review/following?page=${page + 1}`
-    );
-    if (data.posts.length < 10) setMoreReviews(false);
-    if (data.posts.length === 0) return [];
-
-    return data.posts;
-  };
-
-  const getTrades = async () => {
-    console.log(page)
-
-    if (!moreTrades) return [];
-    const { data } = await autoFetch.get(
-      `/api/trade/following?page=${page + 1}`
-    );
-    if (data.posts.length < 10) setMoreTrades(false);
-    if (data.posts.length === 0) return [];
-
-    return data.posts;
-  };
-
-  const getNews = async () => {
-    console.log(page)
-
-    if (!moreNews) return [];
-    const { data } = await autoFetch.get(
-      `/api/news/following?page=${page + 1}`
-    );
-    if (data.posts.length < 10) setMoreNews(false);
-    if (data.posts.length === 0) return [];
-    return data.posts;
-  };
-
-  const getQuestions = async () => {
-    console.log(page)
-
-    if (!moreQuestions) return [];
-    const { data } = await autoFetch.get(
-      `/api/question/following?page=${page + 1}`
-    );
-    if (data.posts.length < 10) setMoreQuestions(false);
-    if (data.posts.length === 0) return [];
-    return data.posts;
+   } catch(e){
+    console.log(e)
+   }
+   
   };
 
   const getDiscover = async () => {
@@ -323,10 +208,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
   };
 
-  useEffect(()=>{
-    console.log("222")
-    console.log(popularReviews)
-  },[popularReviews])
+
   const getNearby = async () => {
     try {
       const { data } = await autoFetch.get(
@@ -347,7 +229,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       );
     }
 
-    if (activePosts.length === 0) {
+    if (posts.length === 0) {
       return (
         <div className="w-full text-center text-xl font-bold pt-[20vh] ">
           <div>Nothing to display</div>
@@ -356,18 +238,18 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     }
     return (
       <InfiniteScroll
-        dataLength={activePosts.length}
-        next={getMoreData}
-        hasMore={moreData}
+        dataLength={posts.length}
+        next={getPosts}
+        hasMore={morePosts}
       >
-        {activePosts.map((post) => (
+        {posts.map((post) => (
           <Post key={post._id} currentPost={post} />
         ))}
       </InfiniteScroll>
-      // <div>{childComponent}</div>
     );
   };
-  const childComponent = useMemo(() => <Following />, [activePosts]);
+
+  const childComponent = useMemo(() => <Following />, [posts]);
 
   const Discover = () => {
     if (loading) {
