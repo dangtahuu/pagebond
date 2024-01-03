@@ -455,11 +455,13 @@ const getFromOfficial = async (req, res) => {
     const days = new Date();
     days.setDate(days.getDate() - 7);
 
+
+
     const randomPostIds = await News.aggregate([
       {
         $match: {
           type: 2,
-          createdAt: { $gte: days },
+          // createdAt: { $gte: days },
         },
       },
       { $sample: { size: 3 } },

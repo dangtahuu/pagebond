@@ -5,6 +5,7 @@ import { BingChat } from "bing-chat-rnz";
 // import { BingAIClient } from "@waylaidwanderer/chatgpt-api";
 import mongoose from "mongoose";
 import { OpenAIAssistantRunnable } from "langchain/experimental/openai_assistant"
+import OpenAI from "openai";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -16,6 +17,8 @@ const api = new BingChat({
   cookie:
     "1WuqLKrFr0QR_kEOqCT6qMy_4VBUK_RWZxOfeXFzNaBLZy6qn4PCvtw1xQnyEkyVFtDRwafbowdR6rtzMbs__YbnHJuQxgmm6NOhlnaUrUc4elZODqv1cjQNpGHH7bBNDZeBpDF17PfdtUAKFQfivNmn2Vg2IC_BiIEDPSpWMkTE9q77BL_1HW_jLmyofo3CkJIxNRXXSXo3uPDjfqy7YCjiT3vDJlpjeST9i5nEUyEk",
 });
+
+
 
 const getAllMessages = async (req, res) => {
   try {
@@ -291,35 +294,89 @@ const markRead = async (req, res) => {
   }
 };
 
+// const getAssistant =  async (req, res) => {
+//   const body = req.body;
+//   const message = body.message;
+
+
+//   if (!(message)) {
+//     return res.status(400).send({ error: "Data not formatted properly" });
+//   }
+
+
+//   const assistant = new OpenAIAssistantRunnable({
+//     assistantId: "asst_cYRFEk1dboldcEihCqsgsk2P"
+//     // process.env.ASSISSTANT_ID,
+//   });
+
+//   await assistant.invoke({
+//     content: message,
+//     thread_id: "thread_lIeqSVw25QNGlA3QU60cmmb5",
+//   }).then((result) => {
+//     console.log("load chain");
+//     console.log(result);
+//     res.status(200).send({
+//       full: result[0],
+//       message: result[0].content[0].text.value,
+//     });
+//   }).catch((err) => {
+//     console.log(err);
+//     res.status(200).send({
+//       message: "Hệ thống đang bận, vui lòng thử lại sau.",
+//     });
+//   });
+// };
+
+
 const getAssistant =  async (req, res) => {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    // "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",
+    dangerouslyAllowBrowser: true,
+  });
+
+ try{
   const body = req.body;
-  const message = body.message;
+    const text = body.message;
 
+  await openai.beta.threads.messages.create("thread_lIeqSVw25QNGlA3QU60cmmb5", {
+    role: "user",
+    content: text,
+  });
 
-  if (!(message)) {
-    return res.status(400).send({ error: "Data not formatted properly" });
+  // Run the assistant
+  const run = await openai.beta.threads.runs.create("thread_lIeqSVw25QNGlA3QU60cmmb5", {
+    assistant_id: "asst_cYRFEk1dboldcEihCqsgsk2P",
+  });
+
+  // Create a response
+  let response = await openai.beta.threads.runs.retrieve("thread_lIeqSVw25QNGlA3QU60cmmb5", run.id);
+
+  // Wait for the response to be ready
+  while (response.status === "in_progress" || response.status === "queued") {
+    // console.log("waiting...");
+    // setIsWaiting(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    response = await openai.beta.threads.runs.retrieve("thread_lIeqSVw25QNGlA3QU60cmmb5", run.id);
   }
 
+  const messageList = await openai.beta.threads.messages.list("thread_lIeqSVw25QNGlA3QU60cmmb5");
 
-  const assistant = new OpenAIAssistantRunnable({
-    assistantId: "asst_cYRFEk1dboldcEihCqsgsk2P"
-    // process.env.ASSISSTANT_ID,
-  });
+  const lastMessage = messageList.data
+  .filter((message) => message.run_id === run.id && message.role === "assistant")
+  .pop();
 
-  await assistant.invoke({
-    content: message,
-  }).then((result) => {
-    console.log("load chain");
-    console.log(result);
-    res.status(200).send({
-      message: result[0].content[0].text.value,
+  res.status(200).json({
+//       full: result[0],
+      message: lastMessage.content[0]["text"].value,
     });
-  }).catch((err) => {
-    console.log(err);
-    res.status(200).send({
-      message: "Hệ thống đang bận, vui lòng thử lại sau.",
-    });
-  });
+
+ }catch(e){
+  res.status(400).json({
+    //       full: result[0],
+          message: "something went wrong",
+        });
+ }
 };
 
 export {

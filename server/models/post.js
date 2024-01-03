@@ -16,9 +16,7 @@ const postSchema = new mongoose.Schema(
       required: true,
     },
     image: {
-      url: {
-        type: String,
-      },
+      url: String,
       public_id: String,
     },
     likes: [{ type: mongoose.Types.ObjectId, ref: "User" }],
@@ -28,10 +26,6 @@ const postSchema = new mongoose.Schema(
         image: {
           url: String,
           public_id: String,
-          default: {
-            url: "",
-            public_id: "",
-          },
         },
         created: {
           type: Date,
@@ -44,6 +38,18 @@ const postSchema = new mongoose.Schema(
       },
     ],
     hashtag: [{ type: mongoose.Types.ObjectId, ref: "Hashtag" }],
+    docModel: {
+      type: String,
+      required: true,
+      enum: ['BlogPost', 'Product']
+    },
+    doc: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      // Instead of a hardcoded model name in `ref`, `refPath` means Mongoose
+      // will look at the `docModel` property to find the right model.
+      refPath: 'docModel'
+    },
     spoiler: { type: Boolean, default: false },
     reported: {
       type: Boolean,
