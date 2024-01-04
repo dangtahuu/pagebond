@@ -64,8 +64,7 @@ const edit = async (req, res) => {
     if (!post) {
       return res.status(400).json({ msg: "No post found!" });
     }
-
-    return res.status(400).json({ post });
+    return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -89,7 +88,6 @@ const deleteOne = async (req, res) => {
 
 const getAdmin = async (req, res) => {
   try {
-
     const aggResult = await Post.aggregate([
       {
         $lookup: {
@@ -115,14 +113,14 @@ const getAdmin = async (req, res) => {
 
     const ids = aggResult.map((one) => one._id.toString());
 
-    const posts = await Post.find({ _id: { $in: ids }, })
+    const posts = await Post.find({ _id: { $in: ids } })
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
       .populate({
         path: "detail",
         populate: { path: "book" },
       })
-      .populate("hashtag")
+      .populate("hashtag");
 
     return res.status(200).json({ posts });
   } catch (error) {
@@ -134,9 +132,8 @@ const getAdmin = async (req, res) => {
 const getFromOfficial = async (req, res) => {
   try {
     const days = new Date();
-   const daysAgo = days.setDate(days.getDate() - 30);
+    const daysAgo = days.setDate(days.getDate() - 30);
 
-   
     const aggResult = await Post.aggregate([
       {
         $lookup: {
@@ -151,25 +148,25 @@ const getFromOfficial = async (req, res) => {
       },
       {
         $match: {
-          $and: [{"data.type": 2},{createdAt: {$gt: daysAgo}}]
+          $and: [{ "data.type": 2 }, { createdAt: { $gt: daysAgo } }],
         },
       },
       // {
       //   $sort: { createdAt: -1 },
       // },
-      { $sample: {size: 3} },
+      { $sample: { size: 3 } },
     ]);
 
     const ids = aggResult.map((one) => one._id.toString());
 
-    const posts = await Post.find({ _id: { $in: ids }, })
-    .populate("postedBy", "-password -secret")
-    .populate("comments.postedBy", "-password -secret")
-    .populate({
-      path: "detail",
-      populate: { path: "book" },
-    })
-    .populate("hashtag")
+    const posts = await Post.find({ _id: { $in: ids } })
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
+      .populate("hashtag");
 
     return res.status(200).json({ posts });
   } catch (error) {
@@ -220,7 +217,7 @@ const getAllWithBook = async (req, res) => {
         path: "detail",
         populate: { path: "book" },
       })
-      .populate("hashtag")
+      .populate("hashtag");
 
     return res.status(200).json({ posts });
   } catch (error) {
@@ -231,18 +228,41 @@ const getAllWithBook = async (req, res) => {
 
 const getFeatured = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id: bookId } = req.params;
 
-    const posts = await News.find({
-      $and: [{ book: id }, { type: { $ne: 0 } }],
-    })
+    const aggResult = await Post.aggregate([
+      {
+        $lookup: {
+          from: "news",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          $and: [{  "data.book": mongoose.Types.ObjectId(bookId) }, { "data.type": { $ne: 0 } }],
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      { $limit: 1 },
+    ]);
+
+    const post = await Post.findById(aggResult[0]._id)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")
-      .populate("hashtag")
-      .sort({ createdAt: -1 })
-      .limit(1);
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
+      .populate("hashtag");
 
-    return res.status(200).json({ post: posts[0] });
+    return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });

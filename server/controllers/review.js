@@ -1,18 +1,13 @@
-import Review from "../models/review.js";
-import cloudinary from "cloudinary";
-import User from "../models/user.js";
 import mongoose, { mongo } from "mongoose";
+
+import Review from "../models/review.js";
+import User from "../models/user.js";
 import Log from "../models/log.js";
 import Book from "../models/book.js";
-import book from "../models/book.js";
 import Hashtag from "../models/hashtag.js";
 import shuffle from "../utils/shuffle.js";
 import Post from "./../models/post.js";
-cloudinary.v2.config({
-  cloud_name: "dksyipjlk",
-  api_key: "846889586593325",
-  api_secret: "mW4Q6mKi4acL72ZhUYzw-S0_y1A",
-});
+import Shelf from "../models/shelf.js";
 
 const create = async (req, res, next) => {
   const {
@@ -33,7 +28,8 @@ const create = async (req, res, next) => {
       !development ||
       !pacing ||
       !writing ||
-      !insights || !book
+      !insights ||
+      !book
     ) {
       return res
         .status(400)
@@ -105,9 +101,26 @@ const create = async (req, res, next) => {
       numberOfRating: newNumberOfRating,
     });
 
+    await Shelf.findOneAndUpdate(
+      { $and: [{ name: "to read" }, { owner: req.user.userId }] },
+      {
+        $pull: {
+          books: book.id,
+        },
+      }
+    );
+
+    await Shelf.findOneAndUpdate(
+      { $and: [{ name: "up next" }, { owner: req.user.userId }] },
+      {
+        $pull: {
+          books: book.id,
+        },
+      }
+    );
+
     req.body = { ...req.body, detail: post._id, postType: "Review" };
     next();
-
   } catch (err) {
     console.log(err);
     return res.status(400).json({ msg: err });
@@ -121,8 +134,8 @@ const getAllWithBook = async (req, res) => {
 
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
-    const sort = req.query.sort;
-    const rating = req.query.rating;
+    const sort = req.query.sort || "popularity";
+    const filter = req.query.filter || "All";
 
     let pipeline = [
       {
@@ -153,10 +166,9 @@ const getAllWithBook = async (req, res) => {
       { $limit: perPage },
     ];
 
-    if (rating !== "All") {
-      const [minRating, maxRating] = rating.split("-").map(parseFloat);
+    if (filter !== "All") {
       pipeline.push({
-        $match: { "data.rating": { $gte: minRating, $lte: maxRating } },
+        $match: { "data.rating": parseFloat(filter) },
       });
     }
 
@@ -198,20 +210,19 @@ const calculateRatingChart = async (req, res) => {
       ratingCounts[item.rating] = (ratingCounts[item.rating] || 0) + 1;
     });
 
-    const result = []
-    for (let i=0.5; i<=5; i+=0.5) {
+    const result = [];
+    for (let i = 0.5; i <= 5; i += 0.5) {
       if (ratingCounts[i]) {
         result.push({
           number: ratingCounts[i],
           rating: i,
-      })
+        });
       } else {
         result.push({
           number: 0,
           rating: i,
-      })
+        });
       }
-     
     }
 
     return res.status(200).json({ result });
@@ -232,9 +243,8 @@ const edit = async (req, res) => {
       writing,
       insights,
       dateRead,
-      postId
+      postId,
     } = req.body;
-
 
     if (
       !rating ||
@@ -249,6 +259,9 @@ const edit = async (req, res) => {
         .json({ msg: "Please provide all required values" });
     }
 
+    console.log(dateRead);
+    console.log("lllll");
+
     const post = await Review.findByIdAndUpdate(detail, {
       rating,
       content,
@@ -259,14 +272,11 @@ const edit = async (req, res) => {
       dateRead,
     });
 
-
     if (!post) {
       return res.status(400).json({ msg: "No review found!" });
     }
 
-    const newPost =  await Review.findByIdAnd(detail)
-
-    
+    const newPost = await Review.findById(detail);
 
     const bookData = await Book.findById(post.book);
 
@@ -324,14 +334,14 @@ const edit = async (req, res) => {
     });
 
     const postData = await Post.findById(postId)
-    .populate("postedBy", "-password -secret")
-    .populate("comments.postedBy", "-password -secret")
-    .populate({
-      path: "detail",
-      populate: { path: "book" },
-    })
-    .populate("hashtag");
-    
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
+      .populate("hashtag");
+    console.log(postData);
     return res.status(200).json({ msg: "Updated review!", post: postData });
   } catch (error) {
     console.log(error);
@@ -341,7 +351,6 @@ const edit = async (req, res) => {
 
 const deleteOne = async (req, res) => {
   try {
-
     const postId = req.detailId;
     const post = await Question.findByIdAndDelete(postId);
     if (!post) {

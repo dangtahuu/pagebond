@@ -19,7 +19,8 @@ import {
     getPopular,
     report,
     dismissReport,
-    search
+    search,
+    getPostsWithUserIdWithBook
 
 } from "../controllers/post.js";
 import formidable from "express-formidable";
@@ -71,6 +72,8 @@ router.route("/admin/delete/:id").delete(isAdmin, deletePost);
 
 // get post with userID 
 router.route("/withUser/:userId").get(getPostsWithUserId);
+router.route("/withUserAndBook/:userId/:bookId").get(getPostsWithUserIdWithBook);
+
 
 router.route("/report").patch(report);
 router.route("/unreport").patch(isAdmin,dismissReport);

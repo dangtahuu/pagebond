@@ -5,7 +5,7 @@ import Register from "./Register";
 import Error from "./Error";
 import ProtectedLayout from "./ProtectedLayout";
 import ShareLayout from "./ShareLayout";
-import BookDetail from "../components/book/BookDetail";
+// import BookDetail from "../components/book/BookDetail";
 export {
     Home,
     Login,
@@ -14,5 +14,5 @@ export {
     Error,
     ProtectedLayout,
     ShareLayout,
-    BookDetail,
+    // BookDetail,
 };

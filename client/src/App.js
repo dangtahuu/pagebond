@@ -18,7 +18,7 @@ import {
   Admin,
   Browse,
   PostDetail,
-  BookDetail,
+  BookPage,
   Profile,
   UpdateProfile,
   Search,
@@ -63,7 +63,7 @@ const App = () => {
             <Route path="/profile/:id" element={<Profile />} />
             <Route path="/profile/:id/:shelf" element={<Profile />} />
 
-            <Route path="/book/:id" element={<BookDetail />} />
+            <Route path="/book/:id" element={<BookPage />} />
             <Route path="/search" element={<Search />} />
             <Route path="/browse" element={<Search />} />
 

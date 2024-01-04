@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppContext } from "../../context/useContext";
 import { MdAddPhotoAlternate, MdCancel } from "react-icons/md";
-
+import { toast } from "react-toastify";
 import ReactLoading from "react-loading";
 import { IoClose } from "react-icons/io5";
 import Rating from "@mui/material/Rating";
@@ -9,7 +9,7 @@ import { IoIosHelpCircle } from "react-icons/io";
 import Tooltip from "@mui/material/Tooltip";
 import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 import { AiOutlineInfoCircle } from "react-icons/ai";
-
+import { formatDateYearFirst } from "../../utils/formatDate";
 import useDebounce from "../../hooks/useDebounce";
 import useOnClickOutside from "../../hooks/useOnClickOutside";
 import "@mdxeditor/editor/style.css";
@@ -30,24 +30,43 @@ import {
 } from "@mdxeditor/editor";
 
 import "./common.css";
+import checkInput from "../../utils/checkInput";
 
 const ReviewForm = ({
-  input = "",
-  setInput = (event) => {},
-  setOpenModal = (event) => {},
-  attachment = "",
-  setAttachment = (event) => {},
-  createNewPost = () => {},
-  handleEditPost = () => {},
-  isEditPost = false,
-  imageEdit = null,
-  setFormDataEdit = (event) => {},
-  setImageEdit = (event) => {},
+  setOpenModal,
+  setPostLoading,
+  book,
+  posts,
+  setPosts,
+  current,
+  setPost,
+  type,
+  setStatus,
 }) => {
-  const { autoFetch } = useAppContext();
-
-  const [image, setImage] = useState(imageEdit);
-  const [loading, setLoading] = useState(false);
+  const { autoFetch, user } = useAppContext();
+  const api = process.env.REACT_APP_GEOAPIFY_API;
+  const initInput = {
+    text: current?.text || "",
+    title: current?.detail?.title || "",
+    rating: current?.detail?.rating || "",
+    content: current?.detail?.content || "",
+    development: current?.detail?.development || "",
+    pacing: current?.detail?.pacing || "",
+    writing: current?.detail?.writing || "",
+    insights: current?.detail?.insights || "",
+    dateRead: current?.detail?.dateRead? formatDateYearFirst(current?.detail?.dateRead) : "",
+    image: current?.image || "",
+    address: current?.detail?.address || "",
+    location: current?.detail?.location || "",
+    condition: current?.detail?.condition || "",
+    hashtag: current?.hashtag?.map((one) => one.name) || [],
+    spoiler: current?.spoiler || false,
+    progress: current?.detail?.progress || "",
+  };
+  const [input, setInput] = useState(initInput);
+  const [image, setImage] = useState(initInput.image);
+  const [attachment, setAttachment] = useState(initInput.image);
+  const [imageLoading, setImageLoading] = useState(false);
   const [formData, setFormData] = useState(null);
 
   const pacingList = ["Slow", "Medium", "Fast"];
@@ -63,9 +82,50 @@ const ReviewForm = ({
 
   const markdownRef = useRef();
 
+  const conditionList = ["New", "Like new", "Good", "Worn", "Bad"];
+
+  const searchRef = useRef();
+
+  const textDebounce = useDebounce(input.address, 500);
+  const [isEmpty, setIsEmpty] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [listSearchResult, setListSearchResult] = useState([]);
+  const clearListResult = () => {
+    if (isSearching) {
+      setListSearchResult([]);
+      setInput((prev) => ({ ...prev, address: "" }));
+      setIsEmpty(false);
+    }
+  };
+
+  useOnClickOutside(searchRef, () => clearListResult());
+
   useEffect(() => {
-    console.log(input.hashtag);
-  }, [input]);
+    if (textDebounce) {
+      searchPlaces();
+    }
+  }, [textDebounce]);
+
+  const searchPlaces = async () => {
+    if (!input.address) {
+      return;
+    }
+    try {
+      const res = await fetch(
+        `https://api.geoapify.com/v1/geocode/autocomplete?text=${input.address}&apiKey=${api}`
+      );
+      const data = await res.json();
+      if (data.features.length === 0) {
+        setIsEmpty(true);
+        setListSearchResult([]);
+      } else {
+        setIsEmpty(false);
+        setListSearchResult(data.features);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useOnClickOutside(
     searchTagRef,
@@ -122,6 +182,37 @@ const ReviewForm = ({
     );
   };
 
+  const handleClickResultPlace = (item) => {
+    setInput((prev) => ({
+      ...prev,
+      address: item.properties.formatted,
+      location: {
+        type: "Point",
+        coordinates: [item.properties.lon, item.properties.lat],
+      },
+    }));
+    setListSearchResult([]);
+    setIsSearching(false);
+  };
+
+  const ResultListPlaces = () => {
+    return (
+      <div className="">
+        {listSearchResult.map((item) => {
+          return (
+            <div
+              className="py-2 cursor-pointer hover:font-bold"
+              key={item.properties.place_id}
+              onClick={() => handleClickResultPlace(item)}
+            >
+              {item.properties.formatted}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const handleTag = (e) => {
     const words = e.target.value.split(" ");
     if (words.length > 1) {
@@ -134,7 +225,7 @@ const ReviewForm = ({
   };
 
   const handleImage = async (e) => {
-    setLoading(true);
+    setImageLoading(true);
     try {
       setImage(null);
       const file = e.target.files[0];
@@ -144,41 +235,122 @@ const ReviewForm = ({
       let formData = new FormData();
       formData.append("image", file);
 
-      if (isEditPost) {
-        setFormDataEdit(formData);
-      } else {
-        // @ts-ignore
-        setFormData(formData);
-      }
+      setFormData(formData);
     } catch (error) {
       console.log(error);
     }
-    setLoading(false);
+    setImageLoading(false);
   };
 
   const handleButton = () => {
-    if (isEditPost) {
+    const result = checkInput(type,input)
+    if (!result) return;
+    if (current) {
       // Edit post
-      handleEditPost();
+      updatePost();
     } else {
       // Create post
       // @ts-ignore
-      createNewPost(formData);
+      createNewPost();
     }
-    setInput({
-      title: "",
-      text: "",
-      rating: "",
-      content: "",
-      development: "",
-      pacing: "",
-      writing: "",
-      insights: "",
-      dateRead: "",
-    });
+    setInput({ initInput });
     setOpenModal(false);
     setAttachment("");
     setFormData(null);
+  };
+
+  const createNewPost = async () => {
+    setPostLoading(true);
+    try {
+      let image = null;
+      if (formData) {
+        const { data } = await autoFetch.post(
+          `/api/post/upload-image`,
+          formData
+        );
+        image = { url: data.url, public_id: data.public_id };
+      }
+
+      const { data } = await autoFetch.post(`api/${type}/create`, {
+        text: input.text,
+        book,
+        image,
+        rating: input.rating,
+        content: input.content,
+        development: input.development,
+        pacing: input.pacing,
+        writing: input.writing,
+        insights: input.insights,
+        dateRead: input.dateRead,
+        hashtag: input.hashtag,
+        spoiler: input.spoiler,
+        location: input.location,
+        address: input.address,
+        condition: input.condition,
+        progress: input.progress,
+        title: input.title,
+        type: user.role === 1 ? 1 : 0,
+      });
+      setPosts([data.post, ...posts]);
+      toast.success("Create successfully!");
+      if(type==="review") setStatus((prev)=>({...prev,"to read": false,"up next":false}))
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.msg || "Something went wrong");
+    } finally {
+      setPostLoading(false);
+    }
+  };
+
+  const updatePost = async () => {
+    setPostLoading(true);
+    try {
+      let image=null;
+      if (formData) {
+        const { data } = await autoFetch.post(
+          `/api/post/upload-image`,
+          formData
+        );
+        image = { url: data.url, public_id: data.public_id };
+      }
+      let postData;
+
+      const { data } = await autoFetch.patch(`api/${type}/${current._id}`, {
+        text: input.text,
+        image,
+        rating: input.rating,
+        content: input.content,
+        development: input.development,
+        pacing: input.pacing,
+        writing: input.writing,
+        insights: input.insights,
+        dateRead: input.dateRead,
+        hashtag: input.hashtag,
+        spoiler: input.spoiler,
+        location: input.location,
+        address: input.address,
+        condition: input.condition,
+        progress: input.progress,
+        title: input.title,
+      });
+
+      postData = data.post;
+
+      console.log(postData?.detail?.rating);
+      // setPost(data.post);
+      setPost(postData);
+
+      if (postData.image) {
+        setAttachment("photo");
+      }
+      toast("Update post success!");
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.msg || "Something went wrong");
+    } finally {
+      setPostLoading(false);
+      setFormData(null);
+    }
   };
 
   const uploadImage = () => {
@@ -195,16 +367,14 @@ const ReviewForm = ({
             className="absolute top-1.5 right-1.5 text-[26px] text-[#8e8f91] hover:text-[#525151] dark:hover:text-[#c0bebe] transition-20 hidden group-hover:flex mb-1 z-[203] cursor-pointer "
             onClick={() => {
               setImage(null);
-              // setImageEdit(null);
               setInput((prev) => ({ ...prev, image: null }));
               setFormData(null);
-              setFormDataEdit(null);
             }}
           />
         </div>
       );
     }
-    if (loading) {
+    if (imageLoading) {
       return (
         <div className="flex items-center justify-center w-full h-full ">
           <ReactLoading
@@ -274,7 +444,7 @@ const ReviewForm = ({
       <div
         className="z-[201] bg-none fixed w-full h-full top-0 right-0 "
         onClick={() => {
-          if (!isEditPost) {
+          if (!current) {
             setOpenModal(false);
           }
         }}
@@ -288,53 +458,76 @@ const ReviewForm = ({
         />
         <div className="">
           <div className="font-semibold py-3 text-base border-b-[1px] border-altDialogue">
-            {isEditPost ? "Edit review" : "Create review"}
+            {current ? `Edit ${type}` :  `Create ${type}`}
           </div>
 
-          <div className="mt-3 grid grid-cols-2 ">
-            <RatingBox criteria={"content"} />
-            <RatingBox criteria={"development"} />
-            {/* <RatingBox criteria={"pacing"} /> */}
-            <RatingBox criteria={"writing"} />
-            <RatingBox criteria={"insights"} />
-          </div>
+          {type === "news" && (
+            <>
+              <label className="form-label mt-3" for="title">
+                Give it a title *
+              </label>
+              <textarea
+                id="title"
+                value={input.title}
+                className={`standard-input`}
+                placeholder={`Title`}
+                onChange={(e) => {
+                  setInput((prev) => ({ ...prev, title: e.target.value }));
+                }}
+              />
+            </>
+          )}
 
-          <RatingBox criteria={"rating"} />
-
-          <label className="form-label" for="">
-            Pacing *
-          </label>
-
-          <div className="grid grid-cols-3 text-xs mt-2">
-            {pacingList.map((each) => (
-              <div className="flex items-center">
-                <input
-                  className="radio-box"
-                  checked={input.pacing === each}
-                  type="radio"
-                  id={each}
-                  value={each}
-                  name="pacing"
-                  onChange={(e) =>
-                    setInput((prev) => ({ ...prev, pacing: e.target.value }))
-                  }
-                />
-                <label className="ml-2" for={each}>
-                  {each}
-                </label>
+          {type === "review" && (
+            <>
+              <div className="mt-3 grid grid-cols-2 ">
+                <RatingBox criteria={"content"} />
+                <RatingBox criteria={"development"} />
+                <RatingBox criteria={"writing"} />
+                <RatingBox criteria={"insights"} />
               </div>
-            ))}
-          </div>
+
+              <RatingBox criteria={"rating"} />
+
+              <label className="form-label" for="">
+                Pacing *
+              </label>
+
+              <div className="grid grid-cols-3 text-xs mt-2">
+                {pacingList.map((each) => (
+                  <div className="flex items-center">
+                    <input
+                      className="radio-box"
+                      checked={input.pacing === each}
+                      type="radio"
+                      id={each}
+                      value={each}
+                      name="pacing"
+                      onChange={(e) =>
+                        setInput((prev) => ({
+                          ...prev,
+                          pacing: e.target.value,
+                        }))
+                      }
+                    />
+                    <label className="ml-2" for={each}>
+                      {each}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           <label className="form-label" for="text">
-            Write your thoughts *
+            Text *
           </label>
           <MDXEditor
             ref={markdownRef}
             id="text"
-            className="standard-input h-[200px]"
+            className="standard-input h-[200px] markdown prose w-full !max-w-full"
             markdown={input.text}
-            placeholder={`Review`}
+            placeholder={`What's on your mind?`}
             onBlur={() => {
               setInput((prev) => ({
                 ...prev,
@@ -356,39 +549,115 @@ const ReviewForm = ({
                     <CreateLink />
                     <ListsToggle />
                     <InsertThematicBreak />
-                    {/* <ChangeAdmonitionType/> */}
                   </>
                 ),
               }),
               headingsPlugin(),
             ]}
           />
-          {/* <textarea
-            id="text"
-            defaultValue={input.text}
-            className={`standard-input h-[120px]`}
-            
-            onBlur={(e) => {
-              setInput((prev) => ({ ...prev, text: e.target.value }));
-            }}
-          /> */}
 
-          <label className="form-label" for="dateRead">
-            You read this on
-          </label>
+          {type === "review" && (
+            <>
+              <label className="form-label" for="dateRead">
+                You read this on
+              </label>
 
-          {/* <input type="date" id="dateRead" name="datepicker"></input> */}
-          <input
-            type="date"
-            id="dateRead"
-            name="datepicker"
-            defaultValue={input.dateRead}
-            className={`standard-input mb-2`}
-            // placeholder={`Review`}
-            onBlur={(e) => {
-              setInput((prev) => ({ ...prev, dateRead: e.target.value }));
-            }}
-          />
+              <input
+                type="date"
+                id="dateRead"
+                name="datepicker"
+                defaultValue={input.dateRead}
+                className={`standard-input mb-2`}
+                onBlur={(e) => {
+                  setInput((prev) => ({ ...prev, dateRead: e.target.value }));
+                }}
+              />
+            </>
+          )}
+
+          {type === "question" && (
+            <>
+              <label className="form-label mt-3" for="progress">
+                Progress
+              </label>
+              <textarea
+                id="progress"
+                value={input.progress}
+                className={`standard-input`}
+                placeholder={`This question is for what page of the book?`}
+                onChange={(e) => {
+                  setInput((prev) => {
+                    const newValue = e.target.value.replace(/[^0-9]/g, "");
+
+                    return { ...prev, progress: newValue };
+                  });
+                }}
+              />
+            </>
+          )}
+
+          {type === "trade" && (
+            <>
+              <label className="form-label" for="">
+                Condition
+              </label>
+
+              <div className="grid grid-cols-5 text-xs mt-2">
+                {conditionList.map((each) => (
+                  <div className="flex items-center">
+                    <input
+                      className="radio-box"
+                      checked={input.condition == each}
+                      type="radio"
+                      id={each}
+                      value={each}
+                      name="condition"
+                      onChange={(e) =>
+                        setInput((prev) => ({
+                          ...prev,
+                          condition: e.target.value,
+                        }))
+                      }
+                    />
+                    <label className="ml-2" for={each}>
+                      {each}
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              <div
+                className="mt-2 mb-2 relative"
+                // @ts-ignore
+                ref={searchRef}
+              >
+                <label className="form-label" for="address">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  className="standard-input relative"
+                  placeholder="Search your address"
+                  value={input.address}
+                  onFocus={() => {
+                    setIsSearching(true);
+                  }}
+                  onChange={(e) => {
+                    setInput((prev) => ({ ...prev, address: e.target.value }));
+                  }}
+                />
+
+                {isSearching && (isEmpty || listSearchResult.length > 0) && (
+                  <div className="scroll-bar top-[76px] z-[500] text-xs p-2 absolute bg-altDialogue max-h-[300px] rounded-lg overflow-y-auto overflow-x-hidden">
+                    {isEmpty && <div className="">No address found!</div>}
+                    {listSearchResult.length > 0 && <ResultListPlaces />}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
           <div className="mt-3 flex items-center gap-x-3">
             <input
               type="checkbox"
@@ -415,8 +684,6 @@ const ReviewForm = ({
                     <IoClose
                       className="text-xs cursor-pointer bg-mainbg rounded-full absolute -top-[5px] -right-[2px]"
                       onClick={() => {
-                        // let hashtag = input.hashtag
-                        // hashtag = hashtag.splice(index, 1)
                         setInput((prev) => {
                           let hashtag = prev.hashtag;
                           hashtag.splice(index, 1);
@@ -480,18 +747,12 @@ const ReviewForm = ({
             <button
               className={`primary-btn w-[100px] block`}
               disabled={
-                !input.text ||
-                !input.rating ||
-                !input.content ||
-                !input.development ||
-                !input.pacing ||
-                !input.writing ||
-                !input.insights ||
-                loading
+              
+                imageLoading
               }
               onClick={handleButton}
             >
-              {isEditPost ? "Save" : "Post"}
+              Done
             </button>
           </div>
         </div>

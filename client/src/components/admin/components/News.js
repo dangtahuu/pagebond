@@ -12,7 +12,7 @@ import { AiOutlineCheck } from "react-icons/ai";
 import { FiTrash } from "react-icons/fi";
 import { TbLockOpen, TbUserCheck } from "react-icons/tb";
 import { TiTick } from "react-icons/ti";
-import formatDate from "../../../utils/formatDate";
+import {formatDate} from "../../../utils/formatDate";
 
 const darkTheme = createTheme({
   palette: {

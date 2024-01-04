@@ -47,12 +47,14 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Types.ObjectId,
         ref: "User",
+        unique: true,
       },
     ],
     follower: [
       {
         type: mongoose.Types.ObjectId,
         ref: "User",
+        unique: true,
       },
     ],
     points: {

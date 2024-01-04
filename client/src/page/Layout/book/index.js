@@ -1,8 +1,8 @@
 import React from "react";
-import { BookDetail } from "../../../components";
+import BookPage from "./BookPage"
 
 const index = () => {
-    return <BookDetail />;
+    return <BookPage />;
 };
 
 export default index;

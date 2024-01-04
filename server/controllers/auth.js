@@ -11,8 +11,7 @@ import shuffle from "../utils/shuffle.js";
 import sortObjectDes from "../utils/sortObjectDes.js";
 import Log from "../models/log.js";
 import Shelf from "../models/shelf.js";
-import { listShelf1,listShelf2 } from "../consts/listShelf.js";
-
+import { listShelf1, listShelf2 } from "../consts/listShelf.js";
 
 const register = async (req, res) => {
   try {
@@ -62,26 +61,26 @@ const register = async (req, res) => {
       image,
       role: official ? 0 : 3,
     });
-    
-      const newShelf = await Shelf.create({
-        name: "favorites",
-        owner: user._id,
-        type:1,
-      });
 
-      await User.findByIdAndUpdate(user._id,{featuredShelf: newShelf._id})
+    const newShelf = await Shelf.create({
+      name: "favorites",
+      owner: user._id,
+      type: 1,
+    });
 
-      await Shelf.create({
-        name: "to read",
-        owner: user._id,
-        type:1,
-      });
+    await User.findByIdAndUpdate(user._id, { featuredShelf: newShelf._id });
+
+    await Shelf.create({
+      name: "to read",
+      owner: user._id,
+      type: 1,
+    });
 
     for (const shelf of listShelf2) {
       const newShelf = await Shelf.create({
         name: shelf,
         owner: user._id,
-        type:2,
+        type: 2,
       });
     }
 
@@ -121,6 +120,10 @@ const login = async (req, res) => {
       return res.status(400).json({ msg: "Incorrect information!" });
     }
 
+    if (user.blocked === "Blocked") {
+      return res.status(400).json({ msg: "Your account has been blocked! Contact us at pagebond@gmail.com if you have any question regarding our decision" });
+    }
+
     const token = jwt.sign({ _id: user._id }, process.env.JWT, {
       expiresIn: "365d",
     });
@@ -133,15 +136,14 @@ const login = async (req, res) => {
 
 const currentUser = async (req, res) => {
   try {
-    console.log('nnnnnnnnn')
-    const user = await User.findById(req.user.userId)
-    .populate({
+    console.log("nnnnnnnnn");
+    const user = await User.findById(req.user.userId).populate({
       path: "featuredShelf",
       populate: {
-        path: "books"
-      }
-    })
-    console.log(user)
+        path: "books",
+      },
+    });
+    console.log(user);
     return res.status(200).json({ user, ok: true });
   } catch (error) {
     console.log(error);
@@ -364,7 +366,7 @@ const findPeopleToFollow = async (req, res) => {
       ],
     });
 
-    console.log(posts)
+    console.log(posts);
 
     const reviews = await Review.find({
       $and: [
@@ -548,7 +550,7 @@ const listUserFollower = async (req, res) => {
 };
 
 const searchUser = async (req, res) => {
-  const term = JSON.parse(decodeURIComponent(req.query.term))
+  const term = JSON.parse(decodeURIComponent(req.query.term));
   const page = Number(req.query.page) || 1;
   const perPage = Number(req.query.perPage) || 20;
 
@@ -557,11 +559,11 @@ const searchUser = async (req, res) => {
   }
 
   const regexPattern = term
-  .split(" ")
-  .map((word) => `(?=.*\\b${word}\\b)`)
-  .join("");
+    .split(" ")
+    .map((word) => `(?=.*\\b${word}\\b)`)
+    .join("");
 
-const regex = new RegExp(regexPattern, "i");
+  const regex = new RegExp(regexPattern, "i");
 
   try {
     const users = await User.find({
@@ -587,13 +589,14 @@ const regex = new RegExp(regexPattern, "i");
 const getInformationUser = async (req, res) => {
   try {
     const _id = req.params.id;
-    const user = await User.findById(_id).select("-password -secret")
-    .populate({
-      path: "featuredShelf",
-      populate: {
-        path: "books"
-      }
-    });
+    const user = await User.findById(_id)
+      .select("-password -secret")
+      .populate({
+        path: "featuredShelf",
+        populate: {
+          path: "books",
+        },
+      });
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
@@ -798,28 +801,28 @@ const verifyUser = async (req, res) => {
 };
 
 const giftPoints = async (req, res) => {
-  const { giftedId} = req.body
-  const points = Number(req.body.points)
+  const { giftedId } = req.body;
+  const points = Number(req.body.points);
   const userId = req.user.userId;
 
   try {
-
     let giftedUser = await User.findById(giftedId);
 
-    if(!giftedUser) return res.status(400).json({ msg: "No gifted user found!" });
-
+    if (!giftedUser)
+      return res.status(400).json({ msg: "No gifted user found!" });
 
     let currentUser = await User.findById(userId);
 
-    if(!currentUser) return res.status(400).json({ msg: "No user found!" });
-    if(currentUser.points<points) return res.status(400).json({ msg: "Not enough points" });
+    if (!currentUser) return res.status(400).json({ msg: "No user found!" });
+    if (currentUser.points < points)
+      return res.status(400).json({ msg: "Not enough points" });
 
-    currentUser = await User.findByIdAndUpdate(userId,{
-      $inc: {points: points*(-1)}
+    currentUser = await User.findByIdAndUpdate(userId, {
+      $inc: { points: points * -1 },
     });
 
-    giftedUser = await User.findByIdAndUpdate(giftedId,{
-      $inc: {points: points}
+    giftedUser = await User.findByIdAndUpdate(giftedId, {
+      $inc: { points: points },
     });
 
     await Log.create({
@@ -837,9 +840,8 @@ const giftPoints = async (req, res) => {
       linkTo: giftedId,
       typeOfLink: "User",
       type: 8,
-      points: points*(-1),
+      points: points * -1,
     });
-
 
     return res.status(200).json({ msg: "Success" });
   } catch (error) {
@@ -874,5 +876,5 @@ export {
   blockUser,
   verifyUser,
   allPending,
-  giftPoints
+  giftPoints,
 };

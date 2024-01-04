@@ -346,7 +346,7 @@ const editPost = async (req, res, next) => {
 
     if (post.detail) {
       req.body = { ...req.body, postId, detail: post.detail };
-      next();
+      return next();
     }
 
     return res.status(200).json({ msg: "Updated posts!", post: post });
@@ -567,6 +567,132 @@ const getPostsWithUserId = async (req, res) => {
         createdAt: -1,
       })
       .limit(perPage);
+
+    return res.status(200).json({ posts });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getPostsWithUserIdWithBook = async (req, res) => {
+  try {
+    const { bookId, userId } = req.params;
+    console.log(bookId)
+    const questions = await Post.aggregate([
+      {
+        $lookup: {
+          from: "questions",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          $and: [
+            { "data.book": mongoose.Types.ObjectId(bookId) },
+            { postedBy: mongoose.Types.ObjectId(userId) },
+          ],
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ]);
+
+    const trades = await Post.aggregate([
+      {
+        $lookup: {
+          from: "trades",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          $and: [
+            { "data.book": mongoose.Types.ObjectId(bookId) },
+            { postedBy: mongoose.Types.ObjectId(userId) },
+          ],
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ]);
+
+    const reviews = await Post.aggregate([
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          $and: [
+            { "data.book": mongoose.Types.ObjectId(bookId) },
+            { postedBy: mongoose.Types.ObjectId(userId) },
+          ],
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ]);
+
+    const news = await Post.aggregate([
+      {
+        $lookup: {
+          from: "news",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          $and: [
+            { "data.book": mongoose.Types.ObjectId(bookId) },
+            { postedBy: mongoose.Types.ObjectId(userId) },
+          ],
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ]);
+
+    const aggResult = [...questions,...trades,...reviews,...news]
+
+    const ids = aggResult.map((one) => one._id.toString());
+    const posts = await Post.find({
+      _id: { $in: ids },
+    })
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
+      .populate("hashtag")
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({ posts });
   } catch (error) {
@@ -799,6 +925,7 @@ export {
   removeComment,
   totalPosts,
   getPostsWithUserId,
+  getPostsWithUserIdWithBook,
   getDiscover,
   getPopular,
   report,

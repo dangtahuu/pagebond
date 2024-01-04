@@ -11,7 +11,7 @@ const darkTheme = createTheme({
 
 const valueFormatter = (value) => `Rating ${value} star`;
 
-export default function BarsDataset({ data }) {
+export default function Chart({ data }) {
   if (data.length === 0) return;
   return (
     <ThemeProvider theme={darkTheme}>

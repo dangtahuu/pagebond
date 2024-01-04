@@ -5,7 +5,7 @@ import ShelfForm from "../../common/ShelfForm";
 import { CgRename } from "react-icons/cg";
 import { AiOutlineDelete } from "react-icons/ai";
 import { Rating } from "@mui/material";
-import formatDate from "../../../utils/formatDate";
+import {formatDate} from "../../../utils/formatDate";
 import ReactLoading from "react-loading";
 import { IoClose } from "react-icons/io5";
 

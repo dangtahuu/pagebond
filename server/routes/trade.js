@@ -29,7 +29,7 @@ router.route("/admin/delete/:id").delete(isAdmin, deleteOne);
 
 router
   .route("/:id")
-  .patch(canUpdateOrDeletePost, edit, editPost)
+  .patch(canUpdateOrDeletePost, editPost, edit)
   .delete(canUpdateOrDeletePost, deleteOne, deletePost);
 
 export default router;

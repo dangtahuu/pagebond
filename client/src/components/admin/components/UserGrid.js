@@ -13,7 +13,7 @@ import { TiTick } from "react-icons/ti";
 import { TbUserCheck } from "react-icons/tb";
 import { TbLockOpen } from "react-icons/tb";
 import { TbLock } from "react-icons/tb";
-import formatDate from "../../../utils/formatDate";
+import {formatDate} from "../../../utils/formatDate";
 const darkTheme = createTheme({
   palette: {
     mode: "dark",

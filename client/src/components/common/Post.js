@@ -23,7 +23,7 @@ import { Rating } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import QuestionForm from "./QuestionForm";
 import Modal from "./Modal";
-import formatDate from "../../utils/formatDate";
+import {formatDate} from "../../utils/formatDate";
 
 const Post = ({
   currentPost,
@@ -32,6 +32,7 @@ const Post = ({
   border = true,
   getDeletePostId = (postId) => {},
 }) => {
+  
   // const navigate = useNavigate();
   const { autoFetch, socket, user } = useAppContext();
   // const [formOpen, setFormOpen] = useState(false)
@@ -232,131 +233,6 @@ const Post = ({
     }
   };
 
-  //update post
-  const updatePost = async () => {
-    setLoadingEdit(true);
-    try {
-      let image = input.image;
-      if (formData) {
-        image = await handleUpImageComment();
-        if (!image) {
-          toast.error("Upload image fail. Try again!");
-          setLoadingEdit(false);
-          return;
-        }
-      }
-      let postData;
-      if (type === "post") {
-        const { data } = await autoFetch.patch(`api/post/${currentPost._id}`, {
-          text: input.text,
-          image: image,
-          title: input.title,
-          hashtag: input.hashtag,
-          spoiler: input.spoiler,
-        });
-        postData = data.post;
-      } else if (type === "review") {
-        const { data } = await autoFetch.patch(
-          `api/review/${currentPost._id}`,
-          {
-            text: input.text,
-            rating: input.rating,
-            title: input.title,
-            content: input.content,
-            development: input.development,
-            pacing: input.pacing,
-            writing: input.writing,
-            insights: input.insights,
-            dateRead: input.dateRead,
-            image: image,
-            hashtag: input.hashtag,
-            spoiler: input.spoiler,
-          }
-        );
-        postData = data.post;
-      } else if (type === "trade") {
-        const { data } = await autoFetch.patch(`api/trade/${currentPost._id}`, {
-          text: input.text,
-          condition: input.condition,
-          address: input.address,
-          location: input.location,
-          hashtag: input.hashtag,
-          image,
-        });
-        postData = data.post;
-      } else if (type === "news") {
-        const { data } = await autoFetch.patch(`api/news/${currentPost._id}`, {
-          text: input.text,
-          image: image,
-          title: input.title,
-          hashtag: input.hashtag,
-          spoiler: input.spoiler,
-        });
-        postData = data.post;
-      } else if (type === "question") {
-        const { data } = await autoFetch.patch(
-          `api/question/${currentPost._id}`,
-          {
-            text: input.text,
-            image: image,
-            title: input.title,
-            hashtag: input.hashtag,
-            spoiler: input.spoiler,
-          }
-        );
-        postData = data.post;
-      }
-
-      // setPost(data.post);
-      setPost({
-        ...post,
-        text: postData.text,
-        title: postData?.detail?.title || "",
-        rating: postData?.detail?.rating || "",
-        content: postData?.detail?.content || "",
-        development: postData?.detail?.development || "",
-        pacing: postData?.detail?.pacing || "",
-        writing: postData?.detail?.writing || "",
-        insights: postData?.detail?.insights || "",
-        dateRead: postData?.detail?.dateRead || "",
-        image: postData?.image || "",
-        address: postData?.detail?.address || "",
-        location: postData?.detail?.location || "",
-        condition: postData?.detail?.condition || "",
-        hashtag: postData?.hashtag || [],
-        spoiler: postData?.spoiler || false,
-      });
-
-      setInput({
-        // ...post,
-        text: postData.text,
-        title: postData?.detail?.title || "",
-        rating: postData?.detail?.rating || "",
-        content: postData?.detail?.content || "",
-        development: postData?.detail?.development || "",
-        pacing: postData?.detail?.pacing || "",
-        writing: postData?.detail?.writing || "",
-        insights: postData?.detail?.insights || "",
-        dateRead: postData?.detail?.dateRead || "",
-        image: postData?.image || "",
-        address: postData?.detail?.address || "",
-        location: postData?.detail?.location || "",
-        condition: postData?.detail?.condition || "",
-        hashtag: postData.hashtag?.map((one) => one.name) || [],
-        spoiler: postData.spoiler || false,
-      });
-
-      if (postData.image) {
-        setAttachment("photo");
-      }
-      toast("Update post success!");
-    } catch (error) {
-      console.log(error);
-      toast.error(error.response.data.msg || "Something went wrong");
-    }
-    setLoadingEdit(false);
-    setFormData(null);
-  };
 
   const MainContent = () => {
     return (
@@ -368,10 +244,10 @@ const Post = ({
         )}
 
         <div
-          className={`content mt-[11px] text-sm "
+          className={`content mt-[11px] "
           } `}
         >
-          <ReactMarkdown>
+          <ReactMarkdown className={`markdown`}>
             {post?.text.length < 1000
               ? post?.text
               : showFullText
@@ -444,85 +320,27 @@ const Post = ({
     );
   }
 
+ 
+
   return (
     <div
       className={` mb-3 pt-3 pb-2.5 ${
         border ? `border-t-[1px] border-t-dialogue` : ``
       } `}
     >
-      {openModal && type === "post" && (
-        <PostForm
-          setOpenModal={setOpenModal}
-          input={input}
-          setInput={setInput}
-          attachment={attachment}
-          setAttachment={setAttachment}
-          isEditPost={true}
-          // imageEdit={imageEdit}
-          setFormDataEdit={setFormData}
-          handleEditPost={updatePost}
-          // setImageEdit={setImageEdit}
-          // type={type}
-        />
-      )}
+    
 
-      {openModal && type === "review" && (
+      {openModal && (
         <ReviewForm
-          setOpenModal={setOpenModal}
-          input={input}
-          setInput={setInput}
-          attachment={attachment}
-          setAttachment={setAttachment}
-          isEditPost={true}
-          // imageEdit={imageEdit}
-          setFormDataEdit={setFormData}
-          handleEditPost={updatePost}
-          // setImageEdit={setImageEdit}
-          // type={type}
+        setOpenModal={setOpenModal}
+        setPostLoading={setLoadingEdit}
+        current={post}
+        setPost={setPost}
+        type={type}
         />
       )}
 
-      {openModal && type === "trade" && (
-        <TradeForm
-          setOpenModal={setOpenModal}
-          input={input}
-          setInput={setInput}
-          attachment={attachment}
-          setAttachment={setAttachment}
-          isEditPost={true}
-          // imageEdit={imageEdit}
-          setFormDataEdit={setFormData}
-          handleEditPost={updatePost}
-          // setImageEdit={setImageEdit}
-          // type={type}
-        />
-      )}
-
-      {openModal && type === "news" && (
-        <NewsForm
-          setOpenModal={setOpenModal}
-          input={input}
-          setInput={setInput}
-          attachment={attachment}
-          setAttachment={setAttachment}
-          isEditPost={true}
-          setFormDataEdit={setFormData}
-          handleEditPost={updatePost}
-        />
-      )}
-
-      {openModal && type === "question" && (
-        <QuestionForm
-          setOpenModal={setOpenModal}
-          input={input}
-          setInput={setInput}
-          attachment={attachment}
-          setAttachment={setAttachment}
-          isEditPost={true}
-          setFormDataEdit={setFormData}
-          handleEditPost={updatePost}
-        />
-      )}
+    
 
       {answerModalOpen && (
         <Modal
@@ -769,7 +587,7 @@ const Post = ({
             </div>
           </div>
 
-          {post?.dateRead && (
+          {post?.detail?.dateRead && (
             <div className="content mt-2 font-bold text-gray-500 text-xs">
               Read on: {formatDate(post?.detail?.dateRead)}
             </div>
@@ -819,7 +637,7 @@ const Post = ({
               <AiFillHeart
                 onClick={() => unlike(post._id)}
                 disabled={likeLoading}
-                className="cursor-pointer text-[18px] text-[#c22727] dark:text-[#c22727]"
+                className="cursor-pointer text-[18px] text-[#c22727]"
               />
               <span className="like-count">
                 {likeCount > 1

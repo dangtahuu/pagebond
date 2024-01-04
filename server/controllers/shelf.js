@@ -2,7 +2,7 @@ import Shelf from "../models/shelf.js";
 import User from "../models/user.js";
 import Book from "../models/book.js";
 import Review from "../models/review.js";
-
+import mongoose from "mongoose";
 const createShelf = async (req, res) => {
   const { name } = req.body;
 
@@ -61,10 +61,7 @@ const bookToShelf = async (req, res) => {
     }
 
     const shelves = await Shelf.find({
-      $and: [
-        { books: { $in: [book.id] } },
-        { type: {$ne: 1} },
-      ],
+      $and: [{ books: { $in: [book.id] } }, { type: { $ne: 1 } }],
     });
 
     const shelfNameCount = {};
@@ -81,7 +78,6 @@ const bookToShelf = async (req, res) => {
       topShelves: sortedShelfNames.slice(0, 10),
     });
 
-    console.log('aaaaa',newBook)
     return res.status(200).json({ selected });
   } catch (err) {
     console.log(err);
@@ -89,23 +85,31 @@ const bookToShelf = async (req, res) => {
   }
 };
 
-const addToTBR = async (req, res) => {
-  const { id } = req.body;
-  const { userId } = req.user;
-
-  if (!id) {
+const addToShelfByName = async (req, res) => {
+  const { bookId, name } = req.body;
+  if (!bookId) {
     return res.status(400).json({ msg: "Book Id is required!" });
   }
 
   try {
     const shelf = await Shelf.findOneAndUpdate(
-      { $and: [{ name: "to read" }, { owner: userId }] },
+      { $and: [{ name: name }, { owner: req.user.userId }] },
       {
         $addToSet: {
-          books: id,
+          books: bookId,
         },
       }
     );
+    if (name === "up next") {
+      await Shelf.findOneAndUpdate(
+        { $and: [{ name: "to read" }, { owner: req.user.userId }] },
+        {
+          $addToSet: {
+            books: bookId,
+          },
+        }
+      );
+    }
     return res.status(200).json({ shelf });
   } catch (err) {
     console.log(err);
@@ -113,23 +117,34 @@ const addToTBR = async (req, res) => {
   }
 };
 
-const removeFromTBR = async (req, res) => {
-  const { id } = req.body;
-  const { userId } = req.user;
+const removeFromShelfByName = async (req, res) => {
+  const { bookId, name } = req.body;
 
-  if (!id) {
+  if (!bookId) {
     return res.status(400).json({ msg: "Book Id is required!" });
   }
 
   try {
     const shelf = await Shelf.findOneAndUpdate(
-      { $and: [{ name: "to read" }, { owner: userId }] },
+      { $and: [{ name: name }, { owner: req.user.userId }] },
       {
         $pull: {
-          books: id,
+          books: bookId,
         },
       }
     );
+
+    if (name === "to read") {
+      await Shelf.findOneAndUpdate(
+        { $and: [{ name: "up next" }, { owner: req.user.userId }] },
+        {
+          $pull: {
+            books: bookId,
+          },
+        }
+      );
+    }
+
     return res.status(200).json({ shelf });
   } catch (err) {
     console.log(err);
@@ -163,7 +178,7 @@ const removeFromShelf = async (req, res) => {
   }
 };
 
-const getShelves = async (req, res) => {
+const getAllShelves = async (req, res) => {
   try {
     const userId = req.params.userId;
     const first = await Shelf.find({ $and: [{ owner: userId }, { type: 1 }] });
@@ -178,17 +193,82 @@ const getShelves = async (req, res) => {
   }
 };
 
+const getShelvesInBookPage = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const shelves = await Shelf.find({
+      $and: [{ owner: userId }, { type: { $ne: 1 } }],
+    });
+    return res.status(200).json({ shelves });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 const getSelectedShelves = async (req, res) => {
   const book = req.params.book;
 
   try {
     const shelves = await Shelf.find({
-      $and: [{ owner: req.user.userId }, { books: { $in: [book] } }],
+      $and: [
+        { owner: req.user.userId },
+        { books: { $in: [book] } },
+        { type: { $ne: 1 } },
+      ],
     });
     const ids = shelves.map((x) => x._id);
     const names = shelves.map((x) => x.name);
 
     return res.status(200).json({ ids, names });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getShelfStatusOfBook = async (req, res) => {
+  const { bookId } = req.params;
+
+  try {
+    let toRead;
+    let favorites;
+    let upNext;
+
+    let shelves = await Shelf.find({
+      $and: [
+        { owner: req.user.userId },
+        { books: { $in: [bookId] } },
+        { name: "to read" },
+      ],
+    });
+
+    if (shelves.length > 0) toRead = true;
+    else toRead = false;
+
+    shelves = await Shelf.find({
+      $and: [
+        { owner: req.user.userId },
+        { books: { $in: [bookId] } },
+        { name: "favorites" },
+      ],
+    });
+
+    if (shelves.length > 0) favorites = true;
+    else favorites = false;
+
+    shelves = await Shelf.find({
+      $and: [
+        { owner: req.user.userId },
+        { books: { $in: [bookId] } },
+        { name: "up next" },
+      ],
+    });
+
+    if (shelves.length > 0) upNext = true;
+    else upNext = false;
+
+    return res.status(200).json({ toRead, favorites, upNext });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -328,17 +408,79 @@ const massAdd = async (req, res) => {
   }
 };
 
+const getFavorites = async (req, res) => {
+  const { bookId } = req.params;
+
+  try {
+    const shelves = await Shelf.find({
+      $and: [{ name: "favorites" }, { books: { $in: [bookId] } }],
+    }).populate("owner", "-password -secret");
+
+    return res.status(200).json({ shelves });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getUpNextPeople = async (req, res) => {
+  const { bookId } = req.params;
+  const { userId } = req.user;
+  try {
+    const shelves = await Shelf.find({
+      $and: [
+        { name: "favorites" },
+        { books: { $in: [bookId] } },
+        { postedBy: { $ne: userId } },
+      ],
+    });
+
+    const idList = shelves.map((one) => mongoose.Types.ObjectId(one._id));
+
+    let pipeline = [
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          postedBy: id,
+        },
+      },
+    ];
+
+    
+
+    const users = await User.find();
+
+    return res.status(200).json({ shelves });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   createShelf,
   bookToShelf,
-  getShelves,
+  getAllShelves,
+  getShelvesInBookPage,
   getSelectedShelves,
   getShelf,
   editShelf,
   deleteShelf,
   getTopShelvesOfBook,
   massAdd,
-  addToTBR,
-  removeFromTBR,
+  addToShelfByName,
+  removeFromShelfByName,
+  getShelfStatusOfBook,
   removeFromShelf,
+  getFavorites,
 };

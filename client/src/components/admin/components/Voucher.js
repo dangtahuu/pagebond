@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 
 import VoucherForm from "../../common/VoucherForm";
 
-import formatDate from "../../../utils/formatDate";
+import {formatDate} from "../../../utils/formatDate";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";

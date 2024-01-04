@@ -6,7 +6,7 @@ const shelfSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-        books: [{type: mongoose.Types.ObjectId, ref: "Book"}],
+        books: [{type: mongoose.Types.ObjectId, ref: "Book", unique: true}],
         type: {
             type:Number,
             enum:[1,2,3],

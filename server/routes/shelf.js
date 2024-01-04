@@ -3,16 +3,19 @@ import express from "express";
 import {
     createShelf,
     bookToShelf,
-    getShelves,
+    getAllShelves,
     getSelectedShelves,
     getShelf,
     editShelf,
     deleteShelf,
     getTopShelvesOfBook,
     massAdd,
-    addToTBR,
-    removeFromTBR,
-    removeFromShelf
+    addToShelfByName,
+    removeFromShelf,
+    getShelvesInBookPage,
+    getShelfStatusOfBook,
+    removeFromShelfByName,
+    getFavorites
 } from "../controllers/shelf.js";
 import formidable from "express-formidable";
 import canUpdateOrDeleteShelf from "../middleware/canUpdateOrDeleteShelf.js";
@@ -29,11 +32,17 @@ router.route("/book-to-shelf").patch(bookToShelf);
 router.route("/edit-shelf").patch(canUpdateOrDeleteShelf, editShelf);
 router.route("/delete-shelf").post(canUpdateOrDeleteShelf, deleteShelf);
 
-router.route("/add-tbr").patch(addToTBR);
-router.route("/remove-tbr").patch(removeFromTBR);
+router.route("/add-by-name").patch(addToShelfByName);
+router.route("/remove-by-name").patch(removeFromShelfByName);
 router.route("/remove").patch(removeFromShelf);
 
-router.route("/get-shelves/:userId").get(getShelves);
+router.route("/status/:bookId").get(getShelfStatusOfBook);
+
+router.route("/favorites/:bookId").get(getFavorites);
+
+
+router.route("/get-shelves/:userId").get(getAllShelves);
+router.route("/get-shelves-in-book-page/:userId").get(getShelvesInBookPage);
 router.route("/get-selected-shelves/:book").get(getSelectedShelves);
 router.route("/get-top-shelves-of-book/:id").get(getTopShelvesOfBook);
 

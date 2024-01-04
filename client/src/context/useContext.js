@@ -18,17 +18,13 @@ const AppContext = createContext();
 const AppProvider = ({children}) => {
     const [state, setStateContext] = useState(initState);
 
-    if (state.dark) {
-        document.documentElement.classList.add("dark");
+  
+    if (state.openModal) {
+        document.body.classList.add("modal-open");
     } else {
-        document.documentElement.classList.remove("dark");
+        document.body.classList.toggle("modal-open", false);
     }
-    // if (state.openModal) {
-    //     document.body.classList.add("modal-open");
-    // } else {
-    //     document.body.classList.toggle("modal-open", false);
-    //     document.body.classList.add("style-3");
-    // }
+
     axios.defaults.headers.common["Authorization"] = `Bearer ${state.token}`;
 
     const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {

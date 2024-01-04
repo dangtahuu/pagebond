@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import { AiOutlineCheck } from "react-icons/ai";
 import { FiTrash } from "react-icons/fi";
 import { TbLockOpen } from "react-icons/tb";
-import formatDate from "../../../utils/formatDate";
+import {formatDate} from "../../../utils/formatDate";
 
 const bigMenuToType = {
     "Posts": "post",

@@ -8,6 +8,7 @@ import CreateBox from "./common/CreateBox";
 import ItemsList from "./common/ItemsList";
 import GroupAvatars from "./common/GroupAvatars";
 import ReviewForm from "./common/ReviewForm";
+import HeaderMenu from "./common/HeaderMenu";
 
 // loading component
 import LoadingPost from "./loading/Loading.Post";
@@ -28,7 +29,7 @@ import Admin from "./admin/Admin.page";
 import Browse from "./browse/Browse.page";
 
 import PostDetail from "./post/PostDetail";
-import BookDetail from "./book/BookDetail";
+import BookDetail from "../page/Layout/book/BookPage";
 
 // import ModalReview from "./common/ModalReview";
 // import ModalExchange from "./common/ModalExchange";
@@ -69,5 +70,6 @@ export {
   Search,
   ReviewForm,
   PostForm,
-  TradeForm
+  TradeForm,
+  HeaderMenu
 };

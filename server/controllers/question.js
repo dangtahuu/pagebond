@@ -29,9 +29,9 @@ const create = async (req, res, next) => {
 
 const edit = async (req, res) => {
   try {
-    const { detail,progress, postId } = req.body;
+    const { detail, progress, postId } = req.body;
    
-    await News.findByIdAndUpdate(detail, {
+    await Question.findByIdAndUpdate(detail, {
       progress,
     });
 
@@ -48,7 +48,7 @@ const edit = async (req, res) => {
       return res.status(400).json({ msg: "No post found!" });
     }
 
-    return res.status(400).json({ post });
+    return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -74,11 +74,12 @@ const getAllWithBook = async (req, res) => {
   try {
     const { id: bookId } = req.params;
     const userId = req.user.userId;
-
+    let sort = req.query.sort || "popularity";
+   
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
 
-    const aggResult = await Post.aggregate([
+    const pipeline = [
       {
         $lookup: {
           from: "questions",
@@ -96,23 +97,52 @@ const getAllWithBook = async (req, res) => {
         },
       },
       {
-        $sort: { createdAt: -1 },
+        $addFields: {
+          popularity: {
+            $add: [{ $size: "$likes" }, { $size: "$comments" }],
+          },
+        },
       },
+     
       { $skip: (page - 1) * perPage },
       { $limit: perPage },
-    ]);
+    ]
+
+    if(sort==="start") {
+      pipeline.push(
+      {
+        $sort: { "data.progress": 1 },
+      })
+    } else if (sort==="finish"){
+      pipeline.push(
+        {
+          $sort: { "data.progress": -1 },
+        })
+    } else {
+      pipeline.push(
+        {
+          $sort: { [sort]: -1 },
+        })
+    }
+
+    const aggResult = await Post.aggregate(pipeline);
 
     const ids = aggResult.map((one) => one._id.toString());
-    const posts = await Post.find({
-      _id: { $in: ids },
-    })
-      .populate("postedBy", "-password -secret")
-      .populate("comments.postedBy", "-password -secret")
-      .populate({
-        path: "detail",
-        populate: { path: "book" },
-      })
-      .populate("hashtag")
+
+    let posts = [];
+
+    for (const id of ids) {
+      const review = await Post.findById(id)
+        .populate("postedBy", "-password -secret")
+        .populate("comments.postedBy", "-password -secret")
+        .populate({
+          path: "detail",
+          populate: { path: "book" },
+        })
+        .populate("hashtag");
+
+      posts.push(review);
+    }
 
     return res.status(200).json({ posts });
   } catch (error) {
