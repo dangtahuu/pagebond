@@ -121,7 +121,11 @@ const login = async (req, res) => {
     }
 
     if (user.blocked === "Blocked") {
-      return res.status(400).json({ msg: "Your account has been blocked! Contact us at pagebond@gmail.com if you have any question regarding our decision" });
+      return res
+        .status(400)
+        .json({
+          msg: "Your account has been blocked! Contact us at pagebond@gmail.com if you have any question regarding our decision",
+        });
     }
 
     const token = jwt.sign({ _id: user._id }, process.env.JWT, {
@@ -850,6 +854,45 @@ const giftPoints = async (req, res) => {
   }
 };
 
+const createChallenge = async (req, res) => {
+  const number = req.body.number;
+  const userId = req.user.userId;
+
+  try {
+    // Create a new Date object
+    const currentDate = new Date();
+
+    // Get the current year
+    const currentYear = currentDate.getFullYear();
+
+    let user = await User.findById(userId);
+
+    const challenges = user.challenges;
+
+    challenges.forEach((one) => {
+      if (one.year === currentYear) {
+        return res
+          .status(400)
+          .json({ msg: "This year's challenge has already been set!" });
+      }
+    });
+
+    user = await User.findByIdAndUpdate(userId, {
+      $addToSet: {
+        challenges: {
+          year: currentYear,
+          number,
+        },
+      },
+    });
+
+    return res.status(200).json({ challenge: { year: currentYear, number } });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
 export {
   register,
   login,
@@ -877,4 +920,5 @@ export {
   verifyUser,
   allPending,
   giftPoints,
+  createChallenge,
 };

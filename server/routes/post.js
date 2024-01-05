@@ -20,7 +20,8 @@ import {
     report,
     dismissReport,
     search,
-    getPostsWithUserIdWithBook
+    getPostsWithUserIdWithBook,
+    getNumberOfPostsWithUserId
 
 } from "../controllers/post.js";
 import formidable from "express-formidable";
@@ -72,6 +73,8 @@ router.route("/admin/delete/:id").delete(isAdmin, deletePost);
 
 // get post with userID 
 router.route("/withUser/:userId").get(getPostsWithUserId);
+router.route("/number-with-user/:userId").get(getNumberOfPostsWithUserId);
+
 router.route("/withUserAndBook/:userId/:bookId").get(getPostsWithUserIdWithBook);
 
 

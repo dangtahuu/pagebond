@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import ReactLoading from "react-loading";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // icon
 import { FiEdit2 } from "react-icons/fi";
@@ -10,20 +10,14 @@ import { TiTick } from "react-icons/ti";
 import GiftForm from "../../common/GiftForm";
 import HeaderMenu from "../../common/HeaderMenu";
 import { Navigate } from "react-router-dom";
+import { useAppContext } from "../../../context/useContext";
 
-const Header = ({
-  user,
-  own,
-  navigate,
-  autoFetch,
-  setNameAndToken,
-  token,
-  tabView,
-  socket,
-  currentUserId,
-}) => {
+const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPosts }) => {
+  const { autoFetch, socket, setNameAndToken, token } = useAppContext();
+  const navigate = useNavigate();
+
   const [openOptions, setOpenOptions] = useState(false);
-  const [loading, setLoading] = useState(false);
+
   const [giftFormOpen, setGiftFormOpen] = useState(false);
   const [points, setPoints] = useState(0);
 
@@ -47,7 +41,6 @@ const Header = ({
   }
 
   const handleFollower = async (user) => {
-    setLoading(true);
     try {
       const { data } = await autoFetch.put(`/api/auth/user-follow`, {
         userId: user._id,
@@ -62,10 +55,8 @@ const Header = ({
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
     }
-    setLoading(false);
   };
   const handleUnFollow = async (user) => {
-    setLoading(true);
     try {
       const { data } = await autoFetch.put(`/api/auth/user-unfollow`, {
         userId: user._id,
@@ -77,7 +68,6 @@ const Header = ({
       console.log(error);
       toast.error(error.response.data.msg || "Something went wrong");
     }
-    setLoading(false);
   };
 
   const handleReport = async () => {
@@ -108,35 +98,30 @@ const Header = ({
   };
 
   const Options = () => {
-   
+    return (
+      <div className="flex gap-x-2 flex-col w-[150px] px-2">
+        <button
+          className="primary-btn bg-black rounded-lg hover:bg-smallText"
+          onClick={() => {
+            navigate(
+              `/messenger/?data=${encodeURIComponent(JSON.stringify(user))}`
+            );
+          }}
+        >
+          Message
+        </button>
 
-      return (
-        <div className="flex gap-x-2 flex-col w-[150px] px-2">
-      
-       
+        <button
+          className="primary-btn bg-black rounded-lg hover:bg-smallText"
+          onClick={() => {
+            setGiftFormOpen(true);
+          }}
+        >
+          Gift points
+        </button>
 
+        {own.following.includes(user._id) && (
           <button
-            className="primary-btn bg-black rounded-lg hover:bg-smallText"
-            onClick={() => {
-              navigate(
-                `/messenger/?data=${encodeURIComponent(JSON.stringify(user))}`
-              );
-            }}
-          >
-            Message
-          </button>
-
-          <button
-            className="primary-btn bg-black rounded-lg hover:bg-smallText"
-            onClick={() => {
-              setGiftFormOpen(true);
-            }}
-          >
-            Gift points
-          </button>
-
-          {
-            own.following.includes(user._id) &&    <button
             className="primary-btn bg-black rounded-lg hover:bg-smallText"
             onClick={() => {
               handleUnFollow(user);
@@ -144,23 +129,20 @@ const Header = ({
           >
             Unfollow
           </button>
-          }
+        )}
 
-          <button
-            className="primary-btn bg-black rounded-lg hover:bg-smallText"
-            onClick={() => {
-              if (
-                window.confirm("Are you sure you want to report this user?")
-              ) {
-                handleReport();
-              }
-            }}
-          >
-            Report
-          </button>
-        </div>
-      );
-   
+        <button
+          className="primary-btn bg-black rounded-lg hover:bg-smallText"
+          onClick={() => {
+            if (window.confirm("Are you sure you want to report this user?")) {
+              handleReport();
+            }
+          }}
+        >
+          Report
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -184,40 +166,44 @@ const Header = ({
                 <TiTick className="text-[20px] text-white rounded-full bg-sky-700 ml-2" />
               )}
 
-{user._id === own._id && (
-        <button
-          className="primary-btn bg-black"
-          onClick={() => {
-            navigate(`/update-profile`);
-          }}
-        >
-          <FiEdit2 className=" " />
-          Edit profile
-        </button>
-      )}
-
-      {!own.following.includes(user._id) && user._id !== own._id &&  <button className="primary-btn" onClick={() => handleFollower(user)}>
-          Follow
-        </button>}
-
-{user._id !== own._id && <div
-                className="ml-auto text-[25px] transition-50 cursor-pointer font-bold w-[35px] h-[35px] rounded-full hover:bg-dialogue flex flex-row items-center justify-center group relative "
-                onClick={() => {
-                  setOpenOptions((prev) => !prev);
-                }}
-              >
-                <div className="translate-y-[-6px] z-[10]">...</div>
-
-                {openOptions && (
-                <div className="ml-4 absolute top-[40px] z-[20] bg-black rounded-lg py-2">
-                  {" "}
-                  <Options />{" "}
-                </div>
+              {user._id === own._id && (
+                <button
+                  className="primary-btn bg-black"
+                  onClick={() => {
+                    navigate(`/update-profile`);
+                  }}
+                >
+                  <FiEdit2 className=" " />
+                  Edit profile
+                </button>
               )}
 
-              </div>}
-              
-             
+              {!own.following.includes(user._id) && user._id !== own._id && (
+                <button
+                  className="primary-btn"
+                  onClick={() => handleFollower(user)}
+                >
+                  Follow
+                </button>
+              )}
+
+              {user._id !== own._id && (
+                <div
+                  className="ml-auto text-[25px] transition-50 cursor-pointer font-bold w-[35px] h-[35px] rounded-full hover:bg-dialogue flex flex-row items-center justify-center group relative "
+                  onClick={() => {
+                    setOpenOptions((prev) => !prev);
+                  }}
+                >
+                  <div className="translate-y-[-6px] z-[10]">...</div>
+
+                  {openOptions && (
+                    <div className="ml-4 absolute top-[40px] z-[20] bg-black rounded-lg py-2">
+                      {" "}
+                      <Options />{" "}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             {user.about && (
               <div className="text-sm font-semibold text-[17px] flex gap-x-1.5 items-center text-[#65676b] justify-center sm:justify-start">
@@ -233,13 +219,29 @@ const Header = ({
         </div>
 
         <div className="flex items-center justify-center divide-smallText divide-opacity-10 divide-x">
-          <div className="flex flex-col items-center pr-2">
+        <div className="flex flex-col items-center pr-2 cursor-pointer min-w-[80px]">
+            <div className="serif-display text-3xl ">{numberOfPosts}</div>
+            <div className="text-smallText text-[10px]">POSTS</div>
+          </div>
+          <div className="pl-2 flex flex-col items-center pr-2 cursor-pointer min-w-[80px]">
+            <div className="serif-display text-3xl ">{numberOfBooks}</div>
+            <div className="text-smallText text-[10px]">BOOKS</div>
+          </div>
+          <div className="pl-2 flex flex-col items-center pr-2 cursor-pointer min-w-[80px]"
+            onClick={() => {
+              // setMenu(v);
+              navigate(`/profile/${user._id}?view=following`);
+            }}>
             <div className="serif-display text-3xl ">
               {user.following.length}
             </div>
             <div className="text-smallText text-[10px]">FOLLOWING</div>
           </div>
-          <div className="flex flex-col items-center pl-2">
+          <div className="flex flex-col items-center pl-2 cursor-pointer min-w-[80px]"
+            onClick={() => {
+              // setMenu(v);
+              navigate(`/profile/${user._id}?view=follower`);
+            }}>
             <div className="serif-display text-3xl">{user.follower.length}</div>
             <div className="text-smallText text-[10px]">FOLLOWERS</div>
           </div>

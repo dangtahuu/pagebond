@@ -28,6 +28,7 @@ import {
   verifyUser,
   allPending,
   giftPoints,
+  createChallenge,
 } from "./../controllers/auth.js";
 
 const router = express.Router();
@@ -48,11 +49,6 @@ router.route("/report").patch(requireSignIn, reportUser);
 router.route("/block").patch(requireSignIn, isAdmin, blockUser);
 router.route("/unblock").patch(requireSignIn, isAdmin, unblockUser);
 router.route("/verify").patch(requireSignIn, isAdmin, verifyUser);
-
-
-
-
-
 
 //admin
 router.route("/current-admin").get(requireSignIn, isAdmin, currentUser);
@@ -87,6 +83,6 @@ router.route("/:id").get(requireSignIn, getInformationUser);
 router.route("/user-unfollow").put(requireSignIn, removeFollower, userUnFollower);
 
 router.route("/gift-points").put(requireSignIn, giftPoints);
-
+router.route("/create-challenge").put(requireSignIn, createChallenge);
 
 export default router;

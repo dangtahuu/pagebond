@@ -575,6 +575,19 @@ const getPostsWithUserId = async (req, res) => {
   }
 };
 
+const getNumberOfPostsWithUserId = async (req, res) => {
+  try {
+
+    const userId = req.params.userId;
+    const count = await Post.countDocuments({ postedBy: { _id: userId } });
+
+    return res.status(200).json({ number: count });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 const getPostsWithUserIdWithBook = async (req, res) => {
   try {
     const { bookId, userId } = req.params;
@@ -925,6 +938,7 @@ export {
   removeComment,
   totalPosts,
   getPostsWithUserId,
+  getNumberOfPostsWithUserId,
   getPostsWithUserIdWithBook,
   getDiscover,
   getPopular,

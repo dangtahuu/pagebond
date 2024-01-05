@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { LoadingCard } from "../..";
-import ShelfForm from "../../common/ShelfForm";
+import SimpleForm from "../../common/SimpleForm";
 import { CgRename } from "react-icons/cg";
 import { AiOutlineDelete } from "react-icons/ai";
 import { Rating } from "@mui/material";
@@ -157,12 +157,15 @@ const ShelfDetail = ({ shelfId, autoFetch, navigate, userId }) => {
       </div>}
       </div>
       {openModal && (
-        <ShelfForm
+        <SimpleForm
           text={text}
+          title="Shelf"
           setOpenModal={setOpenModal}
           setText={setText}
           submitHandle={renameShelf}
           isEditPost={true}
+          label="Name"
+          placeholder="Give it a name"
         />
       )}
       {listBook.length > 0 ? (

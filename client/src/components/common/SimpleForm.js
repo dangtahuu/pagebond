@@ -4,18 +4,18 @@ import { MdAddPhotoAlternate, MdCancel } from "react-icons/md";
 
 import ReactLoading from "react-loading";
 import { IoClose } from "react-icons/io5";
-import { MdOutlineAddPhotoAlternate } from "react-icons/md";
 import { Tooltip } from "@mui/material";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 
-
-const ShelfForm = ({ text, setOpenModal, setText, submitHandle, isEdit }) => {
-
-
+const SimpleForm = ({ checkInput, text, setOpenModal, setText, submitHandle, isEdit, label, placeholder, note, title }) => {
   const handleButton = () => {
-    submitHandle()
+    console.log('xxxx')
+    if(checkInput) {
+      const result = checkInput(text)
+      if (!result) return;
+    }
+    submitHandle();
     setOpenModal(false);
-
   };
 
   return (
@@ -37,22 +37,25 @@ const ShelfForm = ({ text, setOpenModal, setText, submitHandle, isEdit }) => {
         />
         <div>
           <div className="font-semibold py-3 text-base border-b-[1px] border-altDialogue ">
-            {isEdit ? "Edit shelf name" : "Create shelf"}
+           {title}
           </div>
 
           <label className="form-label mt-3" for="text">
-            Name
+            {label}
           </label>
           <textarea
             id="text"
             value={text}
             className={`standard-input`}
-            placeholder={`Give it a name`}
+            placeholder={placeholder}
             onChange={(e) => {
-            setText(e.target.value)
+              setText(e.target.value);
             }}
           />
-   <div className="flex justify-between items-center mt-2 mb-3">
+
+          {note &&  <div className="text-sm my-2 text-smallText">{note}</div>}
+         
+          <div className="flex justify-between items-center mt-2 mb-3">
             <Tooltip
               title="Support the following HTML tags: <strong>, <em>, <b>, <i>, <a>, <blockquote>, <h1>, <h2>, <h3>, <h4>, <h5>, <h6>, <ul>, <ol>, <li>, <p>, <br>"
               placement="top-start"
@@ -69,11 +72,10 @@ const ShelfForm = ({ text, setOpenModal, setText, submitHandle, isEdit }) => {
               {isEdit ? "Save" : "Create"}
             </button>
           </div>
+        </div>
       </div>
     </div>
-    </div>
-
   );
 };
 
-export default ShelfForm;
+export default SimpleForm;

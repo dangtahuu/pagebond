@@ -8,6 +8,7 @@ import Hashtag from "../models/hashtag.js";
 import shuffle from "../utils/shuffle.js";
 import Post from "./../models/post.js";
 import Shelf from "../models/shelf.js";
+import post from "./../models/post.js";
 
 const create = async (req, res, next) => {
   const {
@@ -35,6 +36,8 @@ const create = async (req, res, next) => {
         .status(400)
         .json({ msg: "Please provide all required values" });
     }
+
+    console.log(req.body)
 
     const post = await Review.create({
       rating,
@@ -613,6 +616,83 @@ const getRecent = async (req, res) => {
   }
 };
 
+const getNumberOfBooksOfUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const posts = await Post.find({
+      $and: [{ postedBy: userId }, { postType: "Review" }],
+    }).populate("detail");
+
+    const list = [];
+
+    posts.forEach((one) => {
+      if (!list.includes(one.detail.book.toString()))
+        list.push(one.detail.book.toString());
+    });
+
+    return res.status(200).json({ number: list.length });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const getUserYearStats = async (req, res) => {
+  try {
+    const { userId, year } = req.params;
+    
+    const user = await User.findById(userId)
+
+    const challenges = user.challenges;
+
+    const thisYear = challenges.filter((one) => one.year == year);
+
+    const startDate = new Date(parseInt(year), 0, 1);
+    const endDate = new Date(parseInt(year) + 1, 0, 1);
+  
+    const aggResult = await Post.aggregate([
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          $and: [
+            {
+              "data.dateRead": {
+                $gte: startDate,
+                $lt: endDate,
+              },
+            },
+            { postedBy: mongoose.Types.ObjectId(userId) },
+            { postType: "Review" },
+          ],
+        },
+      },
+    ]);
+
+    // console.log(aggResult)
+    const list = [];
+
+    aggResult.forEach((one) => {
+      if (!list.includes(one.data.book.toString()))
+        list.push(one.data.book.toString());
+    });
+
+    return res.status(200).json({ number: list.length, challenge: thisYear.length>0 &&thisYear[0] });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   create,
   getAllWithBook,
@@ -620,6 +700,8 @@ export {
   edit,
   deleteOne,
   getDiscover,
+  getNumberOfBooksOfUser,
   getDiary,
   getRecent,
+  getUserYearStats,
 };

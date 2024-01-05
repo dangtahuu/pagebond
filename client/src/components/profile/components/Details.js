@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 const Details = ({ data = [], name = "" }) => {
   const navigate = useNavigate();
 
-  if (data?.length === 0) return;
   return (
     <div className={`bg-mainbg px-4 mb-2 rounded-lg`}>
       <div className="flex justify-start items-center ">
@@ -39,9 +38,27 @@ const Details = ({ data = [], name = "" }) => {
             </div>
           ))
         ) : (
-          <div className="text-center my-3 text-sm col-span-3 ">
-            No item found!
-          </div>
+          <>
+           <div className="w-full  pt-[100%] relative cursor-pointer ">
+              <img
+                src={"https://sciendo.com/product-not-found.png"}
+                className={`w-full h-full absolute top-0 left-0 object-cover rounded-lg `}
+              />
+            </div>
+            <div className="w-full  pt-[100%] relative cursor-pointer ">
+              <img
+                src={"https://sciendo.com/product-not-found.png"}
+                className={`w-full h-full absolute top-0 left-0 object-cover rounded-lg `}
+              />
+            </div>
+            <div className="w-full  pt-[100%] relative cursor-pointer ">
+              <img
+                src={"https://sciendo.com/product-not-found.png"}
+                className={`w-full h-full absolute top-0 left-0 object-cover rounded-lg `}
+              />
+            </div>
+          </>
+           
         )}
       </div>
     </div>

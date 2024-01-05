@@ -57,18 +57,24 @@ const userSchema = new mongoose.Schema(
         unique: true,
       },
     ],
+    challenges: [
+      {
+        year: Number,
+        number: Number,
+      },
+    ],
     points: {
       type: Number,
       require: true,
       default: 0,
     },
-    featuredShelf:   {
+    featuredShelf: {
       type: mongoose.Types.ObjectId,
       ref: "Shelf",
     },
     blocked: {
       type: String,
-      enum: ["Clean","Reported","Blocked"],
+      enum: ["Clean", "Reported", "Blocked"],
       default: "Clean",
       required: true,
     },

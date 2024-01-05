@@ -34,7 +34,7 @@ import BookDetail from "../page/Layout/book/BookPage";
 // import ModalReview from "./common/ModalReview";
 // import ModalExchange from "./common/ModalExchange";
 import ShelvesForm from "./common/ShelvesForm";
-import ModalShelf from "./common/ShelfForm";
+import ModalShelf from "./common/SimpleForm";
 // function
 import Search from "./search/Search";
 import PostForm from "./common/PostForm";

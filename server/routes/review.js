@@ -8,7 +8,9 @@ import{
   getDiscover,
   getDiary,
   getRecent,
-  calculateRatingChart
+  calculateRatingChart,
+  getNumberOfBooksOfUser,
+  getUserYearStats
 } from "../controllers/review.js";
 import formidable from "express-formidable";
 import {canUpdateOrDeletePost, canUpdateOrDeleteReview} from "../middleware/canUpdateOrDelete.js";
@@ -30,6 +32,10 @@ router.route("/book-chart/:id").get(calculateRatingChart);
 
 
 router.route("/diary/:userId").get(getDiary);
+router.route("/number-of-books/:userId").get(getNumberOfBooksOfUser);
+router.route("/year-stats/:userId/:year").get(getUserYearStats);
+
+
 router.route("/recent/:userId").get(getRecent);
 
 

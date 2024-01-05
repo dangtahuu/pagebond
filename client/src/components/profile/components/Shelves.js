@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { LoadingCard } from "../..";
-import ShelfForm from "../../common/ShelfForm";
+import SimpleForm from "../../common/SimpleForm";
 import { FiFolderPlus } from "react-icons/fi";
 import {toast} from "react-toastify";
 import ReactLoading from "react-loading";
@@ -73,11 +73,14 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
       </div>
 
       {openModal && (
-        <ShelfForm
+        <SimpleForm
           text={text}
+          title="Shelf"
           setOpenModal={setOpenModal}
           setText={setText}
           submitHandle={createShelf}
+          label="Name"
+          placeholder="Give it a name"
         />
       )}
 

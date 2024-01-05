@@ -53,7 +53,7 @@ const Main = ({ own, user }) => {
     if (posts.length === 0) {
       return (
         <div className="w-full text-center text-xl font-bold pt-[20vh] ">
-          <div>Nothing to display</div>
+          <div>Let's create your first post!</div>
         </div>
       );
     }

@@ -270,7 +270,7 @@ const ReviewForm = ({
         );
         image = { url: data.url, public_id: data.public_id };
       }
-
+      console.log(input.dateRead)
       const { data } = await autoFetch.post(`api/${type}/create`, {
         text: input.text,
         book,
