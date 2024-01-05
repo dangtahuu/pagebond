@@ -25,9 +25,19 @@ import Right from "../../../components/book/Right";
 function BookPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { autoFetch, user, token, dark, setNameAndToken, setOneState } =
+  const { autoFetch, openModal,setOneState } =
     useAppContext();
   const [loading, setLoading] = useState(false);
+  const [openShelf, setOpenShelf] = useState(false);
+  const [openUpNext, setOpenUpNext] = useState(false);
+
+  useEffect(() => {
+    setOneState("openModal", openShelf);
+  }, [openShelf]);
+
+  useEffect(() => {
+    setOneState("openModal", openUpNext);
+  }, [openUpNext]);
 
   const [status, setStatus] = useState({
     "to read": false,
@@ -198,8 +208,8 @@ function BookPage() {
       className={`w-screen text-base min-h-screen bg-mainbg text-mainText pt-[65px] px-[3%] sm:px-[5%]`}
     >
       <div className="w-full mt-[3%] pt-3  md:grid grid-cols-10 items-start justify-center gap-x-8 py-16 px-4">
-        <div className="col-span-2 md:pr-8 sticky top-[65px] z-[50]">
-          <Left book={book} bookId={id} status={status} setStatus={setStatus} />
+        <div className={`col-span-2 md:pr-8 sticky top-[65px] ${openShelf && "z-[100000]"}`}>
+          <Left book={book} bookId={id} status={status} setStatus={setStatus} openShelf={openShelf} setOpenShelf={setOpenShelf}/>
         </div>
 
         <div className="col-span-5">
@@ -210,8 +220,8 @@ function BookPage() {
           <Main id={id} book={book} setStatus={setStatus} />
         </div>
 
-        <div className="col-span-3 sticky top-[65px] max-h-[80vh] overflow-auto">
-         <Right book={book}/>
+        <div className={`col-span-3 sticky top-[65px] max-h-[80vh] overflow-auto ${openUpNext && "z-[100000]"}`}>
+         <Right book={book} openUpNext={openUpNext} setOpenUpNext={setOpenUpNext}/>
         </div>
       </div>
 

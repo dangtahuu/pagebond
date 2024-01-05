@@ -253,6 +253,9 @@ const getFeatured = async (req, res) => {
       { $limit: 1 },
     ]);
 
+    if(aggResult.length===0) {
+      return res.status(200).json({ post: [] });
+    }
     const post = await Post.findById(aggResult[0]._id)
       .populate("postedBy", "-password -secret")
       .populate("comments.postedBy", "-password -secret")

@@ -15,7 +15,8 @@ import {
     getShelvesInBookPage,
     getShelfStatusOfBook,
     removeFromShelfByName,
-    getFavorites
+    getFavorites,
+    getUpNextPeople
 } from "../controllers/shelf.js";
 import formidable from "express-formidable";
 import canUpdateOrDeleteShelf from "../middleware/canUpdateOrDeleteShelf.js";
@@ -39,6 +40,8 @@ router.route("/remove").patch(removeFromShelf);
 router.route("/status/:bookId").get(getShelfStatusOfBook);
 
 router.route("/favorites/:bookId").get(getFavorites);
+router.route("/up-next-people/:bookId").get(getUpNextPeople);
+
 
 
 router.route("/get-shelves/:userId").get(getAllShelves);

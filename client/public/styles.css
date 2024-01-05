@@ -1878,6 +1878,14 @@ h6 {
   z-index: 99;
 }
 
+.z-\[10\] {
+  z-index: 10;
+}
+
+.z-\[100000\] {
+  z-index: 100000;
+}
+
 .order-1 {
   order: 1;
 }
@@ -2136,6 +2144,14 @@ h6 {
   margin-top: 60px;
 }
 
+.ml-5 {
+  margin-left: 1.25rem;
+}
+
+.box-border {
+  box-sizing: border-box;
+}
+
 .block {
   display: block;
 }
@@ -2288,6 +2304,10 @@ h6 {
   height: 100vh;
 }
 
+.h-\[300px\] {
+  height: 300px;
+}
+
 .max-h-20 {
   max-height: 5rem;
 }
@@ -2330,6 +2350,10 @@ h6 {
 
 .max-h-full {
   max-height: 100%;
+}
+
+.max-h-\[80\%\] {
+  max-height: 80%;
 }
 
 .min-h-\[100vh\] {
@@ -2868,6 +2892,12 @@ h6 {
   --tw-space-x-reverse: 0;
   margin-right: calc(-1rem * var(--tw-space-x-reverse));
   margin-left: calc(-1rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+.-space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(-0.75rem * var(--tw-space-x-reverse));
+  margin-left: calc(-0.75rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .divide-x > :not([hidden]) ~ :not([hidden]) {
@@ -4254,6 +4284,11 @@ button.loading {
 .hover\:bg-gray-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(55 65 81 / var(--tw-bg-opacity));
+}
+
+.hover\:bg-smallText:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(153 170 187 / var(--tw-bg-opacity));
 }
 
 .hover\:font-bold:hover {

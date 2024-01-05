@@ -396,7 +396,7 @@ const Post = ({
             setShowOption(!showOption);
           }}
         >
-          <div className="translate-y-[-6px] z-[99] ">...</div>
+          <div className="translate-y-[-6px] z-[10]">...</div>
           <ul
             className={`text-xs absolute -left-[120%] top-[110%] text-center ${
               !showOption ? "hidden" : "flex flex-col"

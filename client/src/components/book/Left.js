@@ -10,12 +10,11 @@ import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 
 import { MdOutlineFormatListNumbered } from "react-icons/md";
 
-const Left = ({ book, bookId, status, setStatus }) => {
+const Left = ({ book, bookId, status, setStatus, openShelf, setOpenShelf }) => {
   const { autoFetch, user, setOneState } = useAppContext();
 
   const [shelves, setShelves] = useState([]);
   const [selectedShelves, setSelectedShelves] = useState([]);
-  const [openForm, setOpenForm] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -29,9 +28,7 @@ const Left = ({ book, bookId, status, setStatus }) => {
     getData();
   }, [bookId]);
 
-  useEffect(() => {
-    setOneState("openModal", openForm);
-  }, [openForm]);
+  
 
   const getShelves = async () => {
     try {
@@ -112,14 +109,14 @@ const Left = ({ book, bookId, status, setStatus }) => {
 
   return (
     <>
-      {openForm && (
+      {openShelf && (
         <ShelvesForm
           shelves={shelves}
           setShelves={setShelves}
           selected={selectedShelves}
           submitShelves={submitShelves}
-          openModal={openForm}
-          setOpenModal={setOpenForm}
+          openModal={openShelf}
+          setOpenModal={setOpenShelf}
           book={book}
         ></ShelvesForm>
       )}
@@ -175,7 +172,7 @@ const Left = ({ book, bookId, status, setStatus }) => {
             className={`primary-btn  w-[200px]`}
             // disabled={!text || loading}
             onClick={() => {
-              setOpenForm(true);
+              setOpenShelf(true);
             }}
             // onClick={handleButton}
           >

@@ -161,8 +161,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     try {
       const { data } = await autoFetch.get(`/api/auth/find-people-to-follow`);
       let people = data.idsList;
-      // const reviewPeople = people.splice(0,10)
-      // const postPeople = people.splice(0,10)
+   
 
       const [
         { data: reviewDis },

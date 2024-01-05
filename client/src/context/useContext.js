@@ -10,7 +10,7 @@ const initState = {
     user: user || "",
     token: token || "",
     unreadMessages: 0,
-    openModal: false,
+    openModal: "",
 };
 // @ts-ignore
 const AppContext = createContext();

@@ -426,46 +426,83 @@ const getFavorites = async (req, res) => {
 const getUpNextPeople = async (req, res) => {
   const { bookId } = req.params;
   const { userId } = req.user;
+
   try {
     const shelves = await Shelf.find({
       $and: [
         { name: "favorites" },
         { books: { $in: [bookId] } },
-        { postedBy: { $ne: userId } },
       ],
     });
 
-    const idList = shelves.map((one) => mongoose.Types.ObjectId(one._id));
+    // console.log(shelves)
 
-    let pipeline = [
+    const idList = shelves.map((one) => mongoose.Types.ObjectId(one.owner));
+
+    const aggResult = await User.aggregate([
+      {
+        $match: {
+          _id: {$in: idList}
+        }
+      },
+      {
+        $lookup: {
+          from: "posts",
+          localField: "_id",
+          foreignField: "postedBy",
+          as: "userPosts"
+        }
+      },
+      {
+        $unwind: "$userPosts"
+      },
       {
         $lookup: {
           from: "reviews",
-          localField: "detail",
+          localField: "userPosts.detail",
           foreignField: "_id",
-          as: "data",
-        },
+          as: "postReviews"
+        }
       },
       {
-        $unwind: "$data",
+        $unwind: "$postReviews"
       },
       {
-        $match: {
-          postedBy: id,
-        },
-      },
-    ];
+        $group: {
+          _id: { $toString: "$_id" },
+          name: { $first: "$name" },
+          image: { $first: "$image" },
+          books: { $addToSet: { $toString: "$postReviews.book" } }
+        }
+      }
+    ]);
 
-    
+    // console.log(aggResult)
+    const currentUser = aggResult.filter((one)=>one._id === userId)
+    const currentUserBooks= currentUser[0].books
 
-    const users = await User.find();
+    console.log(currentUser)
 
-    return res.status(200).json({ shelves });
+    const otherUsers = aggResult.filter((one)=>one._id !== userId)
+
+    otherUsers.sort((a, b) => {
+      const similarityA = calculateSimilarity(currentUserBooks, a.books);
+      const similarityB = calculateSimilarity(currentUserBooks, b.books);
+      return similarityB - similarityA; 
+    });
+
+    return res.status(200).json({ people: otherUsers });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
   }
 };
+
+const calculateSimilarity = (user1Books, user2Books) => {
+  const commonBooks = user1Books.filter(book => user2Books.includes(book));
+  return commonBooks.length;
+}
+
 
 export {
   createShelf,
@@ -483,4 +520,5 @@ export {
   getShelfStatusOfBook,
   removeFromShelf,
   getFavorites,
+  getUpNextPeople
 };

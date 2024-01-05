@@ -20,21 +20,14 @@ const Header = ({
   token,
   tabView,
   socket,
-  currentUserId
+  currentUserId,
 }) => {
- 
+  const [openOptions, setOpenOptions] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [giftFormOpen, setGiftFormOpen] = useState(false)
-  const [points, setPoints] = useState(0)
+  const [giftFormOpen, setGiftFormOpen] = useState(false);
+  const [points, setPoints] = useState(0);
 
-  const list = [
-    "Posts",
-    "Shelves",
-    "Diary",
-    "Points",
-    "Following",
-    "Follower",
-  ];
+  const list = ["Posts", "Shelves", "Diary", "Points", "Following", "Follower"];
   const urlList = [
     "posts",
     "shelves",
@@ -44,26 +37,14 @@ const Header = ({
     "follower",
   ];
 
-  const list2 = [
-    "Posts",
-    "Shelves",
-    "Diary",
-    "Following",
-    "Follower",
-  ];
-  const urlList2 = [
-    "posts",
-    "shelves",
-    "diary",
-    "following",
-    "follower",
-  ];
+  const list2 = ["Posts", "Shelves", "Diary", "Following", "Follower"];
+  const urlList2 = ["posts", "shelves", "diary", "following", "follower"];
 
-  if (currentUserId !== own._id && tabView==="points") {
+  if (currentUserId !== own._id && tabView === "points") {
     // console.log(user._id)
     // console.log(own._id)
-    return <Navigate to='/' />;
-}
+    return <Navigate to="/" />;
+  }
 
   const handleFollower = async (user) => {
     setLoading(true);
@@ -113,49 +94,29 @@ const Header = ({
     }
   };
 
-  const handleGift = async(points)=> {
-  try{
-    const {data} = await autoFetch.put(`/api/auth/gift-points`,{
-      giftedId: user._id,
-      points: points
-    })
-    toast.success(
-      "You have successfully gifted points to this user"
-    );
-  }catch(error){
-    console.log(error);
-    toast.error(error.response.data.msg || "Something went wrong");
-  }
-  }
+  const handleGift = async (points) => {
+    try {
+      const { data } = await autoFetch.put(`/api/auth/gift-points`, {
+        giftedId: user._id,
+        points: points,
+      });
+      toast.success("You have successfully gifted points to this user");
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response.data.msg || "Something went wrong");
+    }
+  };
 
-  const btn = () => {
+  const Options = () => {
+   
 
-    if (user._id === own._id)
       return (
-        <button
-          className="flex gap-x-2  items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
-          onClick={() => {
-            navigate(`/update-profile`);
-          }}
-        >
-          <FiEdit2 className=" " />
-          Edit profile
-        </button>
-      );
-    if (own.following.includes(user._id)) {
-      return (
-        <div className="flex gap-x-2">
-          <button
-            className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
-            onClick={() => {
-              handleUnFollow(user);
-            }}
-          >
-            Unfollow
-          </button>
+        <div className="flex gap-x-2 flex-col w-[150px] px-2">
+      
+       
 
           <button
-            className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
+            className="primary-btn bg-black rounded-lg hover:bg-smallText"
             onClick={() => {
               navigate(
                 `/messenger/?data=${encodeURIComponent(JSON.stringify(user))}`
@@ -166,16 +127,27 @@ const Header = ({
           </button>
 
           <button
-            className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
+            className="primary-btn bg-black rounded-lg hover:bg-smallText"
             onClick={() => {
-            setGiftFormOpen(true);
+              setGiftFormOpen(true);
             }}
           >
             Gift points
           </button>
-          
+
+          {
+            own.following.includes(user._id) &&    <button
+            className="primary-btn bg-black rounded-lg hover:bg-smallText"
+            onClick={() => {
+              handleUnFollow(user);
+            }}
+          >
+            Unfollow
+          </button>
+          }
+
           <button
-            className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
+            className="primary-btn bg-black rounded-lg hover:bg-smallText"
             onClick={() => {
               if (
                 window.confirm("Are you sure you want to report this user?")
@@ -188,55 +160,12 @@ const Header = ({
           </button>
         </div>
       );
-    }
-    return (
-      <div className="flex gap-x-2">
-        <button
-          className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
-          onClick={() => handleFollower(user)}
-        >
-          Follow
-        </button>
-        <button
-          className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
-          onClick={() => {
-            navigate(
-              `/messenger/?data=${encodeURIComponent(JSON.stringify(user))}`
-            );
-          }}
-        >
-          Message
-        </button>
-
-        <button
-            className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
-            onClick={() => {
-              if (
-                window.confirm("Are you sure you want to report this user?")
-              ) {
-                handleReport();
-              }
-            }}
-          >
-            Report
-          </button>
-
-          <button
-            className="flex gap-x-1 items-center font-semibold px-3 py-2 bg-[#D8DADF]/50 hover:bg-[#D8DADF] dark:bg-[#4E4F50]/50 dark:hover:bg-[#4E4F50] transition-20 rounded-md text-sm"
-            onClick={() => {
-            setGiftFormOpen(true);
-            }}
-          >
-            Gift points
-          </button>
-
-      </div>
-    );
+   
   };
 
   return (
-    <div className="pt-[50px] md:pt-[75px] w-[80%] max-w-[1500px] bg-mainbg overflow-x-hidden ">
-      <div className="flex justify-between items-center">
+    <div className="pt-[50px] md:pt-[75px] w-[80%] max-w-[1500px] h-[300px] bg-mainbg overflow-x-hidden ">
+      <div className="flex justify-between items-center gap-x-3">
         <div className="flex flex-col sm:flex-row gap-x-4 items-center ">
           {/* avatar */}
           <img
@@ -246,19 +175,58 @@ const Header = ({
           />
 
           <div className="flex flex-col gap-y-3 w-full">
-            <div className="text-center flex items-center">
+            <div className="text-center flex items-center gap-x-3">
               <div className="text-3xl font-semibold">{user.name}</div>
               {user.role === 1 && (
                 <TiTick className="text-[20px] text-white rounded-full bg-greenBtn ml-2" />
               )}
-                {user.role === 2 && (
+              {user.role === 2 && (
                 <TiTick className="text-[20px] text-white rounded-full bg-sky-700 ml-2" />
               )}
-              <div className="ml-4"> {btn()}</div>
+
+{user._id === own._id && (
+        <button
+          className="primary-btn bg-black"
+          onClick={() => {
+            navigate(`/update-profile`);
+          }}
+        >
+          <FiEdit2 className=" " />
+          Edit profile
+        </button>
+      )}
+
+      {!own.following.includes(user._id) && user._id !== own._id &&  <button className="primary-btn" onClick={() => handleFollower(user)}>
+          Follow
+        </button>}
+
+{user._id !== own._id && <div
+                className="ml-auto text-[25px] transition-50 cursor-pointer font-bold w-[35px] h-[35px] rounded-full hover:bg-dialogue flex flex-row items-center justify-center group relative "
+                onClick={() => {
+                  setOpenOptions((prev) => !prev);
+                }}
+              >
+                <div className="translate-y-[-6px] z-[10]">...</div>
+
+                {openOptions && (
+                <div className="ml-4 absolute top-[40px] z-[20] bg-black rounded-lg py-2">
+                  {" "}
+                  <Options />{" "}
+                </div>
+              )}
+
+              </div>}
+              
+             
             </div>
             {user.about && (
               <div className="text-sm font-semibold text-[17px] flex gap-x-1.5 items-center text-[#65676b] justify-center sm:justify-start">
                 {user.about}
+              </div>
+            )}
+            {own.follower.includes(user._id) && (
+              <div className="text-sm font-semibold text-[17px] flex gap-x-1.5 items-center text-[#65676b] justify-center sm:justify-start">
+                Follows you
               </div>
             )}
           </div>
@@ -279,45 +247,43 @@ const Header = ({
       </div>
 
       <div className="flex mx-0 sm:mx-10 mt-6 mb-3 ">
-
-        {user._id === own._id &&
+        {user._id === own._id && (
           <ul className="flex items-center py-2 justify-between w-full px-16 py-1 gap-x-10 bg-altDialogue rounded-md shadow">
-          {list.map((v, index) => (
-            <li
-              key={v + "button"}
-              className={`li-profile ${
-                tabView === urlList[index] && "active"
-              } `}
-              onClick={() => {
-                // setMenu(v);
-                navigate(`/profile/${user._id}?view=${urlList[index]}`);
-              }}
-            >
-              {v}
-            </li>
-          ))}
-        </ul>
-        }
-      
-      {user._id !== own._id &&
-          <ul className="flex items-center py-2 justify-between w-full px-16 py-1 gap-x-10 bg-altDialogue rounded-md shadow">
-          {list2.map((v, index) => (
-            <li
-              key={v + "button"}
-              className={`li-profile ${
-                tabView === urlList[index] && "active"
-              } `}
-              onClick={() => {
-                // setMenu(v);
-                navigate(`/profile/${user._id}?view=${urlList2[index]}`);
-              }}
-            >
-              {v}
-            </li>
-          ))}
-        </ul>
-        }
+            {list.map((v, index) => (
+              <li
+                key={v + "button"}
+                className={`li-profile ${
+                  tabView === urlList[index] && "active"
+                } `}
+                onClick={() => {
+                  // setMenu(v);
+                  navigate(`/profile/${user._id}?view=${urlList[index]}`);
+                }}
+              >
+                {v}
+              </li>
+            ))}
+          </ul>
+        )}
 
+        {user._id !== own._id && (
+          <ul className="flex items-center py-2 justify-between w-full px-16 py-1 gap-x-10 bg-altDialogue rounded-md shadow">
+            {list2.map((v, index) => (
+              <li
+                key={v + "button"}
+                className={`li-profile ${
+                  tabView === urlList[index] && "active"
+                } `}
+                onClick={() => {
+                  // setMenu(v);
+                  navigate(`/profile/${user._id}?view=${urlList2[index]}`);
+                }}
+              >
+                {v}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {giftFormOpen && (
@@ -329,7 +295,6 @@ const Header = ({
           isEditPost={true}
         />
       )}
-
     </div>
   );
 };
