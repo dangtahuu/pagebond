@@ -63,6 +63,7 @@ const bookSchema = new mongoose.Schema(
     },
     topShelves: {
       type: [String],
+      default:[]
     },
   },
   { timestamps: true }

@@ -18,7 +18,6 @@ const MainChat = ({
   setPageState,
   AI_ID,
 }) => {
-
   const PromptSection = () => {
     let shuffled = shuffle(prompts);
     const data = shuffled.slice(0, 5);
@@ -26,8 +25,9 @@ const MainChat = ({
     return (
       <div className="flex flex-col items-center justify-center absolute w-full bottom-0 mb-5 gap-y-2">
         {data.map((one) => (
-          <div className="w-[400px] bg-dialogue text-sm rounded-full py-2 px-4 cursor-pointer"
-          onClick={()=>setPageState("text", one)}
+          <div
+            className="w-[400px] bg-dialogue text-sm rounded-full py-2 px-4 cursor-pointer"
+            onClick={() => setPageState("text", one)}
           >
             <div>{one}</div>
           </div>
@@ -37,14 +37,6 @@ const MainChat = ({
   };
 
   let currentMessenger;
-
-  useEffect(() => {
-    console.log(state);
-    console.log(currentMessenger);
-    console.log(state.receiveUser._id)
-    console.log(AI_ID)
-    console.log('sosanh',state.receiveUser._id === AI_ID )
-  }, [state]);
 
   const messBox = () => {
     currentMessenger = state.allMessages.find((m) => m._id === state.index);
@@ -88,7 +80,7 @@ const MainChat = ({
                   }  px-3 py-2 ml-1 dark:text-white`}
                 >
                   <ReactMarkdown>
-                    {c.text ? c?.text.replace(/\[\^\d+\^\]/g, ""):""}
+                    {c.text ? c?.text.replace(/\[\^\d+\^\]/g, "") : ""}
                   </ReactMarkdown>
                   {c.image?.url && (
                     <img
@@ -161,10 +153,10 @@ const MainChat = ({
         >
           {messBox()}
           <div ref={messagesEndRef} />
-          {state.receiveUser._id === AI_ID && !state.text&&
-            (currentMessenger?.content?.length === 0 || typeof currentMessenger === 'undefined') &&
-              <PromptSection />
-          }
+          {state.receiveUser._id === AI_ID &&
+            !state.text &&
+            (currentMessenger?.content?.length === 0 ||
+              typeof currentMessenger === "undefined") && <PromptSection />}
           {state.AILoading && (
             <div className="flex items-center w-[200px] bg-dialogue text-sm rounded-full py-2 px-3">
               <div>AI is replying </div>

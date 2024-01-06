@@ -12,6 +12,7 @@ const shelfSchema = new mongoose.Schema(
             enum:[1,2,3],
             default: 3
         },
+        likes: [{ type: mongoose.Types.ObjectId, ref: "User", unique: true }],
         owner: {
             type: mongoose.Types.ObjectId, ref: "User", required: true
         },

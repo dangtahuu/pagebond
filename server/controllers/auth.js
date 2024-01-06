@@ -893,6 +893,23 @@ const createChallenge = async (req, res) => {
   }
 };
 
+const makeFeatured = async (req, res) => {
+  const {shelfId} = req.body;
+  const userId = req.user.userId;
+
+  try {
+   
+   const user = await User.findByIdAndUpdate(userId, {
+    featuredShelf: shelfId
+    },{new: true});
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong. Try again!" });
+  }
+};
+
 export {
   register,
   login,
@@ -921,4 +938,5 @@ export {
   allPending,
   giftPoints,
   createChallenge,
+  makeFeatured,
 };

@@ -19,7 +19,6 @@ const api = new BingChat({
 });
 
 
-
 const getAllMessages = async (req, res) => {
   try {
     const userId = req.user.userId;

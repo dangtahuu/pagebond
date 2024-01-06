@@ -9,6 +9,8 @@ import mongoose from "mongoose";
 import Log from "../models/log.js";
 import Hashtag from "../models/hashtag.js";
 import shuffle from "../utils/shuffle.js";
+import findMostDuplicates from "../utils/findMostDuplicate.js";
+import post from "./../models/post.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -577,7 +579,6 @@ const getPostsWithUserId = async (req, res) => {
 
 const getNumberOfPostsWithUserId = async (req, res) => {
   try {
-
     const userId = req.params.userId;
     const count = await Post.countDocuments({ postedBy: { _id: userId } });
 
@@ -591,7 +592,7 @@ const getNumberOfPostsWithUserId = async (req, res) => {
 const getPostsWithUserIdWithBook = async (req, res) => {
   try {
     const { bookId, userId } = req.params;
-    console.log(bookId)
+    console.log(bookId);
     const questions = await Post.aggregate([
       {
         $lookup: {
@@ -692,7 +693,7 @@ const getPostsWithUserIdWithBook = async (req, res) => {
       },
     ]);
 
-    const aggResult = [...questions,...trades,...reviews,...news]
+    const aggResult = [...questions, ...trades, ...reviews, ...news];
 
     const ids = aggResult.map((one) => one._id.toString());
     const posts = await Post.find({
@@ -922,6 +923,147 @@ const dismissReport = async (req, res) => {
   }
 };
 
+const getStats = async (req, res) => {
+  try {
+    const { userId, year="all" } = req.params;
+
+    let pipeline = [
+      {
+        $match: {
+          $and: [
+            { postedBy: mongoose.Types.ObjectId(userId) },
+            { postType: "Review" },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $lookup: {
+          from: "books", // or the collection you want to populate from
+          localField: "data.book", // replace with the actual field you want to populate from "reviews"
+          foreignField: "_id",
+          as: "book",
+        },
+      },
+      {
+        $unwind: "$book",
+      },
+      {
+        $addFields: { detail: "$data" },
+      },
+      {
+        $project: {
+          data: 0,
+        },
+      },
+    ];
+
+    if (year!=="all") {
+      const startDate = new Date(parseInt(year), 0, 1);
+      const endDate = new Date(parseInt(year) + 1, 0, 1);
+      pipeline.push({
+        $match: {
+          "detail.dateRead": {
+            $gte: startDate,
+            $lt: endDate,
+          },
+        },
+      });
+    }
+
+    let posts = await Post.aggregate(pipeline);
+
+   if(posts.length===0) return res.status(400).json({ msg: "No record found" });
+
+    const bookList = [];
+
+    let pageCount = 0;
+    let mostLikedPost = posts[0];
+    let mostPopularBook = posts[0].book;
+    let highestRatedBook = posts[0].book;
+
+    const genres = [];
+    const moods = [];
+    const ratingCounts = {};
+
+    posts.forEach((one) => {
+      if (!bookList.includes(one.detail.book.toString())) {
+        bookList.push(one.detail.book.toString());
+      }
+      pageCount += one.book.pageCount ? one.book.pageCount : 0;
+      if (one.likes.length > mostLikedPost.likes.length) mostLikedPost = one;
+      if (one.book.numberOfRating > mostPopularBook.numberOfRating)
+        mostPopularBook = one.book;
+
+      if (one.book.rating > highestRatedBook.rating)
+        highestRatedBook = one.book;
+
+      ratingCounts[one.detail.rating] =
+        (ratingCounts[one.detail.rating] || 0) + 1;
+      genres.push(...one.book.genres);
+      if (one.book.topShelves) moods.push(...one.book.topShelves);
+    });
+
+    let averagePage = (pageCount / posts.length).toFixed(0);
+
+    console.log(genres);
+    const mostGenres = findMostDuplicates(genres, 5);
+    console.log(mostGenres);
+    const mostMoods = findMostDuplicates(moods, 5);
+
+    const ratingStats = [];
+
+    for (let i = 0.5; i <= 5; i += 0.5) {
+      if (ratingCounts[i]) {
+        ratingStats.push({
+          number: ratingCounts[i],
+          rating: i,
+        });
+      } else {
+        ratingStats.push({
+          number: 0,
+          rating: i,
+        });
+      }
+    }
+
+    mostLikedPost = await Post.findById(mostLikedPost._id)
+    .populate("postedBy", "-password -secret")
+    .populate("comments.postedBy", "-password -secret")
+    .populate({
+      path: "detail",
+      populate: { path: "book" },
+    })
+    .populate("hashtag");
+
+    const stats = {
+      booksCount: bookList.length,
+      pageCount,
+      averagePage,
+      highestRatedBook,
+      mostPopularBook,
+      mostLikedPost,
+      mostGenres,
+      mostMoods,
+      ratingStats,
+    };
+    return res.status(200).json({ stats, posts });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   createPost,
   getAll,
@@ -944,4 +1086,5 @@ export {
   getPopular,
   report,
   dismissReport,
+  getStats,
 };

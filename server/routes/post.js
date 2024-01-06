@@ -21,7 +21,8 @@ import {
     dismissReport,
     search,
     getPostsWithUserIdWithBook,
-    getNumberOfPostsWithUserId
+    getNumberOfPostsWithUserId,
+    getStats
 
 } from "../controllers/post.js";
 import formidable from "express-formidable";
@@ -76,6 +77,9 @@ router.route("/withUser/:userId").get(getPostsWithUserId);
 router.route("/number-with-user/:userId").get(getNumberOfPostsWithUserId);
 
 router.route("/withUserAndBook/:userId/:bookId").get(getPostsWithUserIdWithBook);
+
+router.route("/stats/:userId/:year").get(getStats);
+
 
 
 router.route("/report").patch(report);

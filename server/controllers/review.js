@@ -582,13 +582,50 @@ const getRandomReadBooks = async (req, res) => {
 const getDiary = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const posts = await Review.find({
-      $and: [{ postedBy: { _id: userId } }, { dateRead: { $ne: null } }],
-    })
-      .populate("book")
-      .sort({
-        dateRead: -1,
-      });
+
+    let pipeline = [
+      {
+        $match: {
+          postedBy: mongoose.Types.ObjectId(userId),
+          postType: "Review"
+        },
+      },
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "detail",
+          foreignField: "_id",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $lookup: {
+          from: "books", // or the collection you want to populate from
+          localField: "data.book", // replace with the actual field you want to populate from "reviews"
+          foreignField: "_id",
+          as: "book",
+        },
+      },
+      {
+        $unwind: "$book",
+      },
+      {
+        $addFields: { "detail": "$data" }
+      },
+      {
+        $project: {
+         data: 0
+        },
+      },
+    ];
+
+    
+
+    const posts = await Post.aggregate(pipeline)
+    console.log(posts)
     return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);

@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { LoadingCard } from "../..";
 import SimpleForm from "../../common/SimpleForm";
 import { FiFolderPlus } from "react-icons/fi";
 import {toast} from "react-toastify";
 import ReactLoading from "react-loading";
-const Shelves = ({ dark, userId, autoFetch, navigate }) => {
-  const initList = {
-    name: "",
+import { useAppContext } from "../../../context/useContext";
+import { useNavigate } from "react-router-dom";
+import sliceAndPad from "../../../utils/sliceAndPad";
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 
-    _id: "",
-  };
+const Shelves = ({ userId }) => {
 
-  const [loading, setLoading] = useState(false);
-  const [listShelf, setListShelf] = useState([initList]);
+  const { autoFetch } = useAppContext();
+  const navigate = useNavigate()
+
+  const [loading, setLoading] = useState(true);
+  const [listShelf, setListShelf] = useState([]);
   const [openModal, setOpenModal] = useState(false);
 
   const [text, setText] = useState("");
@@ -22,7 +24,6 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
   }, []);
 
   const getShelves = async () => {
-    setLoading(true);
     try {
       const { data } = await autoFetch.get(`/api/shelf/get-shelves/${userId}`);
       setListShelf(data.shelves);
@@ -47,6 +48,50 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
     }
     setLoading(false);
   };
+
+  function Shelf({ data }) {
+    const navigateToShelfPage = (shelfId) => {
+      navigate(`/profile/${userId}/${shelfId}?view=shelves`);
+    };
+  
+    return (
+      <div
+        key={`${data._id}`}
+        className="flex items-center gap-x-10 px-4 py-2 bg-altDialogue rounded-lg "
+      >
+            <div class="flex -space-x-3 rtl:space-x-reverse w-[100px] cursor-pointer"
+            onClick={() => navigateToShelfPage(data._id)}>
+            {sliceAndPad(data.books,4).map((one, index) => (
+              <img
+                className="w-[40px] h-[60px] border-[1px] border-gray-400 shadow-2xl shadow-black border-white rounded-md "
+                style={{ zIndex: 4-index}}
+                src={one?.thumbnail|| "https://sciendo.com/product-not-found.png"}
+                alt=""
+              />
+            ))}
+          </div>
+        <div className="flex flex-col gap-y-2">
+          <div
+            className="text-sm sm:text-base font-semibold cursor-pointer "
+            onClick={() => navigateToShelfPage(data._id)}
+          >
+            {data.name}
+          </div>
+          {data?.likes.length>0 && 
+           <div className="flex items-center gap-x-2">
+           <AiFillHeart
+                     className="cursor-pointer text-[18px] text-[#65676b] dark:text-[#afb0b1]"
+                   />
+                   <span className="like-count">
+                     {`${data?.likes.length} like${data?.likes.length > 1 ? "s" : ""}`}
+                   </span>
+           </div>}
+         
+        </div>
+      </div>
+    );
+  }
+
 
   if (loading) {
     return <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
@@ -85,14 +130,12 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
       )}
 
       {listShelf.length > 0 ? (
-        <div className="sm:grid grid-cols-2 md:grid-cols-3 my-4 gap-1 ">
-          {listShelf.map((p) => (
+        <div className="sm:grid grid-cols-2 md:grid-cols-3 my-4 gap-x-3 gap-y-2 ">
+          {listShelf.map((one) => (
             <Shelf
-              autoFetch={autoFetch}
-              navigate={navigate}
-              p={p}
+              data={one}
               userId={userId}
-              key={p._id + "asdqweqw"}
+              key={one._id}
             />
           ))}
         </div>
@@ -107,30 +150,3 @@ const Shelves = ({ dark, userId, autoFetch, navigate }) => {
 
 export default Shelves;
 
-export function Shelf({ p, navigate, userId }) {
-  const navigateToShelfPage = (shelfId) => {
-    navigate(`/profile/${userId}/${shelfId}?view=shelves`);
-  };
-
-  return (
-    <div
-      key={`${p._id}`}
-      className="col-span-1 flex items-center gap-x-3 px-1 sm:px-2 md:px-4 py-2 md:py-5 "
-    >
-      <img
-        src="https://cdn0.iconfinder.com/data/icons/colorful-school/111/08-512.png"
-        alt=""
-        className="w-10 sm:w-16 md:w-20 h-10 sm:h-16 md:h-20 rounded-md object-cover cursor-pointer "
-        onClick={() => navigateToShelfPage(p._id)}
-      />
-      <div className="">
-        <div
-          className="text-sm sm:text-base font-semibold cursor-pointer "
-          onClick={() => navigateToShelfPage(p._id)}
-        >
-          {p.name}
-        </div>
-      </div>
-    </div>
-  );
-}

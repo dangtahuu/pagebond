@@ -16,7 +16,9 @@ import {
     getShelfStatusOfBook,
     removeFromShelfByName,
     getFavorites,
-    getUpNextPeople
+    getUpNextPeople,
+    likeShelf,
+    unlikeShelf
 } from "../controllers/shelf.js";
 import formidable from "express-formidable";
 import canUpdateOrDeleteShelf from "../middleware/canUpdateOrDeleteShelf.js";
@@ -29,6 +31,11 @@ router.route("/").get(async (req, res) => {
 });
 
 router.route("/create-shelf").post(createShelf);
+
+router.route("/like").put(likeShelf);
+router.route("/unlike").put(unlikeShelf);
+
+
 router.route("/book-to-shelf").patch(bookToShelf);
 router.route("/edit-shelf").patch(canUpdateOrDeleteShelf, editShelf);
 router.route("/delete-shelf").post(canUpdateOrDeleteShelf, deleteShelf);

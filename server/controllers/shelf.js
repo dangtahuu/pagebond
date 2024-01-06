@@ -3,6 +3,7 @@ import User from "../models/user.js";
 import Book from "../models/book.js";
 import Review from "../models/review.js";
 import mongoose from "mongoose";
+
 const createShelf = async (req, res) => {
   const { name } = req.body;
 
@@ -29,6 +30,46 @@ const createShelf = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(400).json({ msg: err });
+  }
+};
+
+const likeShelf = async (req, res) => {
+  try {
+    const { shelfId } = req.body;
+    const shelf = await Shelf.findByIdAndUpdate(
+      shelfId,
+      {
+        $addToSet: { likes: req.user.userId },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ shelf });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const unlikeShelf = async (req, res) => {
+  try {
+    const { shelfId } = req.body;
+    const shelf = await Shelf.findByIdAndUpdate(
+      shelfId,
+      {
+        $pull: { likes: req.user.userId },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ shelf });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
   }
 };
 
@@ -181,10 +222,15 @@ const removeFromShelf = async (req, res) => {
 const getAllShelves = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const first = await Shelf.find({ $and: [{ owner: userId }, { type: 1 }] });
+    const first = await Shelf.find({
+      $and: [{ owner: userId }, { type: 1 }],
+    }).populate("books");
     const second = await Shelf.find({
       $and: [{ owner: userId }, { type: { $ne: 1 } }],
-    }).sort({ name: "asc" });
+    })
+      .populate("books")
+      .sort({ name: "asc" });
+
     const shelves = [...first, ...second];
     return res.status(200).json({ shelves });
   } catch (error) {
@@ -277,44 +323,34 @@ const getShelfStatusOfBook = async (req, res) => {
 
 const getShelf = async (req, res) => {
   const { shelfId } = req.params;
+  const { sort: sortParam } = req.query;
   try {
-    let shelf = await Shelf.findById(shelfId)
-      .populate("books")
-      .sort({ createdAt: -1 });
-
-    const result = [];
-
-    const bookData = shelf.books;
-
-    for (const book of bookData) {
-      const review = await Review.find({
-        $and: [{ postedBy: shelf.owner }, { book: book._id }],
-      })
-        .sort({ createdAt: -1 })
-        .lean();
-
-      if (review.length > 0) {
-        const reviewData = review[0];
-        const newBook = {
-          _id: book._id,
-          title: book.title,
-          author: book.author,
-          thumbnail: book.thumbnail,
-          userRating: review[0].rating,
-          dateRead: review[0].dateRead || null,
-        };
-
-        result.push(newBook);
-      } else
-        result.push({
-          _id: book._id,
-          title: book.title,
-          thumbnail: book.thumbnail,
-          author: book.author,
-        });
+    let shelf;
+    if (sortParam !== "order" && sortParam !== "-order") {
+      console.log(sortParam);
+      shelf = await Shelf.findById(shelfId).populate({
+        path: "books",
+        options: { sort: sortParam },
+      });
+    } else if (sortParam === "order") {
+      shelf = await Shelf.findById(shelfId).populate({
+        path: "books",
+      });
+    } else {
+      shelf = await Shelf.findById(shelfId).populate({
+        path: "books",
+      });
+      shelf = shelf.toObject();
+      const books = shelf.books.reverse();
+      const newShelf = { ...shelf };
+      shelf = { ...newShelf, books };
     }
-    console.log(result);
-    return res.status(200).json({ shelf, books: result });
+    // shelf = await Shelf.findById(shelfId).populate({
+    //   path: "books",
+    //   options: { sort: { rating: -1 } },
+    // });
+
+    return res.status(200).json({ shelf });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -429,10 +465,7 @@ const getUpNextPeople = async (req, res) => {
 
   try {
     const shelves = await Shelf.find({
-      $and: [
-        { name: "favorites" },
-        { books: { $in: [bookId] } },
-      ],
+      $and: [{ name: "favorites" }, { books: { $in: [bookId] } }],
     });
 
     // console.log(shelves)
@@ -442,53 +475,53 @@ const getUpNextPeople = async (req, res) => {
     const aggResult = await User.aggregate([
       {
         $match: {
-          _id: {$in: idList}
-        }
+          _id: { $in: idList },
+        },
       },
       {
         $lookup: {
           from: "posts",
           localField: "_id",
           foreignField: "postedBy",
-          as: "userPosts"
-        }
+          as: "userPosts",
+        },
       },
       {
-        $unwind: "$userPosts"
+        $unwind: "$userPosts",
       },
       {
         $lookup: {
           from: "reviews",
           localField: "userPosts.detail",
           foreignField: "_id",
-          as: "postReviews"
-        }
+          as: "postReviews",
+        },
       },
       {
-        $unwind: "$postReviews"
+        $unwind: "$postReviews",
       },
       {
         $group: {
           _id: { $toString: "$_id" },
           name: { $first: "$name" },
           image: { $first: "$image" },
-          books: { $addToSet: { $toString: "$postReviews.book" } }
-        }
-      }
+          books: { $addToSet: { $toString: "$postReviews.book" } },
+        },
+      },
     ]);
 
     // console.log(aggResult)
-    const currentUser = aggResult.filter((one)=>one._id === userId)
-    const currentUserBooks= currentUser[0].books
+    const currentUser = aggResult.filter((one) => one._id === userId);
+    const currentUserBooks = currentUser[0].books;
 
-    console.log(currentUser)
+    console.log(currentUser);
 
-    const otherUsers = aggResult.filter((one)=>one._id !== userId)
+    const otherUsers = aggResult.filter((one) => one._id !== userId);
 
     otherUsers.sort((a, b) => {
       const similarityA = calculateSimilarity(currentUserBooks, a.books);
       const similarityB = calculateSimilarity(currentUserBooks, b.books);
-      return similarityB - similarityA; 
+      return similarityB - similarityA;
     });
 
     return res.status(200).json({ people: otherUsers });
@@ -499,10 +532,9 @@ const getUpNextPeople = async (req, res) => {
 };
 
 const calculateSimilarity = (user1Books, user2Books) => {
-  const commonBooks = user1Books.filter(book => user2Books.includes(book));
+  const commonBooks = user1Books.filter((book) => user2Books.includes(book));
   return commonBooks.length;
-}
-
+};
 
 export {
   createShelf,
@@ -520,5 +552,7 @@ export {
   getShelfStatusOfBook,
   removeFromShelf,
   getFavorites,
-  getUpNextPeople
+  getUpNextPeople,
+  likeShelf,
+  unlikeShelf,
 };

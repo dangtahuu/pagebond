@@ -29,6 +29,7 @@ import {
   allPending,
   giftPoints,
   createChallenge,
+  makeFeatured,
 } from "./../controllers/auth.js";
 
 const router = express.Router();
@@ -84,5 +85,8 @@ router.route("/user-unfollow").put(requireSignIn, removeFollower, userUnFollower
 
 router.route("/gift-points").put(requireSignIn, giftPoints);
 router.route("/create-challenge").put(requireSignIn, createChallenge);
+
+router.route("/feature").put(requireSignIn, makeFeatured);
+
 
 export default router;
