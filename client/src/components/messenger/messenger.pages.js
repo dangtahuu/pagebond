@@ -35,15 +35,15 @@ const reducer = (state, action) => {
     case CHANGE_ALL_MESSAGES: {
       return {
         ...state,
-        allMessages: action.payload.data,
+        allConversations: action.payload.data,
         sourceMessage: action.payload.data,
       };
     }
     case GET_DATA_SUCCESS: {
       return {
         ...state,
-        allMessages: action.payload.allMessages,
-        sourceMessage: action.payload.allMessages,
+        allConversations: action.payload.allConversations,
+        sourceMessage: action.payload.allConversations,
         receiveUser: action.payload.receiveUser,
         isNewMessage: action.payload.isNewMessage,
         index: action.payload.index,
@@ -72,7 +72,7 @@ const reducer = (state, action) => {
     case HANDLE_SEND_MESSAGE: {
       return {
         ...state,
-        allMessages: action.payload.allMessages,
+        allConversations: action.payload.allConversations,
         sourceMessage: action.payload.sourceMessage,
         index: action.payload.index,
         text: "",
@@ -85,7 +85,7 @@ const reducer = (state, action) => {
     case HANDLE_DELETE_MESSAGE: {
       return {
         ...state,
-        allMessages: action.payload.allMessages,
+        allConversations: action.payload.allConversations,
         sourceMessage: action.payload.sourceMessage,
       };
     }
@@ -119,12 +119,8 @@ const Message = () => {
   const [promptOpen, setPromptOpen] = useState(false);
 
   const initState = {
-    receiveUser: {
-      name: "",
-      _id: "",
-      image: { url: "" },
-    },
-    allMessages: [], // all message
+    receiveUser: [],
+    allConversations: [], // all message
     index: "", /// _id of that message is showing
     text: "", /// text in input send new message
     loading: false, // loading
@@ -139,20 +135,23 @@ const Message = () => {
   const [state, dispatch] = useReducer(reducer, initState);
   const [scrLoading, setScrLoading] = useState(false);
 
-  //   useEffect(() => console.log(state), [state]);
+  useEffect(() => {
+   console.log(state)
+  }, [state]);
 
   useEffect(() => {
-    console.log("index", state.index);
     if (state.index) markasRead();
   }, [state.index]);
 
   const promptRef = useRef();
   const exceptRef = useRef();
 
+  const messagesEndRef = useRef();
+  const emailInputRef = useRef();
+
   useOnClickOutside(
     promptRef,
     () => {
-      console.log("qqqqqqq");
       setPromptOpen(false);
     },
     exceptRef
@@ -161,11 +160,10 @@ const Message = () => {
   const markasRead = async () => {
     try {
       const { data } = await autoFetch.patch(
-        `/api/message/mark-read/${state.index}`
+        `/api/chat/mark-read/${state.index}`
       );
-      const { data: unreadData } = await autoFetch.get(`/api/message/unread`);
+      const { data: unreadData } = await autoFetch.get(`/api/chat/unread`);
       setOneState("unreadMessages", unreadData.unread);
-      console.log(data.msg);
     } catch (e) {
       console.log(e);
     }
@@ -175,7 +173,6 @@ const Message = () => {
   const [formData, setFormData] = useState(null);
 
   const setLoading = (value) => {
-    // @ts-ignore
     dispatch({
       type: SET_LOADING,
       payload: {
@@ -185,7 +182,6 @@ const Message = () => {
   };
 
   const setAILoading = (value) => {
-    // @ts-ignore
     dispatch({
       type: SET_AI_LOADING,
       payload: {
@@ -195,7 +191,6 @@ const Message = () => {
   };
 
   const setPageState = (name, value) => {
-    // @ts-ignore
     dispatch({
       type: SET_ONE_STATE,
       payload: {
@@ -205,12 +200,11 @@ const Message = () => {
     });
   };
 
-  const messagesEndRef = useRef(null);
-  const emailInputRef = useRef(null);
+  
 
   useEffect(() => {
     let change = false;
-    if (state.allMessages) {
+    if (state.allConversations) {
       // socket
       if (user) {
         socket.on("new-message", (newMessage) => {
@@ -220,7 +214,7 @@ const Message = () => {
           if (!index) {
             return;
           }
-          let newData = state.allMessages.filter((d) => {
+          let newData = state.allConversations.filter((d) => {
             if (d._id === newMessage._id) {
               d.content = newMessage.content;
               d.updatedAt = newMessage.updatedAt;
@@ -229,22 +223,19 @@ const Message = () => {
             return d;
           });
           if (document.visibilityState === "visible") markasRead();
-          // @ts-ignore
+          
           dispatch({
             type: CHANGE_ALL_MESSAGES,
             payload: {
-              data: change ? newData : [newMessage, ...state.allMessages],
+              data: change ? newData : [newMessage, ...state.allConversations],
             },
           });
-          // when user open more 2 tabs
 
           change = false;
         });
       }
       if (!state.text && !state.textSearchPeople) {
-        // @ts-ignore
         emailInputRef.current?.focus();
-        // @ts-ignore
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }
     }
@@ -257,7 +248,7 @@ const Message = () => {
     setScrLoading(true);
     let receiverData;
     try {
-      const { data } = await autoFetch.get("api/message/get-all-messages");
+      const { data } = await autoFetch.get("api/chat/all");
 
       let isNewData = true;
       let indexOfNewData;
@@ -268,35 +259,35 @@ const Message = () => {
           _id: newMessageData._id,
           image: { url: newMessageData.image.url },
           text: newMessageData.text || "",
-        }; /// receive user current
+        }; 
 
-        if (data.messages.length > 0) {
-          data.messages.forEach(function (each) {
+        if (data.conversations.length > 0) {
+          data.conversations.forEach(function (each) {
             if (
               each.members[0]._id === receiverData._id ||
               each.members[1]._id === receiverData._id
             ) {
               isNewData = false;
               indexOfNewData = each._id;
-              return; // Use return instead of break in regular functions
+              return; 
             }
           });
         }
       }
 
-      if (data.messages.length > 0) {
+      if (data.conversations.length > 0) {
         if (user) {
-          var us = data.messages[0].members.filter((m) => m._id !== user._id);
+          var us = data.conversations[0].members.filter((m) => m._id !== user._id);
         }
       }
 
       dispatch({
         type: GET_DATA_SUCCESS,
         payload: {
-          allMessages: data.messages,
+          allConversations: data.conversations,
           receiveUser: receiverData ? receiverData : us[0],
           isNewMessage: receiverData ? isNewData : false,
-          index: receiverData ? indexOfNewData : data.messages[0]._id,
+          index: receiverData ? indexOfNewData : data.conversations[0]._id,
           text: receiverData?.text ? receiverData.text : "",
         },
       });
@@ -338,7 +329,7 @@ const Message = () => {
     // console.log(receivedId)
     // setLoading(true);
     try {
-      const { data } = await autoFetch.patch("/api/message/delete-message", {
+      const { data } = await autoFetch.patch("/api/chat/delete-message", {
         messageId,
         contentId,
       });
@@ -346,8 +337,8 @@ const Message = () => {
 
       //   let id = "";
       let newSourceData = state.sourceMessage.map((each) => {
-        if (each._id === data.message._id) {
-          return data.message;
+        if (each._id === data.conversation._id) {
+          return data.conversation;
         }
         return each;
       });
@@ -355,19 +346,19 @@ const Message = () => {
       newSourceData = newSourceData.filter((each) => each.content.length !== 0);
 
       //   let mainData;
-      //   mainData = id ? newSourceData : [dt.data.message, ...state.sourceMessage];
+      //   mainData = id ? newSourceData : [dt.data.conversation, ...state.sourceMessage];
 
       dispatch({
         type: HANDLE_DELETE_MESSAGE,
         payload: {
-          allMessages: newSourceData,
+          allConversations: newSourceData,
           sourceMessage: newSourceData,
-          index: data.message.content.length !== 0 ? data.message._id : "0",
+          index: data.conversation.content.length !== 0 ? data.conversation._id : "0",
         },
       });
       //   setImage(initImage);
 
-      //   if (!dt.data.ai_res) socket.emit("new-message", dt.data.message);
+      //   if (!dt.data.ai_res) socket.emit("new-message", dt.data.conversation);
     } catch (error) {
       console.log(error);
       if (error.response && error.response.data.msg) {
@@ -389,45 +380,46 @@ const Message = () => {
           return;
         }
       }
-      const { data } = await autoFetch.put("/api/message/send-message", {
+      const { data } = await autoFetch.put("/api/chat/send-message", {
         text,
         receivedId: receivedId,
         image: imageUrl,
       });
 
-      let id = "";
-      let newSourceData = state.sourceMessage.filter((d) => {
-        if (d._id === data.message._id) {
-          id = d._id;
-          d.content = data.message.content;
+      let id;
+
+      let newSourceData = state.sourceMessage.filter((one) => {
+        if (one._id === data.conversation._id) {
+          id = one._id;
+          one.content = data.conversation.content;
         }
-        return d;
+        return one;
       });
 
       let mainData;
-      mainData = id ? newSourceData : [data.message, ...state.sourceMessage];
+
+      //new conversation or not
+      mainData = id ? newSourceData : [data.conversation, ...state.sourceMessage];
 
       dispatch({
         type: HANDLE_SEND_MESSAGE,
         payload: {
-          allMessages: mainData,
+          allConversations: mainData,
           sourceMessage: mainData,
-          index: data.message._id,
+          index: data.conversation._id,
         },
       });
+
       setImage(initImage);
 
-      socket.emit("new-message", data.message);
+      socket.emit("new-message", data.conversation);
     } catch (error) {
       console.log(error);
       if (error.response && error.response.data.msg) {
         toast.error(error.response.data.msg);
       }
     }
-    console.log("aaaaa");
     setLoading(false);
-    console.log(AI_ID);
-    console.log(receivedId);
     if (AI_ID === receivedId) {
       handleAIRes(text);
     }
@@ -444,26 +436,26 @@ const Message = () => {
         };
       } else reqData = { text };
 
-      const { data } = await autoFetch.put("/api/message/get-ai-res", reqData);
+      const { data } = await autoFetch.put("/api/chat/get-ai-res", reqData);
       console.log(data);
       let id = "";
       let newSourceData = state.sourceMessage.filter((d) => {
-        if (d._id === data.message._id) {
+        if (d._id === data.conversation._id) {
           id = d._id;
-          d.content = data.message.content;
+          d.content = data.conversation.content;
         }
         return d;
       });
 
       let mainData;
-      mainData = id ? newSourceData : [data.message, ...state.sourceMessage];
+      mainData = id ? newSourceData : [data.conversation, ...state.sourceMessage];
 
       dispatch({
         type: HANDLE_SEND_MESSAGE,
         payload: {
-          allMessages: mainData,
+          allConversations: mainData,
           sourceMessage: mainData,
-          index: data.message._id,
+          index: data.conversation._id,
           suggestedRes: data.suggestedRes,
           fullRes: data.fullRes,
           context: true,
@@ -552,7 +544,7 @@ const Message = () => {
           />
 
           {/* form add new message */}
-          {!state.allMessages.length && !state.isNewMessage ? (
+          {!state.allConversations.length && !state.isNewMessage ? (
             <></>
           ) : (
             <form

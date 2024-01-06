@@ -39,7 +39,7 @@ const MainChat = ({
   let currentMessenger;
 
   const messBox = () => {
-    currentMessenger = state.allMessages.find((m) => m._id === state.index);
+    currentMessenger = state.allConversations.find((m) => m._id === state.index);
 
     if (currentMessenger && currentMessenger.content && user) {
       // @ts-ignore
@@ -111,7 +111,7 @@ const MainChat = ({
     return <></>;
   };
 
-  if (!state.allMessages.length && !state.isNewMessage) {
+  if (!state.allConversations.length && !state.isNewMessage) {
     return (
       <div className="text-center" style={{ marginTop: "50%" }}>
         It's empty here. Let's send someone a message

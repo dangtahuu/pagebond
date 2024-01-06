@@ -1,14 +1,14 @@
 import express from "express";
 
-import { deleteMessage, getAIRes, getAllMessages, getAssistant, getUnread, markRead, sendMessage } from "../controllers/message.js";
+import { deleteMessage, getAIRes, getAll, getAssistant, getUnread, markRead, sendMessage } from "../controllers/chat.js";
 
 const router = express.Router();
 
 router.route("/").get(async (req, res) => {
-    res.json({ msg: "API message" });
+    res.json({ msg: "API chat" });
 });
 
-router.route("/get-all-messages").get(getAllMessages);
+router.route("/all").get(getAll);
 router.route("/unread").get(getUnread);
 
 router.route("/send-message").put(sendMessage);

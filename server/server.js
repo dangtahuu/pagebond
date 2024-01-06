@@ -13,7 +13,7 @@ import notFound from "./middleware/not-found.js";
 // import {Configuration, OpenAIApi} from'openai';
 import auth from "./routes/auth.js";
 import post from "./routes/post.js";
-import message from "./routes/message.js";
+import chat from "./routes/chat.js";
 import shelf from "./routes/shelf.js";
 import book from "./routes/book.js";
 import review from "./routes/review.js"
@@ -85,7 +85,7 @@ app.use("/api/auth", auth);
 // @ts-ignore
 app.use("/api/post", requireSignIn, post);
 // @ts-ignore
-app.use("/api/message", requireSignIn, message);
+app.use("/api/chat", requireSignIn, chat);
 
 app.use("/api/shelf", requireSignIn, shelf);
 

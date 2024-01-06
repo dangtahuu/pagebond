@@ -1,8 +1,12 @@
 import { Avatar } from "@mui/material";
+import { useAppContext } from "../../../context/useContext";
 
 const CLICK_TO_BOX_MESSAGE = "CLICK_TO_BOX_MESSAGE";
 
-const BoxChat = ({ setPageState, state, getData, user, dispatch }) => {
+const BoxChat = ({ setPageState, state, getData, dispatch }) => {
+
+  const { user } = useAppContext();
+
   const boxUser = (m) => {
     return (
       <>
@@ -48,14 +52,14 @@ const BoxChat = ({ setPageState, state, getData, user, dispatch }) => {
       </>
     );
   };
-  const colLeft = () => {
-    if (!state.allMessages) return "Nothing....";
-    return state.allMessages.map((m, id) => {
+  const ConversationList = () => {
+    if (!state.allConversations) return "You have no chats yet!";
+    return state.allConversations.map((one, index) => {
       return (
         <div
-          key={id}
+          key={index}
           className={` col-left ${
-            m._id === state.index ? "active" : ""
+            one._id === state.index ? "active" : ""
           } md:p-2.5  md:h-auto rounded-lg `}
         >
           <div
@@ -65,22 +69,22 @@ const BoxChat = ({ setPageState, state, getData, user, dispatch }) => {
               dispatch({
                 type: CLICK_TO_BOX_MESSAGE,
                 payload: {
-                  index: m._id,
+                  index: one._id,
                 },
               });
             }}
           >
-            {m && (
-              <div className="w-full h-full items-start flex">{boxUser(m)}</div>
+            {one && (
+              <div className="w-full h-full items-start flex">{boxUser(one)}</div>
             )}
           </div>
         </div>
       );
     });
   };
+
   return (
     <div className="overflow-x-hidden">
-      <div className="overflow-x-hidden">
         <div className="flex justify-between items-center pt-4">
           <h2 className="serif-display text-xl sm:text-2xl md:text-3xl  ">
             Chats
@@ -88,22 +92,15 @@ const BoxChat = ({ setPageState, state, getData, user, dispatch }) => {
         </div>
 
         <div className="flex items-center transition-50 my-1 pr-2 ">
-          {state.isNewMessage ? (
+          {state.isNewMessage && (
             <div className="my-3 bg-greenBtn w-full py-2 text-white rounded-lg ">
-              <div className="flex items-start px-1 md:px-3  ">
-                <div className="text-[13px] md:text-base flex flex-wrap ">
-                  New message
-                </div>
-              </div>
+              New message
             </div>
-          ) : (
-            <div className="flex rounded-2xl rounded-lg w-full border-[1px] border-dialogue px-1 md:px-2 my-2 "></div>
           )}
         </div>
-      </div>
 
       <div className="cot-trai max-h-[70vh] md:h-[67vh] overflow-x-hidden ">
-        {!state.isNewMessage && colLeft()}
+        {!state.isNewMessage && <ConversationList/>}
       </div>
     </div>
   );

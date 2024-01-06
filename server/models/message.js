@@ -2,41 +2,26 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-    members: [
+    text: String,
+    image: {
+      url: String,
+      public_id: String,
+    },
+    conversation: [{ type: mongoose.Types.ObjectId, ref: "Conversation", required: true }],
+    readBy: [
       {
         type: mongoose.Types.ObjectId,
         ref: "User",
       },
     ],
-    content: [
+    sentBy: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+    },
+    deleteBy: [
       {
-        text: String,
-        image: {
-          url: String,
-          public_id: String,
-          default: {
-            url: "",
-            public_id: "",
-          },
-        },
-        created: {
-          type: Date,
-          default: Date.now,
-        },
-        readBy: [{
-            type: mongoose.Types.ObjectId,
-            ref: "User",
-          }],
-        sentBy: {
-          type: mongoose.Types.ObjectId,
-          ref: "User",
-        },
-        deleteBy: [
-          {
-            type: mongoose.Types.ObjectId,
-            ref: "User",
-          },
-        ],
+        type: mongoose.Types.ObjectId,
+        ref: "User",
       },
     ],
   },
