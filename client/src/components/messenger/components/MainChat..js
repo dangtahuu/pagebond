@@ -125,24 +125,22 @@ const MainChat = ({
           {/* list avatar */}
           <div className="relative">
             <div className="h-10">
-              {state.receiveUser && state.receiveUser.image && (
                 <Avatar
                   src={
-                    state.receiveUser && state.receiveUser.image
-                      ? state.receiveUser.image.url
+                    state.receivedUser && state.receivedUser[0]?.image
+                      ? state.receivedUser[0]?.image?.url
                       : ""
                   }
                   className="w-10 h-10 mr-1 border rounded-full cursor-pointer dark:border-white "
                   alt="avatar"
-                  onClick={() => navigateToProfile(state.receiveUser._id)}
+                  onClick={() => navigateToProfile(state.receivedUser[0]?._id)}
                 />
-              )}
             </div>
           </div>
 
           {/* list name */}
           <div className="w-full pl-3 grow text-ellipsis">
-            <strong>{state.receiveUser ? state.receiveUser.name : ""}</strong>
+            <strong>{state.receivedUser ? state.receivedUser.name : ""}</strong>
           </div>
         </div>
       </div>
@@ -153,7 +151,7 @@ const MainChat = ({
         >
           {messBox()}
           <div ref={messagesEndRef} />
-          {state.receiveUser._id === AI_ID &&
+          {state.receivedUser._id === AI_ID &&
             !state.text &&
             (currentMessenger?.content?.length === 0 ||
               typeof currentMessenger === "undefined") && <PromptSection />}

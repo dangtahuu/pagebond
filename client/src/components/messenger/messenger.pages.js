@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 //components
 import { useAppContext } from "../../context/useContext";
-import BoxChat from "./components/BoxChat";
+import Left from "./components/Left";
 import MainChat from "./components/MainChat.";
 import { PiBroom } from "react-icons/pi";
 
@@ -29,6 +29,7 @@ const HANDLE_SEND_MESSAGE = "HANDLE_SEND_MESSAGE";
 const HANDLE_DELETE_MESSAGE = "HANDLE_DELETE_MESSAGE";
 
 const CLICK_TO_BOX_MESSAGE = "CLICK_TO_BOX_MESSAGE";
+const EXIT_NEW_MESSAGE = "EXIT_NEW_MESSAGE"
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -36,15 +37,13 @@ const reducer = (state, action) => {
       return {
         ...state,
         allConversations: action.payload.data,
-        sourceMessage: action.payload.data,
       };
     }
     case GET_DATA_SUCCESS: {
       return {
         ...state,
         allConversations: action.payload.allConversations,
-        sourceMessage: action.payload.allConversations,
-        receiveUser: action.payload.receiveUser,
+        receivedUser: action.payload.receivedUser,
         isNewMessage: action.payload.isNewMessage,
         index: action.payload.index,
         text: action.payload.text,
@@ -73,7 +72,6 @@ const reducer = (state, action) => {
       return {
         ...state,
         allConversations: action.payload.allConversations,
-        sourceMessage: action.payload.sourceMessage,
         index: action.payload.index,
         text: "",
         isNewMessage: false,
@@ -86,13 +84,20 @@ const reducer = (state, action) => {
       return {
         ...state,
         allConversations: action.payload.allConversations,
-        sourceMessage: action.payload.sourceMessage,
       };
     }
     case CLICK_TO_BOX_MESSAGE: {
       return {
         ...state,
 
+        index: action.payload.index,
+        isNewMessage: false,
+      };
+    }
+    case EXIT_NEW_MESSAGE: {
+      return {
+        ...state,
+        receivedUser: action.payload.receivedUser,
         index: action.payload.index,
         isNewMessage: false,
       };
@@ -119,14 +124,13 @@ const Message = () => {
   const [promptOpen, setPromptOpen] = useState(false);
 
   const initState = {
-    receiveUser: [],
+    receivedUser: [],
     allConversations: [], // all message
     index: "", /// _id of that message is showing
     text: "", /// text in input send new message
     loading: false, // loading
     AILoading: false,
     isNewMessage: false, // Mode new message
-    sourceMessage: [],
     suggestedRes: [],
     context: true,
     fullRes: null,
@@ -261,18 +265,6 @@ const Message = () => {
           text: newMessageData.text || "",
         }; 
 
-        if (data.conversations.length > 0) {
-          data.conversations.forEach(function (each) {
-            if (
-              each.members[0]._id === receiverData._id ||
-              each.members[1]._id === receiverData._id
-            ) {
-              isNewData = false;
-              indexOfNewData = each._id;
-              return; 
-            }
-          });
-        }
       }
 
       if (data.conversations.length > 0) {
@@ -285,9 +277,9 @@ const Message = () => {
         type: GET_DATA_SUCCESS,
         payload: {
           allConversations: data.conversations,
-          receiveUser: receiverData ? receiverData : us[0],
-          isNewMessage: receiverData ? isNewData : false,
-          index: receiverData ? indexOfNewData : data.conversations[0]._id,
+          receivedUser: receiverData ? [receiverData] : [us[0]],
+          isNewMessage: receiverData ? true : false,
+          index: data.conversations[0]._id,
           text: receiverData?.text ? receiverData.text : "",
         },
       });
@@ -298,9 +290,7 @@ const Message = () => {
       }
     }
     setScrLoading(false);
-    // if (receiverData && receiverData._id === AI_ID && receiverData.text) {
-    //   await handleSendMess(AI_ID, receiverData.text);
-    // }
+  
   };
 
   useEffect(() => {
@@ -336,7 +326,7 @@ const Message = () => {
       // }
 
       //   let id = "";
-      let newSourceData = state.sourceMessage.map((each) => {
+      let newSourceData = state.allConversations.map((each) => {
         if (each._id === data.conversation._id) {
           return data.conversation;
         }
@@ -346,13 +336,12 @@ const Message = () => {
       newSourceData = newSourceData.filter((each) => each.content.length !== 0);
 
       //   let mainData;
-      //   mainData = id ? newSourceData : [dt.data.conversation, ...state.sourceMessage];
+      //   mainData = id ? newSourceData : [dt.data.conversation, ...state.allConversations];
 
       dispatch({
         type: HANDLE_DELETE_MESSAGE,
         payload: {
           allConversations: newSourceData,
-          sourceMessage: newSourceData,
           index: data.conversation.content.length !== 0 ? data.conversation._id : "0",
         },
       });
@@ -368,7 +357,7 @@ const Message = () => {
     // setLoading(false);
   };
 
-  const handleSendMess = async (receivedId, text) => {
+  const handleSendMess = async (received, text) => {
     setLoading(true);
     try {
       let imageUrl = image;
@@ -382,13 +371,13 @@ const Message = () => {
       }
       const { data } = await autoFetch.put("/api/chat/send-message", {
         text,
-        receivedId: receivedId,
+        receivedId: received,
         image: imageUrl,
       });
 
       let id;
 
-      let newSourceData = state.sourceMessage.filter((one) => {
+      let newSourceData = state.allConversations.filter((one) => {
         if (one._id === data.conversation._id) {
           id = one._id;
           one.content = data.conversation.content;
@@ -399,17 +388,21 @@ const Message = () => {
       let mainData;
 
       //new conversation or not
-      mainData = id ? newSourceData : [data.conversation, ...state.sourceMessage];
+      mainData = id ? newSourceData : [data.conversation, ...state.allConversations];
+
+      if(state.isNewMessage) {
+        navigate('/messenger')
+      }
 
       dispatch({
         type: HANDLE_SEND_MESSAGE,
         payload: {
           allConversations: mainData,
-          sourceMessage: mainData,
           index: data.conversation._id,
         },
       });
 
+     
       setImage(initImage);
 
       socket.emit("new-message", data.conversation);
@@ -420,7 +413,7 @@ const Message = () => {
       }
     }
     setLoading(false);
-    if (AI_ID === receivedId) {
+    if (AI_ID === received[0]._id) {
       handleAIRes(text);
     }
   };
@@ -437,9 +430,9 @@ const Message = () => {
       } else reqData = { text };
 
       const { data } = await autoFetch.put("/api/chat/get-ai-res", reqData);
-      console.log(data);
+      
       let id = "";
-      let newSourceData = state.sourceMessage.filter((d) => {
+      let newSourceData = state.allConversations.filter((d) => {
         if (d._id === data.conversation._id) {
           id = d._id;
           d.content = data.conversation.content;
@@ -448,13 +441,12 @@ const Message = () => {
       });
 
       let mainData;
-      mainData = id ? newSourceData : [data.conversation, ...state.sourceMessage];
+      mainData = id ? newSourceData : [data.conversation, ...state.allConversations];
 
       dispatch({
         type: HANDLE_SEND_MESSAGE,
         payload: {
           allConversations: mainData,
-          sourceMessage: mainData,
           index: data.conversation._id,
           suggestedRes: data.suggestedRes,
           fullRes: data.fullRes,
@@ -522,12 +514,11 @@ const Message = () => {
     <div className="w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden">
       <div className="w-full h-full grid grid-cols-4 ">
         <div className="col-span-1 ">
-          <BoxChat
+          <Left
             dispatch={dispatch}
             getData={getData}
             setPageState={setPageState}
             state={state}
-            user={user}
           />
         </div>
         <div className="col-span-3 ">
@@ -552,7 +543,7 @@ const Message = () => {
               onSubmit={(e) => {
                 e.preventDefault();
 
-                handleSendMess(state.receiveUser._id, state.text);
+                handleSendMess(state.receivedUser, state.text);
               }}
             >
               <div className="w-full rounded-full flex gap-x-2 items-center relative ">
@@ -583,7 +574,7 @@ const Message = () => {
                     )}
                   </div>
                 )}
-                {state.receiveUser._id === AI_ID && (
+                {state.receivedUser._id === AI_ID && (
                   <PiBroom
                     className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 cursor-pointer "
                     onClick={() => {
@@ -598,10 +589,10 @@ const Message = () => {
                   placeholder="Type your message"
                   value={state.text}
                   onChange={(e) => setPageState("text", e.target.value)}
-                  disabled={!state.receiveUser || state.loading}
+                  disabled={!state.receivedUser || state.loading}
                   ref={emailInputRef}
                 />
-                {state.receiveUser._id !== AI_ID && (
+                {state.receivedUser._id !== AI_ID && (
                   <label>
                     <AiOutlineCamera className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 dark:text-[#b0b3b8] cursor-pointer " />
                     <input
@@ -614,7 +605,7 @@ const Message = () => {
                   </label>
                 )}
 
-                {state.receiveUser._id === AI_ID && (
+                {state.receivedUser._id === AI_ID && (
                   <div className="" ref={exceptRef}>
                     <HiLightBulb
                       className=" shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 cursor-pointer text-greenBtn "
@@ -633,7 +624,7 @@ const Message = () => {
                 <button
                   className="shrink-0 text-xl opacity-50 hover:opacity-80 cursor-pointer  "
                   type="submit"
-                  disabled={!state.receiveUser || state.loading || !state.text}
+                  disabled={!state.receivedUser || state.loading || !state.text}
                 >
                   {state.loading ? (
                     <ReactLoading

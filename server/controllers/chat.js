@@ -75,7 +75,7 @@ const sendMessage = async (req, res) => {
 
     const limit = req.body.limit || 10;
     if (!receivedId) {
-      return res.status(400).json({ msg: `Something went wrong! Try again!` });
+      return res.status(400).json({ msg: `Missing received people` });
     }
     if (image) {
       data.image = image;
@@ -88,7 +88,7 @@ const sendMessage = async (req, res) => {
     }
 
     let conversation = await Conversation.findOne({
-      members: [receivedId, userId].sort(),
+      members: [...receivedId, userId].sort(),
     });
 
     if (conversation) {
@@ -97,7 +97,7 @@ const sendMessage = async (req, res) => {
     } else {
       console.log('aaaa')
       conversation = await Conversation.create({
-        members: [userId, receivedId].sort(),
+        members: [userId, ...receivedId].sort(),
       });
       data.conversation = conversation._id;
       const message = await Message.create(data);
@@ -185,6 +185,30 @@ const getAIRes = async (req, res) => {
     return res
       .status(200)
       .json({ message: message, suggestedRes, fullRes: reply });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: "Something went wrong!Try again!" });
+  }
+};
+
+const createGroup = async (req, res) => {
+  try {
+    console.log('aaaaaaaaaa')
+    const userId = req.user.userId;
+   const {name, people} = req.body
+    if (!name) {
+      return res.status(400).json({ msg: `Name is missing` });
+    }
+    if (people.length<2) {
+      return res.status(400).json({ msg: "There must be more than 2 people" });
+    }
+  
+    let conversation = await Conversation.create({
+      members: [...people, userId].sort(),
+      name
+    });
+console.log('bbbbbbb')
+    return res.status(200).json({ conversation });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: "Something went wrong!Try again!" });
@@ -383,4 +407,5 @@ export {
   markRead,
   getAIRes,
   getAssistant,
+  createGroup
 };

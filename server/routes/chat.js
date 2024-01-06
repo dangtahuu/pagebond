@@ -1,6 +1,6 @@
 import express from "express";
 
-import { deleteMessage, getAIRes, getAll, getAssistant, getUnread, markRead, sendMessage } from "../controllers/chat.js";
+import { createGroup, deleteMessage, getAIRes, getAll, getAssistant, getUnread, markRead, sendMessage } from "../controllers/chat.js";
 
 const router = express.Router();
 
@@ -12,6 +12,9 @@ router.route("/all").get(getAll);
 router.route("/unread").get(getUnread);
 
 router.route("/send-message").put(sendMessage);
+
+router.route("/group").post(createGroup);
+
 router.route("/get-ai-res").put(getAIRes);
 
 router.route("/get-assistant").post(getAssistant);

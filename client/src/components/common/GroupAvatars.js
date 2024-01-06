@@ -15,7 +15,7 @@ export default function GroupAvatars({dataSource, max = 2, user, setOneState}) {
                     placement='top'
                     key={receivePeople._id + "grAvatar"}
                     onClick={() => {
-                        setOneState("receiveUser", receivePeople);
+                        setOneState("receivedUser", receivePeople);
                     }}>
                   
                     <Avatar
