@@ -42,6 +42,8 @@ const createPost = async (req, res) => {
       }
     }
 
+    console.log('mmmmmmmmmmmmmm')
+
     const post = await Post.create({
       text,
       postedBy: req.user.userId,
@@ -455,6 +457,47 @@ const unlikePost = async (req, res) => {
     return res.status(400).json({ msg: error });
   }
 };
+
+const savePost = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $addToSet: { saved: { savedBy: req.user.userId } },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const unsavePost = async (req, res) => {
+  try {
+    const postId = req.body.postId;
+    const post = await Post.findByIdAndUpdate(
+      postId,
+      {
+        $pull: { saved: { savedBy: req.user.userId } },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 // comment
 const addComment = async (req, res) => {
   try {
@@ -715,6 +758,58 @@ const getPostsWithUserIdWithBook = async (req, res) => {
   }
 };
 
+const getSavedPosts = async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 10;
+
+    const { userId } = req.user;
+
+    const posts = await Post.find(
+      {
+        // postedBy: userId
+        // "saved.savedBy": userId
+        saved: { $elemMatch: { savedBy: userId } }, // Replace with the actual user ID
+      },
+      {
+        _id: 1, // Include only the fields you need
+        text: 1,
+        postedBy: 1,
+        likes: 1,
+        comments: 1,
+        postType: 1,
+        detail: 1,
+        spoiler: 1,
+        comments: 1,
+        createdAt: 1,
+        image: 1,
+        hashtag: 1,
+        saved: {
+          $elemMatch: {
+            savedBy: userId, // Replace with the actual user ID
+          },
+        },
+      }
+    )
+      .sort({ "saved.created": -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
+      .populate("hashtag");
+
+
+    return res.status(200).json({ posts });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 const getDiscover = async (req, res) => {
   try {
     const { userId } = req.user;
@@ -925,7 +1020,7 @@ const dismissReport = async (req, res) => {
 
 const getStats = async (req, res) => {
   try {
-    const { userId, year="all" } = req.params;
+    const { userId, year = "all" } = req.params;
 
     let pipeline = [
       {
@@ -968,7 +1063,7 @@ const getStats = async (req, res) => {
       },
     ];
 
-    if (year!=="all") {
+    if (year !== "all") {
       const startDate = new Date(parseInt(year), 0, 1);
       const endDate = new Date(parseInt(year) + 1, 0, 1);
       pipeline.push({
@@ -983,7 +1078,8 @@ const getStats = async (req, res) => {
 
     let posts = await Post.aggregate(pipeline);
 
-   if(posts.length===0) return res.status(400).json({ msg: "No record found" });
+    if (posts.length === 0)
+      return res.status(400).json({ msg: "No record found" });
 
     const bookList = [];
 
@@ -1038,13 +1134,13 @@ const getStats = async (req, res) => {
     }
 
     mostLikedPost = await Post.findById(mostLikedPost._id)
-    .populate("postedBy", "-password -secret")
-    .populate("comments.postedBy", "-password -secret")
-    .populate({
-      path: "detail",
-      populate: { path: "book" },
-    })
-    .populate("hashtag");
+      .populate("postedBy", "-password -secret")
+      .populate("comments.postedBy", "-password -secret")
+      .populate({
+        path: "detail",
+        populate: { path: "book" },
+      })
+      .populate("hashtag");
 
     const stats = {
       booksCount: bookList.length,
@@ -1076,12 +1172,15 @@ export {
   getFollowing,
   likePost,
   unlikePost,
+  savePost,
+  unsavePost,
   addComment,
   removeComment,
   totalPosts,
   getPostsWithUserId,
   getNumberOfPostsWithUserId,
   getPostsWithUserIdWithBook,
+  getSavedPosts,
   getDiscover,
   getPopular,
   report,

@@ -15,7 +15,19 @@ const postSchema = new mongoose.Schema(
       url: String,
       public_id: String,
     },
-    likes: [{ type: mongoose.Types.ObjectId, ref: "User" }],
+    likes: [{ type: mongoose.Types.ObjectId, ref: "User", unique: true }],
+    saved: [
+      {
+        created: {
+          type: Date,
+          default: Date.now,
+        },
+        savedBy: {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+      },
+    ],
     comments: [
       {
         text: String,

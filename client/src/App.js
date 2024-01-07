@@ -10,15 +10,16 @@ import {
   Error,
   ProtectedLayout,
   ShareLayout,
+  BookPage,
+  ChatPage
 } from "./page";
 // layout
 import {
   Dashboard,
-  Message,
   Admin,
   Browse,
   PostDetail,
-  BookPage,
+  
   Profile,
   UpdateProfile,
   Search,
@@ -56,7 +57,7 @@ const App = () => {
               path="/"
               element={<Dashboard />}
             />
-            <Route path="/messenger" element={<Message />} />
+            <Route path="/chat" element={<ChatPage />} />
             {/* <Route path="/browse" element={<Browse />} /> */}
 
             <Route path="/admin" element={<Admin />} />

@@ -1,11 +1,10 @@
+/* eslint-disable jsx-a11y/alt-text */
 import React from "react";
 import { Tooltip, Avatar } from "@mui/material";
 import moment from "moment";
 import ReactMarkdown from "react-markdown";
 import { CgTrashEmpty } from "react-icons/cg";
 import ReactLoading from "react-loading";
-import prompts from "../../../consts/prompts";
-import shuffle from "../../../utils/shuffle";
 import { useEffect } from "react";
 
 const MainChat = ({
@@ -18,66 +17,43 @@ const MainChat = ({
   setPageState,
   AI_ID,
 }) => {
-  const PromptSection = () => {
-    let shuffled = shuffle(prompts);
-    const data = shuffled.slice(0, 5);
+ 
 
-    return (
-      <div className="flex flex-col items-center justify-center absolute w-full bottom-0 mb-5 gap-y-2">
-        {data.map((one) => (
-          <div
-            className="w-[400px] bg-dialogue text-sm rounded-full py-2 px-4 cursor-pointer"
-            onClick={() => setPageState("text", one)}
-          >
-            <div>{one}</div>
-          </div>
-        ))}
-      </div>
-    );
-  };
+  let currentConversation;
+  currentConversation = state.allConversations.find(
+    (one) => one._id === state.index
+  );
 
-  let currentMessenger;
-
-  const messBox = () => {
-    currentMessenger = state.allConversations.find((m) => m._id === state.index);
-
-    if (currentMessenger && currentMessenger.content && user) {
-      // @ts-ignore
-      return currentMessenger.content.map((c) => {
+  const Content = () => {
+    if (currentConversation && currentConversation.content) {
+      return currentConversation.content.map((c) => {
         return (
           <div
             key={c?._id}
-            className={`chat-message w-full group chat-message-${
-              c?.sentBy?._id === user?._id ? "right" : "left mb-2"
+            className={`w-full my-1 group ${
+              c?.sentBy?._id === user?._id
+                ? "flex-row-reverse ml-auto"
+                : "mr-auto"
             } flex items-center `}
           >
             {c.sentBy._id === user._id ? (
               <></>
             ) : (
-              <div
-                className="flex image "
-                onClick={() => navigateToProfile(c._id)}
-              >
-                <Avatar
-                  src={
-                    c && c.sentBy && c.sentBy.image ? c.sentBy.image.url : ""
-                  }
-                  className="mr-1 border-[1px] border-[#8EABB4] rounded-full w-8 h-8 cursor-pointer "
-                  alt="AVATAR"
+              <div className="flex" onClick={() => navigateToProfile(c._id)}>
+                <img
+                  src={c?.sentBy?.image ? c.sentBy.image.url : ""}
+                  className="mr-1 rounded-full w-8 h-8 cursor-pointer "
                 />
               </div>
             )}
-            <div className="flex items-center relative max-w-[50%] ">
-              <Tooltip
-                title={moment(c.created).fromNow()}
-                placement={c.sentBy._id === user._id ? "top" : "top"}
-              >
+            <div className="flex items-center justify-end relative max-w-[50%] ">
+              <Tooltip title={moment(c.created).fromNow()} placement={"top"}>
                 <div
-                  className={`order-1 chat-element md:max-w-[70%] break-words  rounded-2xl md:rounded-[25px] ${
+                  className={`order-1 break-words rounded-2xl ${
                     c.sentBy._id === user._id
                       ? "bg-greenBtn "
                       : "bg-dialogue box-shadow "
-                  }  px-3 py-2 ml-1 dark:text-white`}
+                  }  px-3 py-2 ml-1 prose text-mainText`}
                 >
                   <ReactMarkdown>
                     {c.text ? c?.text.replace(/\[\^\d+\^\]/g, "") : ""}
@@ -85,7 +61,6 @@ const MainChat = ({
                   {c.image?.url && (
                     <img
                       src={c.image?.url}
-                      alt="attachment"
                       className="max-h-[300px] w-auto object-contain rounded-md "
                     />
                   )}
@@ -99,7 +74,9 @@ const MainChat = ({
                 }  `}
               >
                 <CgTrashEmpty
-                  onClick={() => handleDeleteMess(state.index, c._id)}
+                  onClick={() => {
+                    if (!window.confirm("Do you want to delete this message?")) return;
+                    handleDeleteMess(c._id)}}
                   className="hidden cursor-pointer shrink-0 group-hover:flex "
                 />
               </div>
@@ -120,41 +97,48 @@ const MainChat = ({
   }
   return (
     <>
-      <div className="px-4 py-2 border-bottom d-none d-lg-block ml-[7px]">
-        <div className="flex items-center py-1">
-          {/* list avatar */}
+      <div className="px-6 py-2 border-bottom  flex flex-col">
+        <div className="flex items-center py-2 border-b-[1px] border-dialogue">
           <div className="relative">
             <div className="h-10">
-                <Avatar
+              {currentConversation?.name ? (
+                <div class="flex -space-x-3 rtl:space-x-reverse">
+                  {currentConversation.members.slice(0, 4).map((one) => (
+                    <img
+                      class="w-8 h-8 border-2 border-white rounded-full"
+                      src={one.image.url}
+                      alt=""
+                    />
+                  ))}
+                </div>
+              ) : (
+                <img
                   src={
-                    state.receivedUser && state.receivedUser[0]?.image
+                    state.receivedUser[0]?.image
                       ? state.receivedUser[0]?.image?.url
                       : ""
                   }
-                  className="w-10 h-10 mr-1 border rounded-full cursor-pointer dark:border-white "
-                  alt="avatar"
+                  className="w-10 h-10 mr-1 rounded-full cursor-pointer"
                   onClick={() => navigateToProfile(state.receivedUser[0]?._id)}
                 />
+              )}
             </div>
           </div>
 
-          {/* list name */}
-          <div className="w-full pl-3 grow text-ellipsis">
-            <strong>{state.receivedUser ? state.receivedUser.name : ""}</strong>
+          <div className="w-full pl-3 grow text-ellipsis font-semibold">
+            {currentConversation?.name
+              ? currentConversation.name
+              : state.receivedUser[0]?.name}
           </div>
         </div>
       </div>
-      <div className="relative">
-        <div
-          className="chat-messages p-2 md:p-4 flex dark:bg-[#242526]"
-          style={{ margin: "0 7px" }}
-        >
-          {messBox()}
+      <div className="relative mx-6 flex-1 overflow-y-auto style-3 overflow-x-hidden shadow shadow-gray-900 shadow-inner rounded-md">
+        <div className="p-2 md:p-4 flex flex-col my-2">
+          <Content />
+
           <div ref={messagesEndRef} />
-          {state.receivedUser._id === AI_ID &&
-            !state.text &&
-            (currentMessenger?.content?.length === 0 ||
-              typeof currentMessenger === "undefined") && <PromptSection />}
+
+        
           {state.AILoading && (
             <div className="flex items-center w-[200px] bg-dialogue text-sm rounded-full py-2 px-3">
               <div>AI is replying </div>

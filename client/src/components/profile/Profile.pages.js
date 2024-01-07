@@ -14,6 +14,7 @@ import ShelfDetail from "./components/ShelfDetail";
 import Diary from "./components/Diary";
 import Points from "./components/Points";
 import Challenge from "./components/Challenge";
+import Saved from "./components/Saved";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -226,7 +227,9 @@ const Profile = () => {
     return (
       <div className="w-full sm:grid grid-cols-5 gap-x-4 ">
         <div className="col-span-3 ">
-          <Main own={own} user={user} />
+          {tabView === "posts" &&  <Main own={own} user={user} />}
+          {tabView === "saved" && <Saved own={own} user={user} />}
+         
         </div>
         <div className="col-span-2 flex flex-col gap-y-3">
           <Challenge challenge={challenge} setChallenge={setChallenge} />

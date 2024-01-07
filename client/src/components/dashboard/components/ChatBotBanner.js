@@ -46,7 +46,7 @@ let chatInfo = {
         <div className="flex items-center gap-x-2 my-2">
             <div className="text-xs">Our chat assistant at PageBond knows everything about books!</div>
             <button className="primary-btn text-xs w-[100px]"
-            onClick={()=>{navigate(`/messenger/?data=${encodeURIComponent(JSON.stringify(chatInfo))}`)}}
+            onClick={()=>{navigate(`/chat/?data=${encodeURIComponent(JSON.stringify(chatInfo))}`)}}
             >Ask now</button>
         </div>
     </div>

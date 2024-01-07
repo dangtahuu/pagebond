@@ -23,9 +23,7 @@ import log from "./routes/log.js"
 import voucher from "./routes/voucher.js"
 import question from "./routes/question.js"
 import hashtag from "./routes/hashtag.js"
-
-
-
+import prompt from "./routes/prompt.js"
 
 
 import requireSignIn from "./middleware/authentication.js";
@@ -100,7 +98,7 @@ app.use("/api/log", requireSignIn, log);
 app.use("/api/voucher", requireSignIn, voucher);
 app.use("/api/question", requireSignIn, question);
 app.use("/api/hashtag", requireSignIn, hashtag);
-
+app.use("/api/prompt", requireSignIn, prompt);
 
 // @ts-ignore
 app.use("/", (req, res) => {

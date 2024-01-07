@@ -16,14 +16,10 @@ import { MdCancel } from "react-icons/md";
 import Comment from "./Comment";
 import { useAppContext } from "../../context/useContext";
 import ReviewForm from "./ReviewForm";
-import PostForm from "./PostForm";
-import TradeForm from "./TradeForm";
-import NewsForm from "./NewsForm";
 import { Rating } from "@mui/material";
 import ReactMarkdown from "react-markdown";
-import QuestionForm from "./QuestionForm";
 import Modal from "./Modal";
-import {formatDate} from "../../utils/formatDate";
+import { formatDate } from "../../utils/formatDate";
 
 const Post = ({
   currentPost,
@@ -32,7 +28,6 @@ const Post = ({
   border = true,
   getDeletePostId = (postId) => {},
 }) => {
-  
   // const navigate = useNavigate();
   const { autoFetch, socket, user } = useAppContext();
   // const [formOpen, setFormOpen] = useState(false)
@@ -184,6 +179,32 @@ const Post = ({
     setLikeLoading(false);
   };
 
+  const unsave = async () => {
+    try {
+      const { data } = await autoFetch.put(`/api/post/unsave`, {
+        postId: post._id,
+      });
+      setPost({ ...post, save: data.post.save });
+      toast.success("Post unsaved!")
+
+    } catch (error) {
+      console.log(error);
+      toast.success("Something went wrong")
+
+    }
+  };
+
+  const save = async () => {
+    try {
+      const { data } = await autoFetch.put(`/api/post/save`, { postId: post._id });
+      setPost({ ...post, save: data.post.save });
+      toast.success("Post saved!")
+    } catch (error) {
+      console.log(error);
+      toast.success("Something went wrong")
+    }
+  };
+
   const deleteComment = async (commentId) => {
     try {
       const { data } = await autoFetch.put(`/api/post/remove-comment`, {
@@ -232,7 +253,6 @@ const Post = ({
       toast.error(error.response.data.msg || "Something went wrong");
     }
   };
-
 
   const MainContent = () => {
     return (
@@ -320,27 +340,21 @@ const Post = ({
     );
   }
 
- 
-
   return (
     <div
       className={` mb-3 pt-3 pb-2.5 ${
         border ? `border-t-[1px] border-t-dialogue` : ``
       } `}
     >
-    
-
       {openModal && (
         <ReviewForm
-        setOpenModal={setOpenModal}
-        setPostLoading={setLoadingEdit}
-        current={post}
-        setPost={setPost}
-        type={type}
+          setOpenModal={setOpenModal}
+          setPostLoading={setLoadingEdit}
+          current={post}
+          setPost={setPost}
+          type={type}
         />
       )}
-
-    
 
       {answerModalOpen && (
         <Modal
@@ -405,6 +419,21 @@ const Post = ({
               setShowOption(false);
             }}
           >
+            {post?.saved?.some((one)=>one.savedBy === user._id) ?    <li
+                  className="mt-1 px-3 py-1 bg-navBar rounded-md"
+                  onClick={() => {
+                      unsave();
+                  }}
+                >
+                  Unsave
+                </li>: <li
+                  className="mt-1 px-3 py-1 bg-navBar rounded-md"
+                  onClick={() => {
+                      save();
+                  }}
+                >
+                  Save
+                </li>}
             {user?._id === post?.postedBy?._id && (
               <>
                 <li

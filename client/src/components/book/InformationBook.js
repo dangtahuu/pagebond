@@ -1,6 +1,6 @@
 import { VscOpenPreview } from "react-icons/vsc";
 
-const Information = ({ book }) => {
+const InformationBook = ({ book }) => {
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center">
@@ -35,7 +35,7 @@ const Information = ({ book }) => {
                   onClick={() => {
                     chatInfo = { ...chatInfo, text: one };
                     navigate(
-                      `/messenger/?data=${encodeURIComponent(
+                      `/chat/?data=${encodeURIComponent(
                         JSON.stringify(chatInfo)
                       )}`
                     );
@@ -71,4 +71,4 @@ const Information = ({ book }) => {
   );
 };
 
-export default Information;
+export default InformationBook;

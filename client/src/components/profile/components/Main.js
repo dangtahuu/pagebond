@@ -31,7 +31,7 @@ const Main = ({ own, user }) => {
     try {
       if (!morePosts) return [];
       const { data } = await autoFetch.get(
-        `/api/post//withUser/${user._id}?page=${page + 1}`
+        `/api/post/withUser/${user._id}?page=${page + 1}`
       );
       setPage((prev) => prev + 1);
       if (data.posts.length < 10) setMorePosts(false);
@@ -81,6 +81,8 @@ const Main = ({ own, user }) => {
           type="post"
         />
       )}
+
+      
 
       {openNews && (
         <ReviewForm

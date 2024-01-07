@@ -6,39 +6,25 @@ import Comment from "./common/Comment";
 import Dropdown from "./common/Dropdown";
 import CreateBox from "./common/CreateBox";
 import ItemsList from "./common/ItemsList";
-import GroupAvatars from "./common/GroupAvatars";
 import ReviewForm from "./common/ReviewForm";
 import HeaderMenu from "./common/HeaderMenu";
 
-// loading component
-import LoadingPost from "./loading/Loading.Post";
-import LoadingSuggestion from "./loading/Loading.Suggestion";
-import LoadingForm from "./loading/Loading.Form";
-import LoadingProfile from "./loading/Loading.Profile";
-import LoadingIntro from "./loading/Loading.Intro";
-import LoadingImage from "./loading/Loading.Image";
-import LoadingCard from "./loading/Loading.Card";
-import LoadingPostInformation from "./loading/Loading.PostInformation";
-import LoadingMessenger from "./loading/Loading.Messenger";
-
 // pages
-import Message from "./messenger/messenger.pages";
 import Dashboard from "./dashboard/DashBoard";
 import Profile from "./profile/Profile.pages";
 import Admin from "./admin/Admin.page";
 import Browse from "./browse/Browse.page";
 
 import PostDetail from "./post/PostDetail";
-import BookDetail from "../page/Layout/book/BookPage";
 
-// import ModalReview from "./common/ModalReview";
-// import ModalExchange from "./common/ModalExchange";
+
+import {LeftChat, MainChat, MessageBox} from "./chat/index"
+import {LeftBook, RightBook, MainBook, CarouselBook, InformationBook, Featured} from "./book/index"
+
 import ShelvesForm from "./common/ShelvesForm";
 import ModalShelf from "./common/SimpleForm";
 // function
 import Search from "./search/Search";
-import PostForm from "./common/PostForm";
-import TradeForm from "./common/TradeForm"
 export {
   Nav,
   Post,
@@ -48,28 +34,16 @@ export {
   Comment,
   Dropdown,
   ItemsList,
-  GroupAvatars,
   CreateBox,
-  LoadingPost,
-  LoadingSuggestion,
-  LoadingForm,
-  LoadingProfile,
-  LoadingIntro,
-  LoadingImage,
-  LoadingPostInformation,
-  LoadingCard,
-  LoadingMessenger,
   // page
-  Message,
   Dashboard,
   Profile,
   Browse,
   Admin,
   PostDetail,
-  BookDetail,
   Search,
   ReviewForm,
-  PostForm,
-  TradeForm,
-  HeaderMenu
+  HeaderMenu,
+  LeftBook, RightBook, MainBook, CarouselBook, InformationBook, Featured,
+  LeftChat, MainChat, MessageBox,
 };

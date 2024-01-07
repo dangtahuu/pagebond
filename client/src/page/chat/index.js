@@ -1,8 +1,8 @@
 import React from "react";
-import {Message} from "../../../components";
+import ChatPage from "./ChatPage"
 
 const index = () => {
-    return <Message />;
+    return <ChatPage />;
 };
 
 export default index;

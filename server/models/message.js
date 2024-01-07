@@ -12,6 +12,7 @@ const messageSchema = new mongoose.Schema(
       {
         type: mongoose.Types.ObjectId,
         ref: "User",
+        unique: true
       },
     ],
     sentBy: {
@@ -22,6 +23,7 @@ const messageSchema = new mongoose.Schema(
       {
         type: mongoose.Types.ObjectId,
         ref: "User",
+        unique: true
       },
     ],
   },

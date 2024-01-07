@@ -291,7 +291,7 @@ const ReviewForm = ({
         title: input.title,
         type: user.role === 1 ? 1 : 0,
       });
-      setPosts([data.post, ...posts]);
+      setPosts((prev) => [data.post, ...prev]);
       toast.success("Create successfully!");
       if(type==="review") setStatus((prev)=>({...prev,"to read": false,"up next":false}))
     } catch (error) {

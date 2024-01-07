@@ -10,7 +10,7 @@ import CreateBox from "../common/CreateBox";
 import { IoFilterOutline } from "react-icons/io5";
 import FilterBox from "./components/FilterBox";
 
-const Main = ({ id, book, setStatus }) => {
+const MainBook = ({ id, book, setStatus }) => {
   const { autoFetch, user, setOneState } = useAppContext();
 
   const list = {
@@ -228,4 +228,4 @@ const Main = ({ id, book, setStatus }) => {
   );
 };
 
-export default Main;
+export default MainBook;

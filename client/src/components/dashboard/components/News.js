@@ -30,27 +30,27 @@ const News = ({ autoFetch, name = "", url = ""}) => {
         return (
           <>
             <div className="w-full">
-              {list.map((a) => {
+              {list.map((one) => {
                 return (
 
                   <div
                     className="w-full bg-dialogue cursor-pointer rounded-lg mt-4"
-                    key={a._id}
-                    onClick={() => navigate(`/detail/news/${a._id}`)}
+                    key={one._id}
+                    onClick={() => navigate(`/detail/news/${one._id}`)}
                   >
                     <img
                       className="rounded-t-lg max-h-32 w-full object-cover"
-                      src={a.image?.url}
+                      src={one?.image?.url}
                       alt=""
                     />
 
                     <div className="p-2">
                         <h5 className="mb-2 text-base serif-display">
-                          {a.title}
+                          {one?.detail?.title}
                         </h5>
-                      {a.type===2 &&
+                      {one?.detail?.type===2 &&
                         <h5 className="mb-2 text-sm">
-                          by <span className="font-semibold">{a.postedBy.name}</span>
+                          by <span className="font-semibold">{one?.postedBy.name}</span>
                         </h5>
                       }
                      

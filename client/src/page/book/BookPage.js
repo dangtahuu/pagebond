@@ -1,13 +1,12 @@
 import React, { useRef } from "react";
-import { useAppContext } from "../../../context/useContext";
+import { useAppContext } from "../../context/useContext";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiEdit2 } from "react-icons/fi";
-import ShelvesForm from "../../../components/common/ShelvesForm";
+import ShelvesForm from "../../components/common/ShelvesForm";
 import { Rating, Tooltip } from "@mui/material";
-import Similar from "../../../components/book/components/Similar";
 import { VscOpenPreview } from "react-icons/vsc";
-import Post from "../../../components/common/Post";
+import Post from "../../components/common/Post";
 import ReactLoading from "react-loading";
 import { LuBadgeCheck } from "react-icons/lu";
 import { AiOutlineMessage } from "react-icons/ai";
@@ -15,12 +14,10 @@ import { toast } from "react-toastify";
 
 import { TbEyeglass } from "react-icons/tb";
 import { BsBookmarkPlus } from "react-icons/bs";
-import useOnClickOutside from "../../../hooks/useOnClickOutside";
-import Main from "../../../components/book/Main";
-import Featured from "../../../components/book/Featured";
-import Information from "../../../components/book/Information";
-import Left from "../../../components/book/Left";
-import Right from "../../../components/book/Right";
+import useOnClickOutside from "../../hooks/useOnClickOutside";
+
+
+import {LeftBook, RightBook, MainBook, CarouselBook, InformationBook, Featured} from "../../components/index"
 
 function BookPage() {
   const navigate = useNavigate();
@@ -209,25 +206,25 @@ function BookPage() {
     >
       <div className="w-full mt-[3%] pt-3  md:grid grid-cols-10 items-start justify-center gap-x-8 py-16 px-4">
         <div className={`col-span-2 md:pr-8 sticky top-[65px] ${openShelf && "z-[100000]"}`}>
-          <Left book={book} bookId={id} status={status} setStatus={setStatus} openShelf={openShelf} setOpenShelf={setOpenShelf}/>
+          <LeftBook book={book} bookId={id} status={status} setStatus={setStatus} openShelf={openShelf} setOpenShelf={setOpenShelf}/>
         </div>
 
         <div className="col-span-5">
-          <Information book={book} />
+          <InformationBook book={book} />
 
           {featured && <Featured bookId={id} />}
 
-          <Main id={id} book={book} setStatus={setStatus} />
+          <MainBook id={id} book={book} setStatus={setStatus} />
         </div>
 
         <div className={`col-span-3 sticky top-[65px] max-h-[80vh] overflow-auto ${openUpNext && "z-[100000]"}`}>
-         <Right book={book} openUpNext={openUpNext} setOpenUpNext={setOpenUpNext}/>
+         <RightBook book={book} openUpNext={openUpNext} setOpenUpNext={setOpenUpNext}/>
         </div>
       </div>
 
       <div className="w-full mt-[3%] pt-3  ">
         {booksByAuthor ? (
-          <Similar name="From the author" books={booksByAuthor} />
+          <CarouselBook name="From the author" books={booksByAuthor} />
         ) : (
           <></>
         )}
@@ -235,7 +232,7 @@ function BookPage() {
 
       <div className="w-full mt-[3%] pt-3  ">
         {similarBooks ? (
-          <Similar name="Similar Books" books={similarBooks} />
+          <CarouselBook name="Similar Books" books={similarBooks} />
         ) : (
           <></>
         )}

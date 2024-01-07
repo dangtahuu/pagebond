@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Carousel from "react-multi-carousel";
 import "react-multi-carousel/lib/styles.css";
 
-function Similar({books, name}) {
+function CarouselBook({ books, name }) {
   const navigate = useNavigate();
 
   const responsive = {
@@ -26,9 +26,7 @@ function Similar({books, name}) {
 
   return (
     <div className="px-8">
-      <div className="text-xl crimson-600 mb-3">
-    {name}
-      </div>
+      <div className="text-xl crimson-600 mb-3">{name}</div>
       <Carousel
         className="pb-5"
         swipeable={false}
@@ -50,17 +48,16 @@ function Similar({books, name}) {
         itemClass="carousel-item-padding-50-px"
       >
         {books.map((v) => (
-          <div className="max-w-sm mr-5 cursor-pointer  rounded-lg overflow-hidden shadow-md hover:shadow-xl"
-          onClick={()=>{
-            navigate(`/book/${v._id}`)
-          }}>
+          <div
+            className="max-w-sm mr-5 cursor-pointer  rounded-lg overflow-hidden shadow-md hover:shadow-xl"
+            onClick={() => {
+              navigate(`/book/${v._id}`);
+            }}
+          >
             <div className="w-full h-[224px] overflow-hidden">
               <img
                 className="w-full h-full object-fill hover:scale-110 transition-transform duration-500 overflow-hidden"
-                src={
-                  v.thumbnail ||
-                  "https://sciendo.com/product-not-found.png"
-                }
+                src={v.thumbnail || "https://sciendo.com/product-not-found.png"}
                 alt=""
               />
             </div>
@@ -69,9 +66,7 @@ function Similar({books, name}) {
                 {v.title.slice(0, 30)}
               </div>
               <p className="text-gray-700 text-xs">
-                {v.author
-                  ? v.author.slice(0,20)
-                  : "Unknown author"}
+                {v.author ? v.author.slice(0, 20) : "Unknown author"}
               </p>
             </div>
           </div>
@@ -81,4 +76,4 @@ function Similar({books, name}) {
   );
 }
 
-export default Similar;
+export default CarouselBook;

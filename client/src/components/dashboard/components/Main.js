@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { toast } from "react-toastify";
-import { Post, CreateBox, PostForm } from "../..";
+import { Post, CreateBox, ReviewForm } from "../..";
 import InfiniteScroll from "react-infinite-scroll-component";
 import shuffle from "../../../utils/shuffle";
-import NewsForm from "../../common/NewsForm";
 import ReactLoading from "react-loading";
 import HeaderMenu from "../../common/HeaderMenu";
 
@@ -24,14 +23,6 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
     hashtag: [],
     spoiler: false,
   };
-  const [input, setInput] = useState(initInput);
-  const [newsInput, setNewsInput] = useState({
-    text: "",
-    title: "",
-    image: "",
-    hashtag: [],
-    spoiler: false,
-  });
 
   const [loadingCreateNewPost, setLoadingCreateNewPost] = useState(false);
 
@@ -70,77 +61,14 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
   }, []);
 
   useEffect(()=>{
-    console.log(page)
-  },[page])
+    console.log(posts)
+  },[posts])
 
   useEffect(() => {
     if (location) getNearby();
   }, [location]);
 
-  const createNewPost = async (formData) => {
-    setLoadingCreateNewPost(true);
-    try {
-      let image = null;
-      if (formData) {
-        const { data } = await autoFetch.post(
-          `/api/post/upload-image`,
-          formData
-        );
-        image = { url: data.url, public_id: data.public_id };
-      }
-
-      const { data } = await autoFetch.post(`api/post/create-post`, {
-        text: input.text,
-        image,
-        title: input.title,
-        hashtag: input.hashtag,
-        spoiler: input.spoiler,
-      });
-      setPosts((prev) => [data.post, ...prev]);
-      toast.success("Create new post successfully!");
-    } catch (error) {
-      console.log(error);
-      toast.error(error.response.data.msg || "Something went wrong");
-    } finally {
-      setLoadingCreateNewPost(false);
-    }
-  };
-
-  const createNewNews = async (formData) => {
-    setLoadingCreateNewPost(true);
-    try {
-      let image = null;
-      if (formData) {
-        const { data } = await autoFetch.post(
-          `/api/post/upload-image`,
-          formData
-        );
-        image = { url: data.url, public_id: data.public_id };
-      }
-      console.log(user.role);
-      const { data } = await autoFetch.post(`api/news/create`, {
-        text: newsInput.text,
-        title: newsInput.title,
-        image,
-        hashtag: newsInput.hashtag,
-        type: user.role === 1 ? 1 : 0,
-        spoiler: input.spoiler,
-      });
-      setPosts((prev) => [data.post, ...prev]);
-
-      if (user.role === 1) toast.success("Create new news post successfully!");
-      else
-        toast.success(
-          "An admin will verify your news post before it gets promoted"
-        );
-    } catch (error) {
-      console.log(error);
-      toast.error(error.response.data.msg || "Something went wrong");
-    } finally {
-      setLoadingCreateNewPost(false);
-    }
-  };
-
+ 
   const getPosts = async () => {
    try{
     if (!morePosts) return [];
@@ -242,7 +170,7 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
         hasMore={morePosts}
       >
         {posts.map((post) => (
-          <Post key={post._id} currentPost={post} />
+          <Post key={post?._id} currentPost={post} />
         ))}
       </InfiniteScroll>
     );
@@ -292,26 +220,27 @@ const Main = ({ token, autoFetch, setOneState, user }) => {
       />
 
       {postOpen && (
-        <PostForm
-          setOpenModal={setPostOpen}
-          input={input}
-          setInput={setInput}
-          attachment={attachment}
-          setAttachment={setAttachment}
-          createNewPost={createNewPost}
-          initInput={initInput}
-        />
+        <ReviewForm
+        setOpenModal={setPostOpen}
+        setPostLoading={setLoadingCreateNewPost}
+        posts={posts}
+        setPosts={setPosts}
+        type="post"
+      />
+    
       )}
 
+
+
       {newsOpen && (
-        <NewsForm
-          setOpenModal={setNewsOpen}
-          input={newsInput}
-          setInput={setNewsInput}
-          attachment={newsAttachment}
-          setAttachment={setNewsAttachment}
-          createNewPost={createNewNews}
-        />
+ 
+        <ReviewForm
+              setOpenModal={setNewsOpen}
+              setPostLoading={setLoadingCreateNewPost}
+              posts={posts}
+              setPosts={setPosts}
+              type="news"
+            />
       )}
 
       <div className="flex">

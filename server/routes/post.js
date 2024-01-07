@@ -22,7 +22,10 @@ import {
     search,
     getPostsWithUserIdWithBook,
     getNumberOfPostsWithUserId,
-    getStats
+    getStats,
+    savePost,
+    unsavePost,
+    getSavedPosts
 
 } from "../controllers/post.js";
 import formidable from "express-formidable";
@@ -35,7 +38,7 @@ router.route("/").get(async (req, res) => {
     res.json({msg: "Post"});
 });
 
-router.route("/create-post").post(createPost);
+router.route("/create").post(createPost);
 router.route("/all").get(isAdmin, getAll);
 router.route("/all-reported").get(isAdmin, getAllReported);
 router.route("/search").get(search);
@@ -63,6 +66,9 @@ router.route("/upload-image").post(formidable(), uploadImage);
 router.route("/like").put(likePost);
 router.route("/unlike").put(unlikePost);
 
+router.route("/save").put(savePost);
+router.route("/unsave").put(unsavePost);
+
 // comment
 router.route("/add-comment").put(addComment);
 router.route("/remove-comment").put(removeComment);
@@ -73,10 +79,12 @@ router.route("/total-posts").get(totalPosts);
 router.route("/admin/delete/:id").delete(isAdmin, deletePost);
 
 // get post with userID 
+
 router.route("/withUser/:userId").get(getPostsWithUserId);
 router.route("/number-with-user/:userId").get(getNumberOfPostsWithUserId);
 
 router.route("/withUserAndBook/:userId/:bookId").get(getPostsWithUserIdWithBook);
+router.route("/saved").get(getSavedPosts);
 
 router.route("/stats/:userId/:year").get(getStats);
 

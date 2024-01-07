@@ -10,7 +10,7 @@ import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 
 import { MdOutlineFormatListNumbered } from "react-icons/md";
 
-const Left = ({ book, bookId, status, setStatus, openShelf, setOpenShelf }) => {
+const LeftBook = ({ book, bookId, status, setStatus, openShelf, setOpenShelf }) => {
   const { autoFetch, user, setOneState } = useAppContext();
 
   const [shelves, setShelves] = useState([]);
@@ -184,4 +184,4 @@ const Left = ({ book, bookId, status, setStatus, openShelf, setOpenShelf }) => {
   );
 };
 
-export default Left;
+export default LeftBook;

@@ -4,15 +4,8 @@ import { useLocation } from "react-router-dom";
 // icon
 import { toast } from "react-toastify";
 
-import { BsCollectionFill } from "react-icons/bs";
 import { AiFillHome } from "react-icons/ai";
-import { SiMessenger } from "react-icons/si";
-import { MdAdminPanelSettings } from "react-icons/md";
 import { BsPersonCircle, BsPersonPlusFill } from "react-icons/bs";
-import { IoIosSearch } from "react-icons/io";
-import { FaSearch } from "react-icons/fa";
-import { RiSearchFill } from "react-icons/ri";
-import { RiFileSearchFill } from "react-icons/ri";
 
 import { BiMessageDetail } from "react-icons/bi";
 import { BiHomeAlt2 } from "react-icons/bi";
@@ -29,9 +22,6 @@ import { Dropdown } from "../";
 import Notification from "./Notification.js";
 import useOnClickOutside from "../../hooks/useOnClickOutside.js";
 
-// const socket = io(process.env.REACT_APP_SOCKET_IO_SERVER, {
-//   reconnection: true,
-// });
 
 const Nav = () => {
   const { user, unreadMessages, autoFetch, setOneState, socket } =
@@ -48,13 +38,11 @@ const Nav = () => {
   const exceptionRef = useRef();
   useOnClickOutside(notiRef, () => setNotiMenu(false), exceptionRef);
 
-  useEffect(() => {
-    console.log(location.pathname);
-  }, [location]);
 
   const getUnreadMessages = async () => {
     try {
-      const { data } = await autoFetch.get("api/message/unread");
+      const { data } = await autoFetch.get("api/chat/unread");
+      console.log(data);
       setOneState("unreadMessages", data.unread);
     } catch (e) {
       console.log(e);
@@ -95,6 +83,7 @@ const Nav = () => {
         const index = newMessage.members.find(
           (value) => value._id === user._id
         );
+        console.log("vvvv", index);
         if (!index) {
           return;
         }
@@ -112,7 +101,7 @@ const Nav = () => {
         const { newFollower, receivedId } = data;
         console.log(receivedId);
         console.log(user._id);
-        console.log(receivedId === user._id)
+        console.log(receivedId === user._id);
         if (receivedId === user._id) {
           toast.success(`${newFollower.name} have followed you`);
           getNotifications();
@@ -146,7 +135,7 @@ const Nav = () => {
         className: "search",
       },
       {
-        link: "/messenger",
+        link: "/chat",
         icon: <BiMessageDetail />,
         className: "messenger",
       },
@@ -182,9 +171,9 @@ const Nav = () => {
         >
           <div className="relative">
             {v.icon}
-            {v.className === "messenger" && unreadMessages !== 0 && (
+            {v.className === "messenger" && unreadMessages?.length !== 0 && (
               <div className="bg-greenBtn !text-mainText -top-[7px] -right-[14px] w-[23px] h-[15px] flex justify-center items-center rounded-full h-[10px] w-[20px] text-[10px] absolute">
-                {unreadMessages}
+                <div className="z-[2000]">{unreadMessages.length}</div>
               </div>
             )}
           </div>

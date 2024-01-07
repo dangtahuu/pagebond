@@ -21,9 +21,10 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
   const [giftFormOpen, setGiftFormOpen] = useState(false);
   const [points, setPoints] = useState(0);
 
-  const list = ["Posts", "Shelves", "Diary", "Points", "Following", "Follower"];
+  const list = ["Posts", "Saved","Shelves", "Diary", "Points", "Following", "Follower"];
   const urlList = [
     "posts",
+    "saved",
     "shelves",
     "diary",
     "points",
@@ -34,7 +35,7 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
   const list2 = ["Posts", "Shelves", "Diary", "Following", "Follower"];
   const urlList2 = ["posts", "shelves", "diary", "following", "follower"];
 
-  if (currentUserId !== own._id && tabView === "points") {
+  if (currentUserId !== own._id && (tabView === "points"||tabView === "saved")) {
     // console.log(user._id)
     // console.log(own._id)
     return <Navigate to="/" />;
@@ -104,7 +105,7 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
           className="primary-btn bg-black rounded-lg hover:bg-smallText"
           onClick={() => {
             navigate(
-              `/messenger/?data=${encodeURIComponent(JSON.stringify(user))}`
+              `/chat/?data=${encodeURIComponent(JSON.stringify(user))}`
             );
           }}
         >

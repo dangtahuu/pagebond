@@ -41,7 +41,11 @@ const Hashtags = ({
       if (listTags.length) {
         return (
           <>
-            {listTags.map((p) => {
+          <div className="flex w-full items-center justify-between serif-display text-lg mb-2 ">
+        Trending
+      </div>
+          <div>
+          {listTags.map((p) => {
               return (
                 <div className="flex w-full items-center  py-1.5 " key={p._id}>
                   <div
@@ -71,20 +75,20 @@ const Hashtags = ({
                 </div>
               );
             })}
+          </div>
+            
           </>
         );
       }
     }
 
-    return <div>No result</div>;
+    return <div></div>;
   };
   return (
     <div
       className={`max-h-[45vh] flex flex-col items-center overflow-y-auto scroll-bar overflow-x-hidden dark:bg-[#242526] rounded-lg px-5 w-full mb-4 md:mb-0 `}
     >
-      <div className="flex w-full items-center justify-between serif-display text-lg mb-2 ">
-        Trending
-      </div>
+      
 
       <Content />
     </div>

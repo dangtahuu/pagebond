@@ -52,14 +52,39 @@ const getAll = async (req, res) => {
 const getUnread = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const messages = await Message.find({
-      $and: [
-        { members: { $in: userId } },
-        { content: { $elemMatch: { readBy: { $nin: [userId] } } } },
-      ],
-    });
-    // console.log()
-    return res.status(200).json({ unread: messages.length });
+    
+    const conversations = await Conversation.aggregate([
+      {
+        $lookup: {
+          from: "messages",
+          localField: "_id",
+          foreignField: "conversation",
+          as: "data",
+        },
+      },
+      {
+        $unwind: "$data",
+      },
+      {
+        $match: {
+          "data.readBy": {$nin: [mongoose.Types.ObjectId(userId)]}
+        }
+      },
+      {
+        $match: {
+          "members": {$in: [mongoose.Types.ObjectId(userId)]}
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          // Include any other fields you want in the result
+        }
+      }
+    ])
+
+   console.log(conversations)
+    return res.status(200).json({ unread: conversations });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: `Something went wrong. Try again!` });
@@ -88,23 +113,24 @@ const sendMessage = async (req, res) => {
     }
 
     let conversation = await Conversation.findOne({
-      members: [...receivedId, userId].sort(),
+      members: { $all: [...receivedId, userId] },
     });
 
     if (conversation) {
       data.conversation = conversation._id;
       await Message.create(data);
     } else {
-      console.log('aaaa')
       conversation = await Conversation.create({
-        members: [userId, ...receivedId].sort(),
+        members: [...receivedId, userId].sort(),
       });
       data.conversation = conversation._id;
       const message = await Message.create(data);
-      console.log(message)
+      console.log(message);
     }
 
-    conversation = await Conversation.findById(conversation._id)
+    conversation = await Conversation.findByIdAndUpdate(conversation._id, {
+      $set: { updatedAt: new Date() }
+    })
       .populate("members", "name _id image")
       .populate({
         path: "content",
@@ -116,8 +142,9 @@ const sendMessage = async (req, res) => {
       (each) => !each.deleteBy.includes(mongoose.Types.ObjectId(userId))
     );
 
-
     conversation.content = contentExcludeDelete;
+
+
     return res.status(200).json({ conversation });
   } catch (error) {
     console.log(error);
@@ -126,65 +153,99 @@ const sendMessage = async (req, res) => {
 };
 
 const getAIRes = async (req, res) => {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true,
+  });
+
   try {
     const userId = req.user.userId;
-    const { text, prev } = req.body;
+    let { text, thread } = req.body;
     if (!text) {
       return res.status(400).json({ msg: "Text  is required!" });
     }
 
-    let reply;
+    if (thread) {
+      await openai.beta.threads.messages.create(thread, {
+        role: "user",
+        content: text,
+      });
+    } else {
+      thread = await openai.beta.threads.create();
+      thread = thread.id;
+      await openai.beta.threads.messages.create(thread, {
+        role: "user",
+        content: text,
+      });
+    }
 
-    // if(!prev) {
-    //   reply = await api.sendMessage(text)
-    // }
-    // else reply = await api.sendMessage(text, prev);
-
-    const assistant = new OpenAIAssistantRunnable({
-      assistantId: "asst_cYRFEk1dboldcEihCqsgsk2P",
-      // process.env.ASSISSTANT_ID,
+    // Run the assistant
+    const run = await openai.beta.threads.runs.create(thread, {
+      assistant_id: process.env.ASSISTANT_KEY,
     });
 
-    const result = await assistant.invoke({
-      content: text,
-    });
-    const replyText = result[0].content[0].text.value;
+    // Create a response
+    let response = await openai.beta.threads.runs.retrieve(thread, run.id);
+
+    // Wait for the response to be ready
+    while (response.status === "in_progress" || response.status === "queued") {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      response = await openai.beta.threads.runs.retrieve(thread, run.id);
+    }
+
+    const messageList = await openai.beta.threads.messages.list(thread);
+
+    const lastMessage = messageList.data
+      .filter(
+        (message) => message.run_id === run.id && message.role === "assistant"
+      )
+      .pop();
+
+    let resText = lastMessage.content[0]["text"].value;
+
+    let index = resText.indexOf("However, ");
+
+    if (index !== -1) {
+      // Extract the substring starting from the first occurrence of "however"
+      resText = resText.substring(index + "However, ".length);
+
+      // Make the first letter of the new string uppercase
+      resText = resText.charAt(0).toUpperCase() + resText.slice(1);
+    }
+
+    resText = resText.replace(/【.*?】/g, "");
 
     const botReponse = {
-      text: replyText,
+      text: resText,
       sentBy: process.env.AI_ID,
       readBy: [process.env.AI_ID],
     };
 
-    let message = await Message.findOneAndUpdate(
-      {
-        members: [process.env.AI_ID, userId].sort(),
-      },
-      {
-        $addToSet: { content: botReponse },
-      },
-      { new: true }
-    )
-      .populate(
-        "content.sentBy",
-        "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
-      )
-      .populate(
-        "members",
-        "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
-      );
 
-    const contentExcludeDelete = message.content.filter(
+    let conversation = await Conversation.findOne({
+      members: { $all: [process.env.AI_ID, userId] },
+    });
+
+    botReponse.conversation = conversation._id;
+    await Message.create(botReponse);
+
+    conversation = await Conversation.findByIdAndUpdate(conversation._id, {
+      $set: { updatedAt: new Date() }
+    })
+      .populate("members", "name _id image")
+      .populate({
+        path: "content",
+        populate: { path: "sentBy", select: "name _id image" },
+      })
+      .sort({ updatedAt: -1 });
+
+    const contentExcludeDelete = conversation.content.filter(
       (each) => !each.deleteBy.includes(mongoose.Types.ObjectId(userId))
     );
 
-    message.content = contentExcludeDelete;
+    conversation.content = contentExcludeDelete;
 
-    const suggestedRes = reply.detail.suggestedResponses.map((one) => one.text);
-
-    return res
-      .status(200)
-      .json({ message: message, suggestedRes, fullRes: reply });
+    return res.status(200).json({ conversation, thread });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: "Something went wrong!Try again!" });
@@ -193,21 +254,21 @@ const getAIRes = async (req, res) => {
 
 const createGroup = async (req, res) => {
   try {
-    console.log('aaaaaaaaaa')
+    console.log("aaaaaaaaaa");
     const userId = req.user.userId;
-   const {name, people} = req.body
+    const { name, people } = req.body;
     if (!name) {
       return res.status(400).json({ msg: `Name is missing` });
     }
-    if (people.length<2) {
+    if (people.length < 2) {
       return res.status(400).json({ msg: "There must be more than 2 people" });
     }
-  
+
     let conversation = await Conversation.create({
       members: [...people, userId].sort(),
-      name
+      name,
     });
-console.log('bbbbbbb')
+    console.log("bbbbbbb");
     return res.status(200).json({ conversation });
   } catch (error) {
     console.log(error);
@@ -219,42 +280,27 @@ const deleteMessage = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const { contentId, messageId } = req.body;
+    const { messageId } = req.body;
 
-    let message = await Message.findById(messageId);
+    const message = await Message.findByIdAndUpdate(messageId, {
+      $addToSet: { deleteBy: userId },
+    });
 
-    let content = message.content;
-    const index = content.findIndex((one) => one._id.toString() === contentId);
+    const conversation = await Conversation.findById(message.conversation)
+      .populate("members", "name _id image")
+      .populate({
+        path: "content",
+        populate: { path: "sentBy", select: "name _id image" },
+      })
+      .sort({ updatedAt: -1 });
 
-    content[index].deleteBy.push(userId);
-
-    // console.log(content);
-
-    let newMessage = await Message.findByIdAndUpdate(
-      messageId,
-      {
-        content,
-      },
-      { new: true }
-    )
-      .populate(
-        "content.sentBy",
-        "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
-      )
-      .populate(
-        "members",
-        "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
-      );
-
-    const contentExcludeDelete = newMessage.content.filter(
+    const contentExcludeDelete = conversation.content.filter(
       (each) => !each.deleteBy.includes(mongoose.Types.ObjectId(userId))
     );
 
-    // console.log(contentExcludeDelete)
+    conversation.content = contentExcludeDelete;
 
-    newMessage.content = contentExcludeDelete;
-
-    return res.status(200).json({ message: newMessage });
+    return res.status(200).json({ conversation });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: "Something went wrong! Try again!" });
@@ -264,36 +310,15 @@ const deleteMessage = async (req, res) => {
 const markRead = async (req, res) => {
   try {
     const userId = req.user.userId;
-    // let data = { sentBy: userId };
     const { id } = req.params;
-    // console.log(receivedId)
+    console.log("aaaaaa");
     console.log(id);
-    let message = await Message.findById(id);
-
-    let content = message.content;
-    const newContent = content.map((one) => {
-      if (!one.readBy.includes(mongoose.Types.ObjectId(userId))) {
-        one.readBy.push(mongoose.Types.ObjectId(userId));
-        return one;
-      }
-      return one;
-    });
-
-    let newMessage = await Message.findByIdAndUpdate(
-      id,
+    await Message.updateMany(
+      { conversation: id },
       {
-        content: newContent,
-      },
-      { new: true }
-    )
-      .populate(
-        "content.sentBy",
-        "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
-      )
-      .populate(
-        "members",
-        "-password -secret -following -follower -role -updatedAt -email -createdAt -about"
-      );
+        $addToSet: { readBy: userId },
+      }
+    );
 
     return res.status(200).json({ msg: "Success!" });
   } catch (error) {
@@ -336,7 +361,6 @@ const markRead = async (req, res) => {
 const getAssistant = async (req, res) => {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-    // "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",
     dangerouslyAllowBrowser: true,
   });
 
@@ -368,8 +392,6 @@ const getAssistant = async (req, res) => {
 
     // Wait for the response to be ready
     while (response.status === "in_progress" || response.status === "queued") {
-      // console.log("waiting...");
-      // setIsWaiting(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       response = await openai.beta.threads.runs.retrieve(
         "thread_lIeqSVw25QNGlA3QU60cmmb5",
@@ -399,6 +421,20 @@ const getAssistant = async (req, res) => {
   }
 };
 
+const findAIChat = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    console.log([process.env.AI_ID, userId].sort());
+    let conversation = await Conversation.findOne({
+      members: { $all: [process.env.AI_ID, userId] },
+    });
+    return res.status(200).json({ conversation });
+  } catch (e) {
+    console.log(e);
+    return res.status(400).json({ msg: "error" });
+  }
+};
+
 export {
   getAll,
   sendMessage,
@@ -407,5 +443,6 @@ export {
   markRead,
   getAIRes,
   getAssistant,
-  createGroup
+  createGroup,
+  findAIChat,
 };

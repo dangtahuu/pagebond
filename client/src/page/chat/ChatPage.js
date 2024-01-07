@@ -6,11 +6,10 @@ import { toast } from "react-toastify";
 import { useNavigate, useLocation } from "react-router-dom";
 //components
 import { useAppContext } from "../../context/useContext";
-import Left from "./components/Left";
-import MainChat from "./components/MainChat.";
+import {LeftChat, MainChat, MessageBox} from "../../components/index"
+
 import { PiBroom } from "react-icons/pi";
 
-import "./messenger.css";
 import { MdCancel } from "react-icons/md";
 import prompts from "../../consts/prompts";
 import shuffle from "../../utils/shuffle";
@@ -75,8 +74,7 @@ const reducer = (state, action) => {
         index: action.payload.index,
         text: "",
         isNewMessage: false,
-        suggestedRes: action.payload.suggestedRes || [],
-        fullRes: action.payload.fullRes || null,
+        thread: action.payload.thread || null,
         context: action.payload.context || true,
       };
     }
@@ -111,8 +109,8 @@ const reducer = (state, action) => {
 
 const initImage = { url: "", public_id: "" };
 
-const Message = () => {
-  const { user, unreadMessages, autoFetch, setOneState, socket } =
+const Chat = () => {
+  const { user, autoFetch, setOneState, socket } =
     useAppContext();
 
   const navigate = useNavigate();
@@ -121,7 +119,6 @@ const Message = () => {
   const dataString = queryParams.get("data");
   const newMessageData = JSON.parse(decodeURIComponent(dataString));
 
-  const [promptOpen, setPromptOpen] = useState(false);
 
   const initState = {
     receivedUser: [],
@@ -131,9 +128,8 @@ const Message = () => {
     loading: false, // loading
     AILoading: false,
     isNewMessage: false, // Mode new message
-    suggestedRes: [],
     context: true,
-    fullRes: null,
+    thread: "",
   };
 
   const [state, dispatch] = useReducer(reducer, initState);
@@ -147,20 +143,12 @@ const Message = () => {
     if (state.index) markasRead();
   }, [state.index]);
 
-  const promptRef = useRef();
-  const exceptRef = useRef();
+  
 
   const messagesEndRef = useRef();
   const emailInputRef = useRef();
 
-  useOnClickOutside(
-    promptRef,
-    () => {
-      setPromptOpen(false);
-    },
-    exceptRef
-  );
-
+ 
   const markasRead = async () => {
     try {
       const { data } = await autoFetch.patch(
@@ -207,10 +195,20 @@ const Message = () => {
   
 
   useEffect(() => {
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+       markasRead()
+      }
+    };
+
     let change = false;
     if (state.allConversations) {
       // socket
       if (user) {
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         socket.on("new-message", (newMessage) => {
           const index = newMessage.members.find(
             (value) => value._id === user._id
@@ -226,7 +224,16 @@ const Message = () => {
             }
             return d;
           });
-          if (document.visibilityState === "visible") markasRead();
+
+          console.log(state.index)
+
+          console.log(document.visibilityState)
+          if (document.visibilityState === "visible") 
+          {
+            console.log('777777')
+            markasRead();
+          
+          }
           
           dispatch({
             type: CHANGE_ALL_MESSAGES,
@@ -244,6 +251,7 @@ const Message = () => {
       }
     }
     return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       socket.off("new-message");
     };
   }, [state]);
@@ -253,9 +261,6 @@ const Message = () => {
     let receiverData;
     try {
       const { data } = await autoFetch.get("api/chat/all");
-
-      let isNewData = true;
-      let indexOfNewData;
 
       if (newMessageData) {
         receiverData = {
@@ -267,19 +272,29 @@ const Message = () => {
 
       }
 
+      let checkNew = []
       if (data.conversations.length > 0) {
         if (user) {
           var us = data.conversations[0].members.filter((m) => m._id !== user._id);
         }
-      }
+        if(receiverData) {
+          checkNew = data.conversations.filter((one)=>{
+            const filteredMem = one.members.filter((m) => m._id !== user._id)
+            if (filteredMem===[receiverData]) return true;
+            else return false
+          })
+        }
+            }
 
-      dispatch({
+            console.log(checkNew)
+
+      dispatch({ 
         type: GET_DATA_SUCCESS,
         payload: {
           allConversations: data.conversations,
           receivedUser: receiverData ? [receiverData] : [us[0]],
           isNewMessage: receiverData ? true : false,
-          index: data.conversations[0]._id,
+          index: !receiverData? data.conversations[0]._id: checkNew.length>0? checkNew[0]._id : null,
           text: receiverData?.text ? receiverData.text : "",
         },
       });
@@ -303,7 +318,6 @@ const Message = () => {
     navigate(`/profile/${id}`);
   };
 
-  // upload image to cloudinary
   const handleUpImageToCloud = async () => {
     try {
       const { data } = await autoFetch.post(`/api/post/upload-image`, formData);
@@ -314,18 +328,13 @@ const Message = () => {
     }
   };
 
-  const handleDeleteMess = async (messageId, contentId) => {
-    // console.log('bbbbb')
-    // console.log(receivedId)
-    // setLoading(true);
+  const handleDeleteMess = async (messageId) => {
+
     try {
       const { data } = await autoFetch.patch("/api/chat/delete-message", {
-        messageId,
-        contentId,
+        messageId
       });
-      // }
 
-      //   let id = "";
       let newSourceData = state.allConversations.map((each) => {
         if (each._id === data.conversation._id) {
           return data.conversation;
@@ -335,9 +344,6 @@ const Message = () => {
 
       newSourceData = newSourceData.filter((each) => each.content.length !== 0);
 
-      //   let mainData;
-      //   mainData = id ? newSourceData : [dt.data.conversation, ...state.allConversations];
-
       dispatch({
         type: HANDLE_DELETE_MESSAGE,
         payload: {
@@ -345,20 +351,19 @@ const Message = () => {
           index: data.conversation.content.length !== 0 ? data.conversation._id : "0",
         },
       });
-      //   setImage(initImage);
 
-      //   if (!dt.data.ai_res) socket.emit("new-message", dt.data.conversation);
+      toast.success("Delete successfully!")
     } catch (error) {
       console.log(error);
       if (error.response && error.response.data.msg) {
         toast.error(error.response.data.msg);
       }
     }
-    // setLoading(false);
   };
 
-  const handleSendMess = async (received, text) => {
+  const handleSendMess = async (received, input) => {
     setLoading(true);
+    console.log('bbbbbbb',input)
     try {
       let imageUrl = image;
       if (imageUrl.url) {
@@ -370,7 +375,7 @@ const Message = () => {
         }
       }
       const { data } = await autoFetch.put("/api/chat/send-message", {
-        text,
+        text: input,
         receivedId: received,
         image: imageUrl,
       });
@@ -391,7 +396,7 @@ const Message = () => {
       mainData = id ? newSourceData : [data.conversation, ...state.allConversations];
 
       if(state.isNewMessage) {
-        navigate('/messenger')
+        navigate('/chat')
       }
 
       dispatch({
@@ -414,7 +419,7 @@ const Message = () => {
     }
     setLoading(false);
     if (AI_ID === received[0]._id) {
-      handleAIRes(text);
+      handleAIRes(input);
     }
   };
 
@@ -422,22 +427,23 @@ const Message = () => {
     setAILoading(true);
     try {
       let reqData;
-      if (state.fullRes && state.context) {
+      if (state.thread && state.context) {
         reqData = {
           text,
-          prev: state.fullRes,
+          thread: state.thread,
         };
       } else reqData = { text };
 
       const { data } = await autoFetch.put("/api/chat/get-ai-res", reqData);
       
       let id = "";
-      let newSourceData = state.allConversations.filter((d) => {
-        if (d._id === data.conversation._id) {
-          id = d._id;
-          d.content = data.conversation.content;
+
+      let newSourceData = state.allConversations.filter((one) => {
+        if (one._id === data.conversation._id) {
+          id = one._id;
+          one.content = data.conversation.content;
         }
-        return d;
+        return one;
       });
 
       let mainData;
@@ -448,8 +454,7 @@ const Message = () => {
         payload: {
           allConversations: mainData,
           index: data.conversation._id,
-          suggestedRes: data.suggestedRes,
-          fullRes: data.fullRes,
+         thread: data.thread,
           context: true,
         },
       });
@@ -457,7 +462,6 @@ const Message = () => {
       console.log(error);
     }
     setAILoading(false);
-    setPromptOpen(true);
   };
 
   // set image to show in form
@@ -474,31 +478,7 @@ const Message = () => {
     setFormData(formData);
   };
 
-  const PromptSection = ({ data }) => {
-    if (data.length === 0) {
-      let shuffled = shuffle(prompts);
-      data = shuffled.slice(0, 5);
-    }
-
-    return (
-      <div
-        className={`flex flex-col items-center py-4 bg-navBar justify-center rounded-lg w-[450px]  mb-5 gap-y-2
-      `}
-      >
-        {data.map((one) => (
-          <div
-            className="w-[400px] text-sm py-2 px-4 rounded-lg border-[1px] border-dialogue cursor-pointer"
-            onClick={() => {
-              setPageState("text", one);
-              setPromptOpen(false);
-            }}
-          >
-            <div>{one}</div>
-          </div>
-        ))}
-      </div>
-    );
-  };
+ 
 
   if (scrLoading) {
     return (
@@ -514,14 +494,14 @@ const Message = () => {
     <div className="w-screen bg-mainbg h-screen px-2 md:px-[5%] pt-[40px] md:pt-[70px] overflow-hidden">
       <div className="w-full h-full grid grid-cols-4 ">
         <div className="col-span-1 ">
-          <Left
+          <LeftChat
             dispatch={dispatch}
             getData={getData}
             setPageState={setPageState}
             state={state}
           />
         </div>
-        <div className="col-span-3 ">
+        <div className="col-span-3 flex flex-col max-h-[90vh]">
           <MainChat
             dispatch={dispatch}
             messagesEndRef={messagesEndRef}
@@ -534,116 +514,24 @@ const Message = () => {
             AI_ID={AI_ID}
           />
 
-          {/* form add new message */}
-          {!state.allConversations.length && !state.isNewMessage ? (
-            <></>
-          ) : (
-            <form
-              className="flex-grow-0 py-3 px-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-
-                handleSendMess(state.receivedUser, state.text);
-              }}
-            >
-              <div className="w-full rounded-full flex gap-x-2 items-center relative ">
-                {image?.url && (
-                  <div className="absolute w-[200px] h-[100px] md:w-[400px] md:h-[200px] rounded-md dark:bg-[#18191A] border dark:border-white/50 top-[-120px] md:top-[-220px] right-[60px] z-[20] flex items-center justify-center bg-[#8EABB4] border-[#333]/70 ">
-                    {state.loading && (
-                      <div className="absolute z-[21] bg-black/50 w-full h-full flex items-center justify-center ">
-                        <ReactLoading
-                          type="spin"
-                          width={40}
-                          height={40}
-                          color="#7d838c"
-                        />
-                      </div>
-                    )}
-                    <img
-                      src={image?.url}
-                      alt="attachment"
-                      className="h-full w-auto object-contain "
-                    />
-                    {!state.loading && (
-                      <MdCancel
-                        className="absolute text-2xl cursor-pointer top-1 right-1 transition-50 group-hover:flex opacity-50 hover:opacity-100 text-white  "
-                        onClick={() => {
-                          setImage(initImage);
-                        }}
-                      />
-                    )}
-                  </div>
-                )}
-                {state.receivedUser._id === AI_ID && (
-                  <PiBroom
-                    className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 cursor-pointer "
-                    onClick={() => {
-                      setPageState("context", false);
-                      toast.success("Context cleared!");
-                    }}
-                  />
-                )}
-                <input
-                  type="text"
-                  className="w-full bg-inherit first-line:focus:ring-0 focus:ring-white rounded-full border-[1px] border-[#8EABB4] flex px-4 items-center "
-                  placeholder="Type your message"
-                  value={state.text}
-                  onChange={(e) => setPageState("text", e.target.value)}
-                  disabled={!state.receivedUser || state.loading}
-                  ref={emailInputRef}
-                />
-                {state.receivedUser._id !== AI_ID && (
-                  <label>
-                    <AiOutlineCamera className="shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 dark:text-[#b0b3b8] cursor-pointer " />
-                    <input
-                      onChange={handleImage}
-                      type="file"
-                      accept="image/*"
-                      name="avatar"
-                      hidden
-                    />
-                  </label>
-                )}
-
-                {state.receivedUser._id === AI_ID && (
-                  <div className="" ref={exceptRef}>
-                    <HiLightBulb
-                      className=" shrink-0 text-xl transition-50 opacity-60 hover:opacity-100 cursor-pointer text-greenBtn "
-                      onClick={() => {
-                        setPromptOpen((prev) => !prev);
-                      }}
-                    />
-                  </div>
-                )}
-
-                {promptOpen && (
-                  <div ref={promptRef} className="right-[25px] bottom-[50px] absolute">
-                    <PromptSection ref={promptRef} data={state.suggestedRes} />
-                  </div>
-                )}
-                <button
-                  className="shrink-0 text-xl opacity-50 hover:opacity-80 cursor-pointer  "
-                  type="submit"
-                  disabled={!state.receivedUser || state.loading || !state.text}
-                >
-                  {state.loading ? (
-                    <ReactLoading
-                      type="spin"
-                      width={20}
-                      height={20}
-                      color="#7d838c"
-                    />
-                  ) : (
-                    <AiOutlineSend />
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
+          <div className="mb-5">
+            <MessageBox
+             state={state}
+             handleSendMess={handleSendMess}
+             image={image}
+             setImage={setImage}
+             initImage={initImage}
+             setPageState={setPageState}
+             emailInputRef={emailInputRef}
+             handleImage={handleImage}
+             text={state.text}
+             />
+          </div>
+        
         </div>
       </div>
     </div>
   );
 };
 
-export default Message;
+export default Chat;

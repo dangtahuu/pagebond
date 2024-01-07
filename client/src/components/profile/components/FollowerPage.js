@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import ReactLoading from "react-loading";
 import {toast} from "react-toastify";
-import {LoadingCard} from "../..";
 const FollowerPage = ({
     dark,
     userId,
@@ -39,8 +38,9 @@ const FollowerPage = ({
         }
         setLoading(false);
     };
+
     if (loading) {
-        return <LoadingCard />;
+        return <div className="w-full flex justify-center"><ReactLoading type="spin" width={30} height={30} color="#7d838c" /></div>
     }
 
     return (

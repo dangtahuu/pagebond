@@ -5,7 +5,7 @@ import { useAppContext } from "../../context/useContext";
 import { useNavigate } from "react-router-dom";
 import PeopleModal from "../common/PeopleModal";
 
-const Right = ({ book, openUpNext, setOpenUpNext}) => {
+const RightBook = ({ book, openUpNext, setOpenUpNext}) => {
   const { autoFetch, setOneState } = useAppContext();
   const navigate = useNavigate();
   const [chart, setChart] = useState([]);
@@ -184,4 +184,4 @@ const Right = ({ book, openUpNext, setOpenUpNext}) => {
   );
 };
 
-export default Right;
+export default RightBook;
