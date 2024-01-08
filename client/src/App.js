@@ -70,7 +70,7 @@ const App = () => {
 
 
             <Route path="/update-profile" element={<UpdateProfile />} />
-            <Route path="/detail/:type/:id" element={<PostDetail />} />
+            <Route path="/detail/:id" element={<PostDetail />} />
           </Route>
 
           <Route path="/home" element={<Home />} />

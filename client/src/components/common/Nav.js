@@ -52,8 +52,9 @@ const Nav = () => {
   const getNotifications = async () => {
     try {
       const { data } = await autoFetch.get(`api/log/noti`);
+      console.log(data)
       setNotifications(data.notifications);
-      setPage((prev) => prev++);
+      setPage((prev) => (prev+1));
       // console.log(data.notifications)
       setUnreadNoti(data.unread);
     } catch (e) {

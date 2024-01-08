@@ -7,17 +7,15 @@ import {
     updateUser,
     currentUser,
     ForgotPassword,
-    addFollower,
-    userFollower,
+    follow,
+    unfollow,
+    getFollowings,
+    getFollowers,
     findPeopleToFollow,
-    userFollowing,
-    removeFollower,
-    userUnFollower,
     searchUser,
     getInformationUser,
     allUsers,
     deleteUserWithAdmin,
-    listUserFollower,
     findPeopleWithMostInteraction,
     getPopularUsers,
     reportUser,
@@ -57,8 +55,8 @@ router
     .route("/admin/delete-user/:id")
     .delete(requireSignIn, isAdmin, deleteUserWithAdmin);
 
-router.route("/user-following/:id").get(requireSignIn, userFollowing);
-router.route("/user-follower/:id").get(requireSignIn, listUserFollower);
+router.route("/user-following/:id").get(requireSignIn, getFollowings);
+router.route("/user-follower/:id").get(requireSignIn, getFollowers);
 
 router.route("/find-people-to-follow").get(requireSignIn, findPeopleToFollow);
 router.route("/find-people-most-interaction").get(requireSignIn, findPeopleWithMostInteraction);
@@ -70,7 +68,9 @@ router.route("/search").get(
     // requireSignIn, 
     searchUser);
 
-router.route("/user-follow").put(requireSignIn, addFollower, userFollower);
+router.route("/user-follow").put(requireSignIn, follow)
+router.route("/user-unfollow").put(requireSignIn, unfollow);
+
 
 router.route("/all").get(requireSignIn, isAdmin, allUsers);
 router.route("/all-reported").get(requireSignIn, isAdmin, allReported);
@@ -81,7 +81,6 @@ router.route("/all-pending").get(requireSignIn, isAdmin, allPending);
 
 router.route("/:id").get(requireSignIn, getInformationUser);
 
-router.route("/user-unfollow").put(requireSignIn, removeFollower, userUnFollower);
 
 router.route("/gift-points").put(requireSignIn, giftPoints);
 router.route("/create-challenge").put(requireSignIn, createChallenge);

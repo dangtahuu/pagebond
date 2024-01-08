@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 
-const checkInput = (type, input)=>{
+const checkInputPost = (type, input)=>{
     console.log(input)
     if (!input.text) {
         toast.error("Text is missing");
@@ -40,4 +40,4 @@ const checkInput = (type, input)=>{
 
 }
 
-export default checkInput
+export default checkInputPost

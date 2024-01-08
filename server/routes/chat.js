@@ -9,7 +9,11 @@ router.route("/").get(async (req, res) => {
 });
 
 router.route("/all").get(getAll);
-router.route("/aichat").get(findAIChat);
+
+
+router.route("/aichat").post(findAIChat);
+
+
 router.route("/unread").get(getUnread);
 
 router.route("/send-message").put(sendMessage);

@@ -7,6 +7,8 @@ import sortObjectDes from "../utils/sortObjectDes.js";
 import shuffle from "../utils/shuffle.js";
 import { BingChat } from "bing-chat-rnz";
 import mongoose from "mongoose";
+import LogType from "../models/logType.js";
+import Log from "../models/log.js";
 
 const api = new BingChat({
   cookie:
@@ -47,6 +49,86 @@ const searchBook = async (req, res) => {
   }
 };
 
+const create = async (req, res) => {
+  let {
+    title,
+    author,
+    thumbnail,
+    googleBookId,
+    description,
+    genres,
+    publisher,
+    publishedDate,
+    previewLink,
+    pageCount,
+  } = req.body;
+
+  try {
+    if (genres) genres = genres.split(",");
+
+    const book = await Book.create({
+      title,
+      author,
+      thumbnail: thumbnail.url,
+      googleBookId,
+      description,
+      genres,
+      publisher,
+      publishedDate,
+      previewLink,
+      pageCount,
+    });
+
+    console.log(book);
+    return res.status(200).json({
+      book,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const edit = async (req, res) => {
+  let {
+    title,
+    author,
+    thumbnail,
+    googleBookId,
+    description,
+    genres,
+    publisher,
+    publishedDate,
+    previewLink,
+    pageCount,
+  } = req.body;
+
+  const {bookId} = req.params
+  try {
+    if (genres) genres = genres.split(",");
+
+    const book = await Book.findByIdAndUpdate(bookId,{
+      title,
+      author,
+      thumbnail: thumbnail?.url? thumbnail.url : thumbnail,
+      googleBookId,
+      description,
+      genres,
+      publisher,
+      publishedDate,
+      previewLink,
+      pageCount,
+    });
+
+    return res.status(200).json({
+      book
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
 const getBook = async (req, res) => {
   const id = req.params.id;
   if (!id) {
@@ -62,6 +144,32 @@ const getBook = async (req, res) => {
 
     return res.status(200).json({
       book: result,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const getAll = async (req, res) => {
+  try {
+    const books = await Book.find({});
+
+    return res.status(200).json({
+      books,
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+const getAllReported = async (req, res) => {
+  try {
+    const books = await Book.find({ reported: true });
+
+    return res.status(200).json({
+      books,
     });
   } catch (err) {
     console.log(err);
@@ -269,22 +377,22 @@ const getSimilarBooksForMultipleBooks = async (req, res) => {
             {
               "data.rating": { $gt: 3 },
             },
-            
-            { 
-              postedBy: mongoose.Types.ObjectId(userId)
-            }
-          ]
-        }
+
+            {
+              postedBy: mongoose.Types.ObjectId(userId),
+            },
+          ],
+        },
       },
       { $sample: { size: 5 } },
     ]);
 
-    console.log(posts)
+    console.log(posts);
 
     const ids = new Set();
 
     for (const obj of posts) {
-        ids.add(obj.data.book.toString());
+      ids.add(obj.data.book.toString());
     }
 
     let similarIds = [];
@@ -536,9 +644,76 @@ const getPopularBooks = async (req, res) => {
   }
 };
 
+const report = async (req, res) => {
+  try {
+    const { bookId, text } = req.body;
+    const userId = req.user.userId;
+
+    const book = await Book.findByIdAndUpdate(
+      bookId,
+      {
+        reported: true,
+      },
+      {
+        new: true,
+      }
+    );
+
+    const logType = await LogType.findOne({ name: "report_book" });
+
+    const log = await Log.create({
+      fromUser: req.user.userId,
+      type: logType._id,
+      typeOfLink: "Book",
+      linkTo: bookId,
+      note: text,
+    });
+
+    return res.status(200).json({ book });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
+const dismissReport = async (req, res) => {
+  try {
+    const { bookId } = req.body;
+    const book = await Book.findByIdAndUpdate(
+      bookId,
+      {
+        reported: false,
+      },
+      {
+        new: true,
+      }
+    );
+
+    const logType = await LogType.findOne({ name: "report_book" });
+
+    const logs = await Log.updateMany(
+      {
+        $and: [{ linkTo: bookId }, { type: logType._id }],
+      },
+      {
+        isDone: true,
+      }
+    );
+
+    return res.status(200).json({ book });
+  } catch (error) {
+    console.log(error);
+    return res.status(400).json({ msg: error });
+  }
+};
+
 export {
   searchBook,
+  create,
+  edit,
   getBook,
+  getAll,
+  getAllReported,
   getBookBySameAuthor,
   deleteAll,
   editAll,
@@ -549,4 +724,6 @@ export {
   fixGenres,
   getPopularBooks,
   getPromptsForBook,
+  report,
+  dismissReport,
 };

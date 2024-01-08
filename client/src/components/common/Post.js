@@ -20,6 +20,7 @@ import { Rating } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import Modal from "./Modal";
 import { formatDate } from "../../utils/formatDate";
+import SimpleForm from "./SimpleForm";
 
 const Post = ({
   currentPost,
@@ -44,28 +45,9 @@ const Post = ({
   // open model for edit post
   const [openModal, setOpenModal] = useState(false);
 
-  const [input, setInput] = useState({
-    title: currentPost?.detail?.title || "",
-    text: currentPost?.text || "",
-    rating: currentPost?.detail?.rating || "",
-    content: currentPost?.detail?.content || "",
-    development: currentPost?.detail?.development || "",
-    pacing: currentPost?.detail?.pacing || "",
-    writing: currentPost?.detail?.writing || "",
-    insights: currentPost?.detail?.insights || "",
-    dateRead: currentPost?.detail?.dateRead || "",
-    image: currentPost?.image || "",
-    condition: currentPost?.detail?.condition || "",
-    address: currentPost?.detail?.address || "",
-    location: currentPost?.detail?.location || "",
-    hashtag: currentPost?.hashtag?.map((one) => one.name) || [],
-    spoiler: currentPost?.spoiler || false,
-    postType: currentPost?.postType || "",
-  });
+  const [openReportModal, setOpenReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
 
-  const [attachment, setAttachment] = useState(
-    currentPost?.image ? "photo" : ""
-  );
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [type, setType] = useState("");
   const [answer, setAnswer] = useState("");
@@ -185,23 +167,23 @@ const Post = ({
         postId: post._id,
       });
       setPost({ ...post, save: data.post.save });
-      toast.success("Post unsaved!")
-
+      toast.success("Post unsaved!");
     } catch (error) {
       console.log(error);
-      toast.success("Something went wrong")
-
+      toast.success("Something went wrong");
     }
   };
 
   const save = async () => {
     try {
-      const { data } = await autoFetch.put(`/api/post/save`, { postId: post._id });
+      const { data } = await autoFetch.put(`/api/post/save`, {
+        postId: post._id,
+      });
       setPost({ ...post, save: data.post.save });
-      toast.success("Post saved!")
+      toast.success("Post saved!");
     } catch (error) {
       console.log(error);
-      toast.success("Something went wrong")
+      toast.success("Something went wrong");
     }
   };
 
@@ -229,10 +211,15 @@ const Post = ({
     }
   };
 
-  const reportPost = async (postId) => {
+  const reportPost = async () => {
+    if (!reportText) return;
+    if (!window.confirm("Do you want to report this post?")) {
+      return;
+    }
     try {
       const { data } = await autoFetch.patch(`api/post/report`, {
-        postId,
+        postId: post._id,
+        text: reportText,
       });
       toast("Report succesfully! An admin will look into your request");
     } catch (error) {
@@ -364,6 +351,19 @@ const Post = ({
         />
       )}
 
+      {openReportModal && (
+        <SimpleForm
+          text={reportText}
+          title="Report"
+          setOpenModal={setOpenReportModal}
+          setText={setReportText}
+          submitHandle={reportPost}
+          isEditPost={true}
+          label="Reason"
+          placeholder="Tell us your reason"
+        />
+      )}
+
       {/* header post */}
       <div className="flex items-center">
         {/* avatar */}
@@ -419,21 +419,25 @@ const Post = ({
               setShowOption(false);
             }}
           >
-            {post?.saved?.some((one)=>one.savedBy === user._id) ?    <li
-                  className="mt-1 px-3 py-1 bg-navBar rounded-md"
-                  onClick={() => {
-                      unsave();
-                  }}
-                >
-                  Unsave
-                </li>: <li
-                  className="mt-1 px-3 py-1 bg-navBar rounded-md"
-                  onClick={() => {
-                      save();
-                  }}
-                >
-                  Save
-                </li>}
+            {post?.saved?.some((one) => one.savedBy === user._id) ? (
+              <li
+                className="mt-1 px-3 py-1 bg-navBar rounded-md"
+                onClick={() => {
+                  unsave();
+                }}
+              >
+                Unsave
+              </li>
+            ) : (
+              <li
+                className="mt-1 px-3 py-1 bg-navBar rounded-md"
+                onClick={() => {
+                  save();
+                }}
+              >
+                Save
+              </li>
+            )}
             {user?._id === post?.postedBy?._id && (
               <>
                 <li
@@ -462,9 +466,7 @@ const Post = ({
                 <li
                   className="mt-1 px-3 py-1 bg-navBar rounded-md"
                   onClick={() => {
-                    if (window.confirm("Do you want to report this post?")) {
-                      reportPost(post?._id);
-                    }
+                    setOpenReportModal(true);
                   }}
                 >
                   Report

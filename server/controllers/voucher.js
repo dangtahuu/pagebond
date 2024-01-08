@@ -1,7 +1,7 @@
 import Log from "../models/log.js";
 import User from "../models/user.js";
 import Voucher from "../models/voucher.js";
-
+import LogType from "../models/logType.js";
 
 
 const create = async (req, res) => {
@@ -100,8 +100,6 @@ const redeem = async (req, res) => {
     const voucher = await Voucher.findById(id);
 
     if (!voucher) return res.status(400).json({ msg: "No voucher is found!" });
-    console.log(user.points);
-    console.log(voucher.points);
     if (user.points < voucher.points)
       return res.status(400).json({ msg: "Not enough points" });
 
@@ -116,14 +114,16 @@ const redeem = async (req, res) => {
       $inc: { points: voucher.points * -1 },
     });
 
+    const logType = await LogType.findOne({name: "redeem"})
+
     const log = await Log.create({
       toUser: req.user.userId,
       fromUser: req.user.userId,
-      typeOfLink: "Voucher",
       linkTo: id,
-      type: 9,
-      points: voucher.points * -1,
-      note: voucher.code[0],
+      typeOfLink: "Voucher",
+      type: logType._id,
+      points: logType.points,
+      note: voucher.code[0]
     });
 
     return res.status(200).json({ voucher: editedVoucher, log });

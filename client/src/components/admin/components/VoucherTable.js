@@ -20,7 +20,7 @@ const darkTheme = createTheme({
   },
 });
 
-const Voucher = ({}) => {
+const VoucherTable = ({}) => {
   const { autoFetch } = useAppContext();
 
   const [loading, setLoading] = useState(false);
@@ -162,4 +162,4 @@ const Voucher = ({}) => {
   );
 };
 
-export default Voucher;
+export default VoucherTable;

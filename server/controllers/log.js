@@ -1,109 +1,64 @@
 import Log from "../models/log.js";
 import User from "../models/user.js";
 
+import LogType from "../models/logType.js";
+
 const getNotifications = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const perPage = Number(req.query.perPage) || 10;
 
-    const unread = await Log.find({
-        $and: [
-          { toUser: req.user.userId },
-          { type: { $in: [1, 5, 7, 10, 11] } },
-          { isRead: false}
+    const types = await LogType.find({
+      name: {
+        $in: [
+          "comment",
+          "follow",
+          "send_points",
+          "verify_news",
+          "verify_account",
+          "report_post",
+          "report_account",
         ],
-      })
+      },
+    });
 
-    const unreadCount = unread.length
-      
+    const typeIds = types.map((one) => one._id);
 
-    const notifications = await Log.find({
+    const unread = await Log.countDocuments({
       $and: [
         { toUser: req.user.userId },
-        { type: { $in: [1, 5, 7, 10, 11] } },
+        { type: { $in: typeIds } },
+        { isDone: false },
       ],
+    });
+
+    const notifications = await Log.find({
+      $and: [{ toUser: req.user.userId }, { type: { $in: typeIds } }],
     })
       .populate({
         path: "fromUser",
         model: "User",
         select: "-password -secret",
       })
-      .limit(perPage)
+      .populate("linkTo")
+      .populate("type")
+      .sort({ createdAt: -1 })
       .skip((page - 1) * perPage)
-      .sort({ createdAt: -1 });
+      .limit(perPage);
 
-    const userLogs = notifications.filter((one) => one.typeOfLink === "User");
-
-    const postLogs = notifications.filter((one) => one.typeOfLink === "Post");
-
-    const postDetailLogs = await Log.populate(postLogs, {
-      path: "linkTo",
-      model: "Post",
-    });
-
-    console.log(postDetailLogs.length)
-    const reviewLogs = notifications.filter(
-      (one) => one.typeOfLink == "Review"
-    
-    );
-
-    const reviewDetailLogs = await Log.populate(reviewLogs, {
-      path: "linkTo",
-      model: "Review",
-    });
-
-    const tradeLogs = notifications.filter((one) => one.typeOfLink === "Trade");
-
-    const tradeDetailLogs = await Log.populate(tradeLogs, {
-      path: "linkTo",
-      model: "Trade",
-    });
-
-    
-    const newsLogs = notifications.filter(
-      (one) => one.typeOfLink === "News"
-    );
-
-    const newsDetailLogs = await Log.populate(newsLogs, {
-      path: "linkTo",
-      model: "News",
-    });
-
-    const questionLogs = notifications.filter(
-      (one) => one.typeOfLink === "Question"
-    );
-
-    const questionDetailLogs = await Log.populate(questionLogs, {
-      path: "linkTo",
-      model: "Question",
-    });
-
-    let allNoti = [
-      ...userLogs,
-      ...postDetailLogs,
-      ...reviewDetailLogs,
-      ...tradeDetailLogs,
-      ...newsDetailLogs,
-      ...questionDetailLogs
-    ];
-
-    allNoti.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    return res.status(200).json({ notifications: allNoti, unread: unreadCount });
+    return res.status(200).json({ notifications, unread });
   } catch (err) {
     console.log(err);
     return res.status(400).json({ msg: err });
   }
 };
 
-
-
 const markRead = async (req, res) => {
   try {
-    const {id} = req.body
-    const noti = await Log.findByIdAndUpdate(id,{
-        isRead: true
-      })
+    const { id } = req.body;
+    const noti = await Log.findByIdAndUpdate(id, {
+      isDone: true,
+    });
 
     return res.status(200).json({ notification: noti });
   } catch (err) {
@@ -114,15 +69,22 @@ const markRead = async (req, res) => {
 
 const markReadAll = async (req, res) => {
   try {
-    const notis = await Log.updateMany({
-        $and: [
-          { toUser: req.user.userId },
-          { type: { $in: [1, 5, 7, 10, 11] } },
-          { isRead: false}
-        ],
-      },{
-        isRead: true
-      })
+    const types = await LogType.find({
+      name: {
+        $nin: ["redeem"],
+      },
+    });
+
+    const typeIds = types.map((one) => one._id);
+
+    const notis = await Log.updateMany(
+      {
+        $and: [{ toUser: req.user.userId }, { type: { $in: typeIds } }],
+      },
+      {
+        isDone: true,
+      }
+    );
 
     return res.status(200).json({ notifications: notis });
   } catch (err) {
@@ -132,103 +94,87 @@ const markReadAll = async (req, res) => {
 };
 
 const getLogs = async (req, res) => {
-  const {id} = req.params
-    try {
-      const page = Number(req.query.page) || 1;
-      const perPage = Number(req.query.perPage) || 50;
-  
-      const logs = await Log.find({
-         $and: [ { toUser: id },
-          { type: { $nin: [10,11] } },
-        ],
-      })
-        .populate({
-          path: "fromUser",
-          model: "User",
-          select: "-password -secret",
-        })
-        .limit(perPage)
-        .skip((page - 1) * perPage)
-        .sort({ createdAt: -1 });
-  
-      const userLogs = logs.filter((one) => one.typeOfLink === "User");
-      const userDetailLogs = await Log.populate(userLogs, {
-        path: "linkTo",
+  const { id } = req.params;
+  try {
+    const page = Number(req.query.page) || 1;
+    const perPage = Number(req.query.perPage) || 50;
+
+    const logs = await Log.find({ toUser: id })
+      .populate({
+        path: "fromUser",
         model: "User",
-      });
-      const postLogs = logs.filter((one) => one.typeOfLink === "Post");
-  
-      const postDetailLogs = await Log.populate(postLogs, {
-        path: "linkTo",
-        model: "Post",
-      });
-  
-      const reviewLogs = logs.filter(
-        (one) => one.typeOfLink == "Review"
-      
-      );
-  
-      const reviewDetailLogs = await Log.populate(reviewLogs, {
-        path: "linkTo",
-        model: "Review",
-      });
-  
-      const tradeLogs = logs.filter((one) => one.typeOfLink === "Trade");
-  
-      const tradeDetailLogs = await Log.populate(tradeLogs, {
-        path: "linkTo",
-        model: "Trade",
-      });
-  
-      
-      const newsLog = logs.filter(
-        (one) => one.typeOfLink === "News"
-      );
-  
-      const newsDetailLogs = await Log.populate(newsLog, {
-        path: "linkTo",
-        model: "News",
-      });
+        select: "-password -secret",
+      })
+      .populate({
+        path: "toUser",
+        model: "User",
+        select: "-password -secret",
+      })
+      .populate("linkTo")
+      .populate("type")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * perPage)
+      .limit(perPage);
 
-      const voucherLogs = logs.filter(
-        (one) => one.typeOfLink === "Voucher"
-      );
-  
-      const voucherDetailLogs = await Log.populate(voucherLogs, {
-        path: "linkTo",
-        model: "Voucher",
-      });
-  
-      let allLogs = [
-        ...userDetailLogs,
-        ...postDetailLogs,
-        ...reviewDetailLogs,
-        ...tradeDetailLogs,
-        ...newsDetailLogs,
-        ...voucherDetailLogs
-      ];
-  
-      allLogs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  
-      return res.status(200).json({ logs: allLogs });
-    } catch (err) {
-      console.log(err);
-      return res.status(400).json({ msg: err });
-    }
-  };
+    return res.status(200).json({ logs });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
 
+const markAsDone = async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ msg: "Id is required" });
 
-  const markAsUsed = async (req, res) => {
-    try {
-      const { id } = req.body;
-      if (!id) return res.status(400).json({ msg: "Id is required" })
-  
-      const log = await Log.findByIdAndUpdate(id,{isRead: true},{new: true});
-      return res.status(200).json({ log });
-    } catch (err) {
-      console.log(err);
-      return res.status(400).json({ msg: err });
-    }
-  };
+    const log = await Log.findByIdAndUpdate(
+      id,
+      { isDone: true },
+      { new: true }
+    );
+    return res.status(200).json({ log });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
 
-export { getNotifications, getLogs, markRead, markReadAll, markAsUsed };
+const getReport = async (req, res) => {
+  const { id, type } = req.params;
+  try {
+    const name = type === "Post" ? "report_post" : "report_account";
+
+    const logType = await LogType.findOne({ name });
+
+    const logs = await Log.find({
+      $and: [{ linkTo: id }, { typeOfLink: type }, { type: logType._id }],
+    })
+      .populate({
+        path: "fromUser",
+        model: "User",
+        select: "-password -secret",
+      })
+      .populate({
+        path: "toUser",
+        model: "User",
+        select: "-password -secret",
+      })
+      .populate("linkTo")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ logs });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ msg: err });
+  }
+};
+
+export {
+  getNotifications,
+  getLogs,
+  markRead,
+  markReadAll,
+  markAsDone,
+  getReport,
+};

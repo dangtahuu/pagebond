@@ -30,7 +30,7 @@ import {
 } from "@mdxeditor/editor";
 
 import "./common.css";
-import checkInput from "../../utils/checkInput";
+import checkInputPost from "../../utils/checkInputPost";
 
 const ReviewForm = ({
   setOpenModal,
@@ -243,7 +243,7 @@ const ReviewForm = ({
   };
 
   const handleButton = () => {
-    const result = checkInput(type,input)
+    const result = checkInputPost(type,input)
     if (!result) return;
     if (current) {
       // Edit post
@@ -305,7 +305,6 @@ const ReviewForm = ({
   const updatePost = async () => {
     setPostLoading(true);
     try {
-      let image=null;
       if (formData) {
         const { data } = await autoFetch.post(
           `/api/post/upload-image`,

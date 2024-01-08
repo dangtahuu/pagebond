@@ -7,6 +7,7 @@ import { BingChat } from "bing-chat-rnz";
 import mongoose from "mongoose";
 import { OpenAIAssistantRunnable } from "langchain/experimental/openai_assistant";
 import OpenAI from "openai";
+import LogType from "../models/logType.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -422,13 +423,12 @@ const getAssistant = async (req, res) => {
 };
 
 const findAIChat = async (req, res) => {
+  const {name} = req.body
   try {
-    const { userId } = req.query;
-    console.log([process.env.AI_ID, userId].sort());
-    let conversation = await Conversation.findOne({
-      members: { $all: [process.env.AI_ID, userId] },
-    });
-    return res.status(200).json({ conversation });
+  await LogType.create({
+    name: name
+  })
+    return res.status(200).json({ msg: "success" });
   } catch (e) {
     console.log(e);
     return res.status(400).json({ msg: "error" });

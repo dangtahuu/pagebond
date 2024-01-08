@@ -14,6 +14,7 @@ import { TbUserCheck } from "react-icons/tb";
 import { TbLockOpen } from "react-icons/tb";
 import { TbLock } from "react-icons/tb";
 import {formatDate} from "../../../utils/formatDate";
+import ReportInfo from "./ReportInfo";
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
@@ -27,13 +28,15 @@ const apis = {
   Pending: `/api/auth/all-pending`,
 };
 
-const UserGrid = ({ option }) => {
+const UserTable = ({ option }) => {
   const { autoFetch } = useAppContext();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   const [listUser, setListUser] = useState([]);
-  const [totalUser, setTotalUser] = useState(0);
+
+  const [reportId, setReportId] = useState("");
+  const [openReportModal, setOpenReportModal] = useState(false);
 
   useEffect(() => {
     getAllUsers();
@@ -42,7 +45,6 @@ const UserGrid = ({ option }) => {
   const getAllUsers = async () => {
     try {
       const { data } = await autoFetch.get(apis[option]);
-      setTotalUser(data.numberUsers);
       //   setListUser(data.users);
       const array = data.users.map((v, index) => {
         return {
@@ -195,7 +197,10 @@ const UserGrid = ({ option }) => {
     if (params.field === "block") return handleBlock(params.row.id);
     if (params.field === "unblock") return handleUnblock(params.row.id);
     if (params.field === "verify") return handleVerify(params.row.id);
-
+    if (params.field === "status") {
+      setReportId(params.row.id);
+      return setOpenReportModal(true);
+  }
     return navigate(`/profile/${params.row.id}`);
   };
 
@@ -207,7 +212,9 @@ const UserGrid = ({ option }) => {
     );
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <div>
+ {openReportModal && <ReportInfo id={reportId} type="User" setOpenModal={setOpenReportModal}/>}
+<ThemeProvider theme={darkTheme}>
       <DataGrid
         //    className="!bg-dialogue !text-mainText"
         rows={listUser}
@@ -236,7 +243,9 @@ const UserGrid = ({ option }) => {
         onCellClick={handleCellClick}
       />
     </ThemeProvider>
+    </div>
+   
   );
 };
 
-export default UserGrid;
+export default UserTable;

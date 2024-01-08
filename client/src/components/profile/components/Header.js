@@ -11,6 +11,7 @@ import GiftForm from "../../common/GiftForm";
 import HeaderMenu from "../../common/HeaderMenu";
 import { Navigate } from "react-router-dom";
 import { useAppContext } from "../../../context/useContext";
+import SimpleForm from "../../common/SimpleForm";
 
 const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPosts }) => {
   const { autoFetch, socket, setNameAndToken, token } = useAppContext();
@@ -20,6 +21,9 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
 
   const [giftFormOpen, setGiftFormOpen] = useState(false);
   const [points, setPoints] = useState(0);
+
+  const [openReportModal, setOpenReportModal] = useState(false);
+  const [reportText, setReportText] = useState("");
 
   const list = ["Posts", "Saved","Shelves", "Diary", "Points", "Following", "Follower"];
   const urlList = [
@@ -41,7 +45,7 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
     return <Navigate to="/" />;
   }
 
-  const handleFollower = async (user) => {
+  const handleFollow = async (user) => {
     try {
       const { data } = await autoFetch.put(`/api/auth/user-follow`, {
         userId: user._id,
@@ -57,7 +61,7 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
       toast.error(error.response.data.msg || "Something went wrong");
     }
   };
-  const handleUnFollow = async (user) => {
+  const handleUnfollow = async (user) => {
     try {
       const { data } = await autoFetch.put(`/api/auth/user-unfollow`, {
         userId: user._id,
@@ -72,9 +76,15 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
   };
 
   const handleReport = async () => {
+    if (!reportText) return;
+    if (!window.confirm("Do you want to report this post?")) {
+      return;
+    }
+
     try {
       const { data } = await autoFetch.patch(`/api/auth/report`, {
         userId: user._id,
+        text: reportText
       });
       toast.success(
         "Report successfully! An admin will look into your request soon"
@@ -125,7 +135,7 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
           <button
             className="primary-btn bg-black rounded-lg hover:bg-smallText"
             onClick={() => {
-              handleUnFollow(user);
+              handleUnfollow(user);
             }}
           >
             Unfollow
@@ -135,9 +145,7 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
         <button
           className="primary-btn bg-black rounded-lg hover:bg-smallText"
           onClick={() => {
-            if (window.confirm("Are you sure you want to report this user?")) {
-              handleReport();
-            }
+          setOpenReportModal(true)
           }}
         >
           Report
@@ -182,7 +190,7 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
               {!own.following.includes(user._id) && user._id !== own._id && (
                 <button
                   className="primary-btn"
-                  onClick={() => handleFollower(user)}
+                  onClick={() => handleFollow(user)}
                 >
                   Follow
                 </button>
@@ -288,6 +296,19 @@ const Header = ({ user, own, tabView, currentUserId, numberOfBooks, numberOfPost
           </ul>
         )}
       </div>
+
+      {openReportModal && (
+        <SimpleForm
+          text={reportText}
+          title="Report"
+          setOpenModal={setOpenReportModal}
+          setText={setReportText}
+          submitHandle={handleReport}
+          isEditPost={true}
+          label="Reason"
+          placeholder="Tell us your reason"
+        />
+      )}
 
       {giftFormOpen && (
         <GiftForm

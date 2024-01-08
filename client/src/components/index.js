@@ -19,7 +19,7 @@ import PostDetail from "./post/PostDetail";
 
 
 import {LeftChat, MainChat, MessageBox} from "./chat/index"
-import {LeftBook, RightBook, MainBook, CarouselBook, InformationBook, Featured} from "./book/index"
+import {LeftBook, RightBook, MainBook, CarouselBook, InformationBook, Featured, FloatFeedback} from "./book/index"
 
 import ShelvesForm from "./common/ShelvesForm";
 import ModalShelf from "./common/SimpleForm";
@@ -44,6 +44,6 @@ export {
   Search,
   ReviewForm,
   HeaderMenu,
-  LeftBook, RightBook, MainBook, CarouselBook, InformationBook, Featured,
+  LeftBook, RightBook, MainBook, CarouselBook, InformationBook, Featured, FloatFeedback,
   LeftChat, MainChat, MessageBox,
 };

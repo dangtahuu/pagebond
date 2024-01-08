@@ -3,15 +3,6 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { toast } from "react-toastify";
 import { AiOutlineCheck } from "react-icons/ai";
 
-const notiText = {
-  1: "has followed you",
-  3: "has liked your post",
-  5: "has commented on your post",
-  7: "has sent you",
-  8: "has verified your account",
-  9: "has veried your post",
-};
-
 const Notification = ({
   notificationsLoading,
   getNotifications,
@@ -24,7 +15,6 @@ const Notification = ({
   hasMoreNotifications,
   setHasMoreNotifications,
 }) => {
-  
   const Card = ({ data }) => {
     const [noti, setNoti] = useState(data);
 
@@ -38,19 +28,7 @@ const Notification = ({
             navigate(`/profile/${data.fromUser._id}`);
             break;
           case "Post":
-            navigate(`/detail/post/${data.linkTo._id}`);
-            break;
-          case "Trade":
-            navigate(`/detail/trade/${data.linkTo._id}`);
-            break;
-          case "Review":
-            navigate(`/detail/review/${data.linkTo._id}`);
-            break;
-          case "Question":
-            navigate(`/detail/question/${data.linkTo._id}`);
-            break;
-          case "News":
-            navigate(`/detail/news/${data.linkTo._id}`);
+            navigate(`/detail/${data.linkTo._id}`);
             break;
           default:
             break;
@@ -65,10 +43,40 @@ const Notification = ({
       }
     };
 
+    const NotiText = () => {
+      console.log(data);
+      switch (data?.type?.name) {
+        case "comment":
+          return (
+            <>
+              <span>has commented on your post</span>{" "}
+              <div className="text-smallText">
+                {noti?.linkTo?.text.slice(0, 20)}
+              </div>
+            </>
+          );
+        case "follow":
+          return (
+            <>
+              <span>started following you</span>{" "}
+            </>
+          );
+        case "gifted":
+          return (
+            <>
+              <span>has gifted you</span>
+              <span>{noti?.points}</span>
+            </>
+          );
+        default:
+          return <></>;
+      }
+    };
+
     return (
       <div
         className={`${
-          noti.isRead ? `` : `bg-mainbg`
+          noti.isDone ? `` : `bg-mainbg`
         } hover:bg-altDialogue transition-20 cursor-pointer rounded-lg flex justify-between items-center w-full p-2 text-sm mb-2`}
         onClick={() => {
           handeClick(noti._id);
@@ -81,17 +89,10 @@ const Notification = ({
           />
           <div>
             <span className="font-semibold">{noti?.fromUser?.name}</span>{" "}
-            {notiText[noti.type]}{" "}
-            <span className="font-semibold">
-              {noti.type === 7 && noti.points}
-            </span>
-            <div className="text-smallText">
-              {(noti.type === 3 || noti.type === 5 || noti.type === 10) &&
-                noti?.linkTo?.text.slice(0,20)}
-            </div>
+            <NotiText />
           </div>
         </div>
-        {!noti.isRead && (
+        {!noti.isDone && (
           <div className="rounded-full bg-greenBtn w-[10px] h-[10px]"></div>
         )}
       </div>
@@ -102,7 +103,7 @@ const Notification = ({
     try {
       setPage(1);
       setHasMoreNotifications(true);
-     setNotiMenu(false)
+      setNotiMenu(false);
       await autoFetch.patch("api/log/noti/mark-read-all");
       await getNotifications();
     } catch (error) {

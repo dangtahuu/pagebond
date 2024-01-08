@@ -11,6 +11,7 @@ import Hashtag from "../models/hashtag.js";
 import shuffle from "../utils/shuffle.js";
 import findMostDuplicates from "../utils/findMostDuplicate.js";
 import post from "./../models/post.js";
+import LogType from "../models/logType.js";
 
 cloudinary.v2.config({
   cloud_name: "dksyipjlk",
@@ -42,7 +43,6 @@ const createPost = async (req, res) => {
       }
     }
 
-    console.log('mmmmmmmmmmmmmm')
 
     const post = await Post.create({
       text,
@@ -72,10 +72,10 @@ const createPost = async (req, res) => {
 };
 
 const getAll = async (req, res) => {
-  const { postType } = req.params;
+  const { type } = req.query;
   try {
     let posts;
-    if (!postType) {
+    if (!type) {
       posts = await Post.find({})
         .populate("postedBy", "-password -secret")
         .populate("hashtag")
@@ -85,7 +85,7 @@ const getAll = async (req, res) => {
         })
         .sort({ createdAt: -1 });
     } else {
-      posts = await Post.find({ postType })
+      posts = await Post.find({ postType:type })
         .populate("postedBy", "-password -secret")
         .populate("hashtag")
         .populate({
@@ -98,8 +98,7 @@ const getAll = async (req, res) => {
     if (!posts) {
       return res.status(400).json({ msg: "No posts found!" });
     }
-    const postsCount = await Post.find({}).estimatedDocumentCount();
-    return res.status(200).json({ posts, postsCount });
+    return res.status(200).json({ posts });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ msg: error });
@@ -107,11 +106,11 @@ const getAll = async (req, res) => {
 };
 
 const getAllReported = async (req, res) => {
-  const { postType } = req.params;
+  const { type } = req.query;
   try {
     let posts;
-    if (!postType) {
-      posts = await Post.find({ reportedBy: { $ne: [] } })
+    if (!type) {
+      posts = await Post.find({ reported: true })
         .populate("postedBy", "-password -secret")
         .populate("hashtag")
         .populate({
@@ -121,7 +120,7 @@ const getAllReported = async (req, res) => {
         .sort({ createdAt: -1 });
     } else {
       posts = await Post.find({
-        $and: [{ postType }, { reportedBy: { $ne: [] } }],
+        $and: [{ postType: type }, { reported: true  }],
       })
         .populate("postedBy", "-password -secret")
         .populate("hashtag")
@@ -406,8 +405,10 @@ const likePost = async (req, res) => {
       }
     );
 
+    const logType = await LogType.findOne({name: "like"})
+
     const user = await User.findByIdAndUpdate(post.postedBy, {
-      $inc: { points: 5 },
+      $inc: { points: logType.points },
     });
 
     const log = await Log.create({
@@ -415,8 +416,8 @@ const likePost = async (req, res) => {
       fromUser: req.user.userId,
       linkTo: post._id,
       typeOfLink: "Post",
-      type: 3,
-      points: 5,
+      type: logType._id,
+      points: logType.points,
     });
 
     return res.status(200).json({ post });
@@ -439,8 +440,10 @@ const unlikePost = async (req, res) => {
       }
     );
 
+    const logType = await LogType.findOne({name: "unlike"})
+
     const user = await User.findByIdAndUpdate(post.postedBy, {
-      $inc: { points: -5 },
+      $inc: { points: logType.points },
     });
 
     const log = await Log.create({
@@ -448,9 +451,10 @@ const unlikePost = async (req, res) => {
       fromUser: req.user.userId,
       linkTo: post._id,
       typeOfLink: "Post",
-      type: 4,
-      points: -5,
+      type: logType._id,
+      points: logType.points,
     });
+
     return res.status(200).json({ post });
   } catch (error) {
     console.log(error);
@@ -525,8 +529,10 @@ const addComment = async (req, res) => {
       })
       .populate("hashtag");
 
+  const logType = await LogType.findOne({name: "comment"})
+
     const user = await User.findByIdAndUpdate(post.postedBy, {
-      $inc: { points: 20 },
+      $inc: { points: logType.points },
     });
 
     const log = await Log.create({
@@ -534,8 +540,8 @@ const addComment = async (req, res) => {
       fromUser: req.user.userId,
       linkTo: post._id,
       typeOfLink: "Post",
-      type: 5,
-      points: 20,
+      type: logType._id,
+      points: logType.points,
     });
     return res.status(200).json({ post });
   } catch (error) {
@@ -564,18 +570,20 @@ const removeComment = async (req, res) => {
       })
       .populate("hashtag");
 
-    const user = await User.findByIdAndUpdate(post.postedBy, {
-      $inc: { points: -20 },
-    });
+      const logType = await LogType.findOne({name: "uncomment"})
 
-    const log = await Log.create({
-      toUser: post.postedBy,
-      fromUser: req.user.userId,
-      linkTo: post._id,
-      typeOfLink: "Post",
-      type: 6,
-      points: -20,
-    });
+      const user = await User.findByIdAndUpdate(post.postedBy, {
+        $inc: { points: logType.points },
+      });
+  
+      const log = await Log.create({
+        toUser: post.postedBy,
+        fromUser: req.user.userId,
+        linkTo: post._id,
+        typeOfLink: "Post",
+        type: logType._id,
+        points: logType.points,
+      });
 
     return res.status(200).json({ post });
   } catch (error) {
@@ -978,18 +986,29 @@ const getPopular = async (req, res) => {
 
 const report = async (req, res) => {
   try {
-    const postId = req.body.postId;
+    const {postId, text} = req.body;
     const userId = req.user.userId;
 
     const post = await Post.findByIdAndUpdate(
       postId,
       {
-        $addToSet: { reportedBy: userId },
+        reported: true
       },
       {
         new: true,
       }
     );
+
+    const logType = await LogType.findOne({name: "report_post"})
+
+    const log = await Log.create({
+      toUser: post.postedBy,
+      fromUser: req.user.userId,
+      type: logType._id,
+      typeOfLink: "Post",
+      linkTo: postId,
+      note: text
+    })
 
     return res.status(200).json({ post });
   } catch (error) {
@@ -1004,13 +1023,20 @@ const dismissReport = async (req, res) => {
     const post = await Post.findByIdAndUpdate(
       postId,
       {
-        reportedBy: [],
+        reported: false
       },
       {
         new: true,
       }
     );
 
+    const logType = await LogType.findOne({ name: "report_post" });
+
+    const logs = await Log.updateMany({
+      $and: [{ linkTo: postId }, { type: logType._id }]
+    },{
+      isDone: true
+    })
     return res.status(200).json({ post });
   } catch (error) {
     console.log(error);

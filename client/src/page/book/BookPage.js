@@ -2,28 +2,23 @@ import React, { useRef } from "react";
 import { useAppContext } from "../../context/useContext";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiEdit2 } from "react-icons/fi";
-import ShelvesForm from "../../components/common/ShelvesForm";
-import { Rating, Tooltip } from "@mui/material";
-import { VscOpenPreview } from "react-icons/vsc";
-import Post from "../../components/common/Post";
+
 import ReactLoading from "react-loading";
-import { LuBadgeCheck } from "react-icons/lu";
-import { AiOutlineMessage } from "react-icons/ai";
-import { toast } from "react-toastify";
 
-import { TbEyeglass } from "react-icons/tb";
-import { BsBookmarkPlus } from "react-icons/bs";
-import useOnClickOutside from "../../hooks/useOnClickOutside";
-
-
-import {LeftBook, RightBook, MainBook, CarouselBook, InformationBook, Featured} from "../../components/index"
+import {
+  LeftBook,
+  RightBook,
+  MainBook,
+  CarouselBook,
+  InformationBook,
+  Featured,
+  FloatFeedback,
+} from "../../components/index";
 
 function BookPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { autoFetch, openModal,setOneState } =
-    useAppContext();
+  const { autoFetch, openModal, setOneState } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [openShelf, setOpenShelf] = useState(false);
   const [openUpNext, setOpenUpNext] = useState(false);
@@ -70,7 +65,6 @@ function BookPage() {
 
   const [similarBooks, setSimilarBooks] = useState([]);
   const [promptList, setPromptList] = useState([]);
- 
 
   const promptRef = useRef();
   const exceptRef = useRef();
@@ -153,8 +147,6 @@ function BookPage() {
   //   setPromptLoading(false);
   // };
 
-  
-
   const getSimilarBooks = async (author) => {
     try {
       const { data } = await autoFetch.get(`/api/book/get-similar-books/${id}`);
@@ -191,8 +183,6 @@ function BookPage() {
     }
   };
 
- 
-
   if (loading)
     return (
       <div className="w-screen flex min-h-screen bg-mainbg justify-center">
@@ -205,8 +195,19 @@ function BookPage() {
       className={`w-screen text-base min-h-screen bg-mainbg text-mainText pt-[65px] px-[3%] sm:px-[5%]`}
     >
       <div className="w-full mt-[3%] pt-3  md:grid grid-cols-10 items-start justify-center gap-x-8 py-16 px-4">
-        <div className={`col-span-2 md:pr-8 sticky top-[65px] ${openShelf && "z-[100000]"}`}>
-          <LeftBook book={book} bookId={id} status={status} setStatus={setStatus} openShelf={openShelf} setOpenShelf={setOpenShelf}/>
+        <div
+          className={`col-span-2 md:pr-8 sticky top-[65px] ${
+            openShelf && "z-[100000]"
+          }`}
+        >
+          <LeftBook
+            book={book}
+            bookId={id}
+            status={status}
+            setStatus={setStatus}
+            openShelf={openShelf}
+            setOpenShelf={setOpenShelf}
+          />
         </div>
 
         <div className="col-span-5">
@@ -217,8 +218,16 @@ function BookPage() {
           <MainBook id={id} book={book} setStatus={setStatus} />
         </div>
 
-        <div className={`col-span-3 sticky top-[65px] max-h-[80vh] overflow-auto ${openUpNext && "z-[100000]"}`}>
-         <RightBook book={book} openUpNext={openUpNext} setOpenUpNext={setOpenUpNext}/>
+        <div
+          className={`col-span-3 sticky top-[65px] max-h-[80vh] overflow-auto ${
+            openUpNext && "z-[100000]"
+          }`}
+        >
+          <RightBook
+            book={book}
+            openUpNext={openUpNext}
+            setOpenUpNext={setOpenUpNext}
+          />
         </div>
       </div>
 
@@ -237,6 +246,7 @@ function BookPage() {
           <></>
         )}
       </div>
+      <FloatFeedback id={id}/>
     </div>
   );
 }

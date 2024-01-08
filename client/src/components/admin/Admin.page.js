@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../context/useContext";
-import UserGrid from "./components/UserGrid";
-import PostGrid from "./components/PostGrid";
+import UserTable from "./components/UserTable";
+import PostTable from "./components/PostTable";
 import HeaderMenu from "../common/HeaderMenu";
-import News from "./components/News";
-import Voucher from "./components/Voucher";
+import NewsTable from "./components/NewsTable";
+import VoucherTable from "./components/VoucherTable";
+import BookTable from "./components/BookTable";
 
 const Admin = () => {
   const [bigMenu, setBigMenu] = useState("Users");
   const bigList = [
     "Users",
+    "Books",
     "Posts",
     "Reviews",
     "Trades",
@@ -53,14 +55,15 @@ const Admin = () => {
           <HeaderMenu list={postList} menu={menu} handler={setMenu} />
         )}
 
-        {bigMenu === "Users" && <UserGrid option={menu} />}
-        {bigMenu === "News" && <News option={menu} />}
+        {bigMenu === "Users" && <UserTable option={menu} />}
+        {bigMenu === "News" && <NewsTable option={menu} />}
         
-        {bigMenu === "Vouchers" && <Voucher />}
+        {bigMenu === "Vouchers" && <VoucherTable />}
 
+        {bigMenu === "Books" && <BookTable option={menu}/>}
 
-        {bigMenu !== "Users" && bigMenu !== "News" && bigMenu !== "Vouchers" && (
-          <PostGrid option={menu} menu={bigMenu} />
+        {bigMenu !== "Users" && bigMenu !== "Books" && bigMenu !== "News" && bigMenu !== "Vouchers" && (
+          <PostTable option={menu} menu={bigMenu} />
         )}
       </div>
     </div>

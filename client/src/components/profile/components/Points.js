@@ -19,25 +19,7 @@ const formatDate = (timestamp) => {
   return localTime;
 };
 
-const notiText = {
-  1: "has followed you",
-  2: "has unfollowed you",
-  3: "has liked your post",
-  4: "has unliked your post",
-  5: "has commented on your post",
-  6: "has removed comment on your post",
-  7: "has sent you",
-  8: "have sent",
-  9: "have redeemed voucher",
-};
-
 const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
-  const initList = {
-    name: "",
-
-    _id: "",
-  };
-
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
@@ -76,7 +58,7 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
       const { data } = await autoFetch.get(`/api/log/logs/${user._id}`);
       setLogs(data.logs);
       const voucher_type = data.logs.filter(
-        (one) => one.type === 9 && one.isRead === false
+        (one) => one.type === 9 && one.isDone === false
       );
       setRedeemed(voucher_type);
       // handleHistoryMenu(historyMenu)
@@ -127,31 +109,30 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
   };
 
   const handeClickLogs = (data) => {
-    console.log(data)
-      switch (data.typeOfLink) {
-        case "User":
-          if(data.type===7) navigate(`/profile/${data.fromUser._id}`);
-          else navigate(`/profile/${data.linkTo._id}`)
-          break;
-        case "Post":
-          navigate(`/detail/post/${data.linkTo._id}`);
-          break;
-        case "Trade":
-          navigate(`/detail/trade/${data.linkTo._id}`);
-          break;
-        case "Review":
-          navigate(`/detail/review/${data.linkTo._id}`);
-          break;
-        case "Question":
-          navigate(`/detail/question/${data.linkTo._id}`);
-          break;
-        case "News":
-          navigate(`/detail/news/${data.linkTo._id}`);
-          break;
-        default:
-          break;
-      }
-    
+    console.log(data);
+    switch (data.typeOfLink) {
+      case "User":
+        if (data.type === 7) navigate(`/profile/${data.fromUser._id}`);
+        else navigate(`/profile/${data.linkTo._id}`);
+        break;
+      case "Post":
+        navigate(`/detail/post/${data.linkTo._id}`);
+        break;
+      case "Trade":
+        navigate(`/detail/trade/${data.linkTo._id}`);
+        break;
+      case "Review":
+        navigate(`/detail/review/${data.linkTo._id}`);
+        break;
+      case "Question":
+        navigate(`/detail/question/${data.linkTo._id}`);
+        break;
+      case "News":
+        navigate(`/detail/news/${data.linkTo._id}`);
+        break;
+      default:
+        break;
+    }
   };
 
   const Voucher = ({ data }) => {
@@ -233,71 +214,147 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
   };
 
   const HistorySection = ({ data, menu }) => {
-    let filteredData = []
+    let filteredData = [];
     switch (menu) {
       case "All": {
-        filteredData= data;
-         break;
+        filteredData = data;
+        break;
       }
       case "Following": {
-        filteredData = data.filter((one) => one.type === 1 || one.type === 2);
+        filteredData = data.filter(
+          (one) => one.type.name === "follow" || one.type.name === "unfollow"
+        );
         break;
       }
       case "Likes": {
-        filteredData = data.filter((one) => one.type === 3 || one.type === 4);
-         break;
+        filteredData = data.filter(
+          (one) => one.type.name === "like" || one.type.name === "unlike"
+        );
+        break;
       }
       case "Comments": {
-        filteredData = data.filter((one) => one.type === 5 || one.type === 6);
-         break;
+        filteredData = data.filter(
+          (one) => one.type.name === "comment" || one.type.name === "uncomment"
+        );
+        break;
       }
       case "Gifted": {
-        filteredData =  data.filter((one) => one.type === 7);
-         break;
+        filteredData = data.filter(
+          (one) => one.type.name === "gift" || one.type.name === "gifted"
+        );
+        break;
       }
       case "Vouchers": {
-        filteredData =  data.filter((one) => one.type === 9);
-         break;
+        filteredData = data.filter((one) => one.type.name === "redeem");
+        break;
       }
       default:
         break;
     }
+
+    const NotiText = ({ noti }) => {
+      console.log(data);
+      switch (noti?.type?.name) {
+        case "like":
+          return (
+            <>
+              <span className="font-semibold">{noti.fromUser.name}</span>{" "}
+              <span>has liked your post</span>{" "}
+              <div className="text-smallText">
+                {noti?.linkTo?.text.slice(0, 20)}
+              </div>
+            </>
+          );
+        case "unlike":
+          return (
+            <>
+              <span className="font-semibold">{noti.fromUser.name}</span>{" "}
+              <span>has unliked your post</span>{" "}
+              <div className="text-smallText">
+                {noti?.linkTo?.text.slice(0, 20)}
+              </div>
+            </>
+          );
+        case "comment":
+          return (
+            <>
+              <span className="font-semibold">{noti.fromUser.name}</span>{" "}
+              <span>has commented on your post</span>{" "}
+              <div className="text-smallText">
+                {noti?.linkTo?.text.slice(0, 20)}
+              </div>
+            </>
+          );
+        case "uncomment":
+          return (
+            <>
+              <span className="font-semibold">{noti.fromUser.name}</span>{" "}
+              <span>has deleted a comment on your post</span>{" "}
+              <div className="text-smallText">
+                {noti?.linkTo?.text.slice(0, 20)}
+              </div>
+            </>
+          );
+        case "follow":
+          return (
+            <>
+              <span className="font-semibold">{noti.fromUser.name}</span>{" "}
+              <span>started following you</span>{" "}
+            </>
+          );
+        case "unfollow":
+          return (
+            <>
+              <span className="font-semibold">{noti.fromUser.name}</span>{" "}
+              <span>unfollowed you</span>{" "}
+            </>
+          );
+        case "gifted":
+          return (
+            <>
+              <span className="font-semibold">{noti.fromUser.name}</span>{" "}
+              <span>has gifted you</span>
+            </>
+          );
+        case "gift":
+          return (
+            <>
+              <span className="font-semibold">You</span> <span>has gifted</span>
+              <span className="font-semibold">{noti?.toUser?.name}</span>
+              <span>{noti?.points}</span>
+            </>
+          );
+        case "redeem":
+          return (
+            <>
+              <span className="font-semibold">You</span>{" "}
+              <span>has redeemed voucher</span>
+              <span className="font-semibold">{noti?.linkTo?.name}</span>
+            </>
+          );
+        default:
+          return <></>;
+      }
+    };
 
     return (
       <div>
         {filteredData.length > 0 ? (
           <div className="text-sm my-4 gap-1 text-bold ">
             {filteredData.map((noti) => (
-              <div className="cursor-pointer gap-x-5 p-4 mb-4 flex justify-between border-b-[1px] border-b-dialogue items-center"
-      onClick={()=>{handeClickLogs(noti)}}
+              <div
+                className="cursor-pointer gap-x-5 p-4 mb-4 flex justify-between border-b-[1px] border-b-dialogue items-center"
+                onClick={() => {
+                  handeClickLogs(noti);
+                }}
               >
-                <div>
+                <div className="flex items-center gap-x-3">
                   <span className="text-gray-500 mr-6">
                     {formatDate(noti.createdAt)}
                   </span>
-                  <span className="font-semibold">
-                    {(noti.type !== 9 && noti.type !== 8) ? noti?.fromUser?.name : `You`}
-                  </span>{" "}
-                  {notiText[noti.type]}{" "}
-                  <span className="font-semibold">
-                    {noti.type === 9 && `${noti?.linkTo?.name} - ${noti?.note}`}
-                  </span>
-                  <span className="font-semibold">
-                    {(noti.type === 3 || noti.type === 5 || noti.type === 10) &&
-                      noti?.linkTo?.text.slice(0,20)}
-                  </span>
-                  <span className="font-semibold">
-                    {(noti.type === 7 ||noti.type === 8) && Math.abs(noti?.points)} points to {" "}
-                  </span>
-                  <span className="font-semibold">
-                    {(noti.type === 7) &&
-                      `you`}
-                  </span>
-                  <span className="font-semibold">
-                    {(noti.type === 8) &&
-                      noti?.linkTo?.name}
-                  </span>
-                 
+                  <NotiText noti={noti} />
+
+                  <div></div>
                 </div>
                 <div>
                   {noti.points > 0 ? `+${noti.points}` : `${noti.points}`}
@@ -349,7 +406,7 @@ const Points = ({ user, setUser, userId, autoFetch, navigate }) => {
         handler={setHistoryMenu}
       />
 
-      <HistorySection data={logs} menu={historyMenu}/>
+      <HistorySection data={logs} menu={historyMenu} />
     </div>
   );
 };

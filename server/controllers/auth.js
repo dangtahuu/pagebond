@@ -12,6 +12,7 @@ import sortObjectDes from "../utils/sortObjectDes.js";
 import Log from "../models/log.js";
 import Shelf from "../models/shelf.js";
 import { listShelf1, listShelf2 } from "../consts/listShelf.js";
+import LogType from "../models/logType.js"; 
 
 const register = async (req, res) => {
   try {
@@ -255,26 +256,7 @@ const ForgotPassword = async (req, res) => {
   }
 };
 
-const addFollower = async (req, res, next) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.body.userId, {
-      $addToSet: {
-        follower: req.user.userId,
-      },
-      $inc: { points: 50 },
-    });
-
-    if (!user) {
-      return res.status(400).json({ msg: "No user found!" });
-    }
-
-    next();
-  } catch (error) {
-    return res.status(400).json({ msg: "Something went wrong. Try again!" });
-  }
-};
-
-const userFollower = async (req, res) => {
+const follow = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.user.userId,
@@ -288,40 +270,41 @@ const userFollower = async (req, res) => {
       return res.status(400).json({ msg: "No user found!" });
     }
 
+    const logType = await LogType.findOne({name: "follow"})
+
+    const targetUser = await User.findByIdAndUpdate(req.body.userId, {
+      $addToSet: {
+        follower: req.user.userId,
+      },
+      $inc: { points: logType.points },
+    });
+
+    if (!targetUser) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+
+
     const log = await Log.create({
       toUser: req.body.userId,
       fromUser: req.user.userId,
       linkTo: req.user.userId,
       typeOfLink: "User",
-      type: 1,
-      points: 50,
+      type: logType._id,
+      points: logType.points,
     });
 
     res.status(200).json({ msg: "Follow successfully!", user });
   } catch (error) {
+    console.log(error)
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
   }
 };
 
-const removeFollower = async (req, res, next) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.body.userId, {
-      $pull: {
-        follower: req.user.userId,
-      },
-      $inc: { points: -50 },
-    });
-    if (!user) {
-      return res.status(400).json({ msg: "No user found!" });
-    }
-    next();
-  } catch (error) {
-    return res.status(400).json({ msg: "Something went wrong. Try again!" });
-  }
-};
 
-const userUnFollower = async (req, res) => {
+const unfollow = async (req, res) => {
   try {
+   
+
     const user = await User.findByIdAndUpdate(
       req.user.userId,
       {
@@ -333,16 +316,31 @@ const userUnFollower = async (req, res) => {
       return res.status(400).json({ msg: "No user found!" });
     }
 
+    const logType = await LogType.findOne({name: "unfollow"})
+
+    const targetUser = await User.findByIdAndUpdate(req.body.userId, {
+      $pull: {
+        follower: req.user.userId,
+      },
+      $inc: { points: logType.points },
+    });
+
+    if (!targetUser) {
+      return res.status(400).json({ msg: "No user found!" });
+    }
+
     const log = await Log.create({
       toUser: req.body.userId,
       fromUser: req.user.userId,
       linkTo: req.user.userId,
       typeOfLink: "User",
-      type: 2,
-      points: -50,
+      type: logType._id,
+      points: logType.points,
     });
+
     res.status(200).json({ msg: "Unfollowed!", user });
   } catch (error) {
+    console.log(error)
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
   }
 };
@@ -502,7 +500,7 @@ const findPeopleWithMostInteraction = async (req, res) => {
   }
 };
 
-const userFollowing = async (req, res) => {
+const getFollowings = async (req, res) => {
   try {
     const userId = req.params.id;
     // current user
@@ -527,7 +525,8 @@ const userFollowing = async (req, res) => {
     return res.status(400).json({ msg: "Something went wrong. Try again!" });
   }
 };
-const listUserFollower = async (req, res) => {
+
+const getFollowers = async (req, res) => {
   try {
     const userId = req.params.id;
     // current user
@@ -742,13 +741,26 @@ const getPopularUsers = async (req, res) => {
 
 const reportUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.body.userId, {
+    const {userId, text} = req.body
+
+    const user = await User.findByIdAndUpdate(userId, {
       blocked: "Reported",
     });
 
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
+
+    const logType = await LogType.findOne({name: "report_account"})
+
+    const log = await Log.create({
+      toUser: userId,
+      fromUser: req.user.userId,
+      type: logType._id,
+      typeOfLink: "User",
+      linkTo: userId,
+      note: text
+    })
     return res.status(200).json({ user });
   } catch (error) {
     console.log(error);
@@ -774,13 +786,22 @@ const blockUser = async (req, res) => {
 
 const unblockUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.body.userId, {
+    const {userId}= req.body
+    const user = await User.findByIdAndUpdate(userId, {
       blocked: "Clean",
     });
 
     if (!user) {
       return res.status(400).json({ msg: "No user found!" });
     }
+
+    const logType = await LogType.findOne({ name: "report_account" });
+
+    const logs = await Log.updateMany({
+      $and: [{ linkTo: userId }, { type: logType._id }]
+    },{
+      isDone: true
+    })
     return res.status(200).json({ user });
   } catch (error) {
     console.log(error);
@@ -829,12 +850,15 @@ const giftPoints = async (req, res) => {
       $inc: { points: points },
     });
 
+    const giftType = await LogType.findOne({name: "gift"})
+    const giftedType = await LogType.findOne({name: "gifted"})
+
     await Log.create({
       toUser: giftedId,
       fromUser: userId,
       linkTo: userId,
       typeOfLink: "User",
-      type: 7,
+      type: giftedType._id,
       points: points,
     });
 
@@ -843,7 +867,7 @@ const giftPoints = async (req, res) => {
       fromUser: userId,
       linkTo: giftedId,
       typeOfLink: "User",
-      type: 8,
+      type: giftType._id,
       points: points * -1,
     });
 
@@ -916,17 +940,15 @@ export {
   updateUser,
   currentUser,
   ForgotPassword,
-  addFollower,
-  userFollower,
+  follow, 
+  unfollow,
   findPeopleToFollow,
-  userFollowing,
-  removeFollower,
-  userUnFollower,
+  getFollowings,
+  getFollowers,
   searchUser,
   getInformationUser,
   allUsers,
   deleteUserWithAdmin,
-  listUserFollower,
   findPeopleWithMostInteraction,
   getPopularUsers,
   reportUser,

@@ -1,6 +1,6 @@
 import express from "express";
 
-import {getLogs, getNotifications, markAsUsed, markRead,markReadAll
+import {getLogs, getNotifications, getReport, markAsDone, markRead,markReadAll
 } from "../controllers/log.js"
 import formidable from "express-formidable";
 import canUpdateOrDeleteShelf from "../middleware/canUpdateOrDeleteShelf.js";
@@ -17,7 +17,8 @@ router.route("/noti/mark-read").patch(markRead)
 router.route("/noti/mark-read-all").patch(markReadAll)
 
 router.route("/logs/:id").get(getLogs);
-router.route("/logs/mark-used").patch(markAsUsed)
+router.route("/logs/mark-used").patch(markAsDone)
+router.route("/logs/report/:id/:type").get(getReport)
 
 
 export default router;

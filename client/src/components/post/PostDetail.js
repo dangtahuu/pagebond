@@ -9,7 +9,7 @@ import Post from "../common/Post";
 
 const PostDetail = () => {
   const navigate = useNavigate();
-  const { id: postId, type } = useParams();
+  const { id: postId } = useParams();
 
   useEffect(() => {
     getPost();
@@ -20,7 +20,7 @@ const PostDetail = () => {
   const [loading, setLoading] = useState(true);
   const getPost = async () => {
     try {
-      const { data } = await autoFetch.get(`api/${type}/${postId}`);
+      const { data } = await autoFetch.get(`api/post/${postId}`);
       setPost(data.post);
     } catch (error) {
       console.log(error);

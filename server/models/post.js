@@ -57,7 +57,7 @@ const postSchema = new mongoose.Schema(
       refPath: 'postType'
     },
     spoiler: { type: Boolean, default: false },
-    reportedBy: [{ type: mongoose.Types.ObjectId, ref: "User" }]
+    reported: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
