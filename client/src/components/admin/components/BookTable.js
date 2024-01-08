@@ -11,10 +11,11 @@ import { formatDate } from "../../../utils/formatDate";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { DataGrid } from "@mui/x-data-grid";
 //icons
-import { AiOutlineEdit } from "react-icons/ai";
+import { AiOutlineEdit, AiOutlineInfoCircle } from "react-icons/ai";
 import { FiTrash } from "react-icons/fi";
 import BookForm from "../../common/BookForm";
 import { TbLockOpen } from "react-icons/tb";
+import ReportInfo from "./ReportInfo";
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
@@ -35,6 +36,9 @@ const BookTable = ({option}) => {
   const [openNewBookModal, setOpenNewBookModal] = useState(false);
   const [openEditBookModal, setOpenEditBookModal] = useState(false);
   const [bookData, setbookData] = useState({ code: [] });
+
+  const [reportId, setReportId] = useState("");
+  const [openReportModal, setOpenReportModal] = useState(false);
 
   useEffect(() => {
     getAllBooks();
@@ -89,15 +93,21 @@ const BookTable = ({option}) => {
     { field: "rating", headerName: "Rating", width: 90, flex: 1 },
     { field: "date", headerName: "Date", width: 90, flex: 1 },
     {
+        field: "info",
+        headerName: "Report Info",
+        width: 90,
+        renderCell: () => <AiOutlineInfoCircle />,
+      },
+    {
       field: "edit",
       headerName: "Edit",
-      width: 40,
+      width: 90,
       renderCell: () => <AiOutlineEdit />,
     },
     {
       field: "dismiss",
       headerName: "Dismiss",
-      width: 40,
+      width: 90,
       renderCell: () => <TbLockOpen />,
     },
   ];
@@ -121,6 +131,10 @@ const BookTable = ({option}) => {
       setOpenEditBookModal(true);
     }
     else if (params.field === "dismiss") handleDismiss(params.row.id);
+    else if (params.field === "info") {
+        setReportId(params.row.id);
+        return setOpenReportModal(true);
+    }
     else return;
   };
 
@@ -134,6 +148,8 @@ const BookTable = ({option}) => {
   //main return
   return (
     <div>
+         {openReportModal && <ReportInfo id={reportId} type="Book" setOpenModal={setOpenReportModal}/>}
+
       {openNewBookModal && <BookForm setOpenModal={setOpenNewBookModal} />}
 
       {openEditBookModal && (
